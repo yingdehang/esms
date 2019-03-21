@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>订单处理</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+	<style type="text/css">
+		.layui-table-cell{height:auto;line-height:auto;padding:0 15px;position:relative;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box}
+	</style>
+</head>
+<body>
+	<div id="changeLogistics" style="margin-left:50px;display:none;margin-right:50px">
+		<div class="layui-form layui-form-pane" style="margin-top:20px">
+			<div class="layui-form-item">
+				<label class="layui-form-label">物流公司：</label>
+				<div class="layui-input-block">
+					<select id="logistics" lay-search="">
+						<option value="">直接选择或搜索选择</option>
+						<option th:each="logistics:${logistics}" th:value="${logistics.COMPANY_CODE}" th:text="${logistics.COMPANY_NAME}"></option>
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">运单号：</label>
+				<div class="layui-input-block">
+					<input id="awb" type="text" class="layui-input"/>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<input id="which" type="hidden" th:value="${which}"/>
+	<input id="userId" type="hidden" th:value="${userId}"/>
+	<div class="layui-fluid">
+		<div class="layui-row">
+			<!-- 标题栏 -->
+			<div class="layui-col-lg12" style="background-color:white;padding-bottom:10px;border-bottom:2px solid #5FB878">
+				<div class="layui-col-lg1">
+					<h2><a href="javascript:void(0)" onclick="location.reload()">订单处理</a></h2>
+				</div>
+			</div>
+			<!-- 搜索栏 -->
+			<div class="layui-col-lg12">
+				<form class="layui-form layui-form-pane" action="java:void(0)" style="margin-top:21px">
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">收货人姓名</label>
+						<div class="layui-input-inline">
+							<input id="contact" class="layui-input" type="text" autocomplete="off"/>
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">订单编号</label>
+						<div class="layui-input-inline">
+							<input id="orderNumber" class="layui-input" type="text" autocomplete="off"/>
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">运单号</label>
+						<div class="layui-input-inline">
+							<input id="the_awb" class="layui-input" type="text" autocomplete="off"/>
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">买家手机号</label>
+						<div class="layui-input-inline">
+							<input id="phone" class="layui-input" type="text" autocomplete="off"/>
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label" style="width:150px">下单时间区间</label>
+						<div class="layui-input-inline">
+							<input id="time" class="layui-input" type="text" autocomplete="off"/>
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<div class="layui-input-inline">
+							<button id="search" class="layui-btn" data-type="search">查询</button>
+						</div>
+					</div>
+				</form>
+			</div>
+			<!-- 选项卡 -->
+			<div class="layui-col-lg12" style="background-color:white;">
+				<div class="layui-tab layui-tab-brief" lay-filter="demo">
+					<ul class="layui-tab-title">
+						<li id="0">全部订单</li>
+						<li id="1" class="layui-this">等待发货的订单</li>
+						<li id="2">申请取消的订单</li>
+						<li id="3">已发货的订单</li>
+						<li id="4">待处理大额订单</li>
+						<li id="5">已收货的订单</li>
+					</ul>
+				</div>
+			</div>
+			<!-- 批量发货-->
+			<div class="layui-col-lg12" style="padding-top:5px;padding-bottom:5px;margin-bottom:20px">
+				<div class="layui-col-lg1 layui-col-lg-offset11">
+					<button th:if="${bulkShipment}" id="batch" class="layui-btn" style="float:right;margin-right:10px;" data-type="batch">批量发货</button>
+				</div>
+			</div>
+			<table id="test" lay-filter="test"></table>
+		</div>
+	</div> 
+
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script>
+layui.use(['element','form','table','laydate'], function(){
+	var element = layui.element,form = layui.form,$ = layui.jquery,table = layui.table,laydate = layui.laydate;
+	laydate.render({
+		elem: '#time'
+		,type: 'datetime'
+	    ,range: true
+	});
+	var userId = $("#userId").val();
+	table.render({
+		elem: '#test'
+		,url:'/merchantsOrder/getOrders'
+		,cols: [[
+			{type:'checkbox'}
+			,{toolbar: '#order',title:'全选'}
+	    ]]
+		,where: {
+	    	userId:userId,state:'a'
+		}
+	    ,page: true
+	});
+	<!-- 监听搜索 -->
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	
+	var contact = $("#contact");
+	var orderNumber = $("#orderNumber");
+	var the_awb = $("#the_awb");
+	var phone = $("#phone");
+	var time = $("#time");
+	
+	<!-- 搜索 -->
+	var active = {
+		search: function(){
+			//执行重载
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+		        	contact:contact.val(),
+		        	orderNumber:orderNumber.val(),
+		        	the_awb:the_awb.val(),
+		        	phone:phone.val(),
+		        	time:time.val(),
+		        	state:''
+				}
+				,page:{
+					curr:1
+				}
+			});
+			$("#batch").css("display","none");
+		}
+		,refresh: function(){
+			location.reload();
+		}
+		,batch: function(){
+			var checkStatus = table.checkStatus('test'), data = checkStatus.data;
+			var len = data.length;
+			if (len > 0) {
+				var orderIdArray = new Array(len);
+				for(var i=0;orderIdArray.length>i;i++)
+				{
+					orderIdArray[i]=data[i].ORDER_ID;
+				}
+				window.location.href="/merchantsOrder/toSendGoods?orderIds="+orderIdArray;
+			} else {
+				layer.msg("您未选择订单");
+			}
+		}
+	};
+	<!-- 选项卡重载 -->
+	element.on('tab(demo)', function(data){
+		if(data.index==0)
+		{
+			$("#batch").css("display","none");
+			table.reload('test', {
+				where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:''
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		if(data.index==1)//等待发货的订单
+		{
+			$("#batch").css("display","block");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:'a',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		if(data.index==2)//待取消的订单
+		{
+			$("#batch").css("display","none");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:'b',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		if(data.index==3)//已发货的订单
+		{
+			$("#batch").css("display","none");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:'c',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		if(data.index==4)//待处理的大额订单
+		{
+			$("#batch").css("display","none");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:'d',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		if(data.index==5)//已收货的订单
+		{
+			$("#batch").css("display","none");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:'e',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+	});
+	//判断页面加载时显示那个选项卡
+	$(function(){
+		var which = $("#which").val();
+		$("#0").attr("class","");
+		$("#1").attr("class","");
+		$("#2").attr("class","");
+		$("#3").attr("class","");
+		$("#4").attr("class","");
+		$("#5").attr("class","");
+		if(which==0)
+		{
+			$("#0").attr("class","layui-this");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					orderState:'',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		else if(which==1)
+		{
+			$("#1").attr("class","layui-this");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:'a',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		else if(which==2)
+		{
+			$("#2").attr("class","layui-this");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:'b',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		else if(which==3)
+		{
+			$("#3").attr("class","layui-this");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:'c',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		else if(which==4)
+		{
+			$("#4").attr("class","layui-this");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:'d',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		else if(which==5)
+		{
+			$("#5").attr("class","layui-this");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:'e',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		else
+		{
+			$("#1").attr("class","layui-this");
+			table.reload('test', {
+				url: '/merchantsOrder/getOrders'
+				,where: {
+					contact:'',
+		        	orderNumber:'',
+		        	the_awb:'',
+		        	phone:'',
+		        	time:'',
+					state:'a',
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+	});
+});
+//修改物流信息
+function updateLogistics(obj){
+	layui.use(['element','form','table','laydate'], function(){
+		var element = layui.element,form = layui.form,$ = layui.jquery,table = layui.table,laydate = layui.laydate;
+		//alert(obj.id);
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/merchantsOrder/gerOrderLogistics",   
+			data : {   
+				orderId:obj.id
+			},  
+			success : function(da) {//返回数据根据结果进行相应的处理   
+				var data = eval(da);
+				$("select option[value='"+data.COURIER_COMPANY+"']").attr("selected",true);
+				form.render('select');
+				$("#awb").val(data.THE_AWB);
+			}   
+		});
+		
+		var index1 = layer.open({
+			type: 1
+			,id:'m1'
+	        ,title: '修改物流信息'
+	        ,area: ['700px', '500px']
+	        ,shade: 0
+	        ,maxmin: true
+	        ,content: $("#changeLogistics")
+	        ,skin:'layui-layer-molv'
+	        ,btnAlign: 'c'
+	        ,btn: ['确定', '取消']
+	        ,yes: function(){
+	        	alert($("#logistics").val());
+	        	$.ajax({   
+	    			type : "POST",
+	    			async:false,
+	    			url : "/merchantsOrder/changeOrderLogistics",   
+	    			data : {   
+	    				orderNumber:obj.name,company:$("#logistics").val(),awb:$("#awb").val()
+	    			},  
+	    			success : function(da) {//返回数据根据结果进行相应的处理   
+	    			}   
+	    		});
+	        	layer.close(index1);
+	        }
+	        ,btn2: function(){
+				layer.close(index1);
+	        }
+	        ,cancel: function(index, layero){ 
+	        	layer.close(index)
+	        	return false; 
+	        }  
+		});
+	});
+}
+</script>
+<script id="order" type="text/html">
+	<!-- 订单编号 -->
+	<div class="layui-col-lg12" style="height:30px;border-bottom:1px solid #E6E6E6">
+		<div class="layui-col-lg2" style="height:30px">
+			<span>订单编号：{{d.ORDER_NUMBER}}</span>
+		</div>
+		<div class="layui-col-lg2 layui-col-lg-offset2" style="height:30px">
+			<span>下单时间：{{d.ORDER_TIME}}</span>
+		</div>
+		<div class="layui-col-lg2 layui-col-lg-offset2" style="height:30px">
+			<span>买家：{{d.NICKNAME}}({{d.PHONE}})</span>
+		</div>
+		<div class="layui-col-lg2" style="height:30px;">
+			<span style="float:right;margin-right:15px">订单状态：{{d.DESCRIBES}}</span>
+		</div>
+	</div>
+	<div class="layui-col-lg12" style="height:30px;border-bottom:1px solid #E6E6E6">
+		<div class="layui-col-lg10">
+			<div class="layui-col-lg8" align="center">商品信息</div>
+			<div class="layui-col-lg2" align="center">单价</div>
+			<div class="layui-col-lg2" align="center">数量</div>
+		</div>
+		<div class="layui-col-lg2">
+			<div class="layui-col-lg12" align="center">收货人信息</div>
+		</div>
+	</div>
+	<!-- 订单主体 -->
+	<div class="layui-col-lg12" style="height:{{d.goods.length*170}}px;border-bottom:1px solid #E6E6E6">
+		<!-- 商品信息 -->
+		<div class="layui-col-lg10">
+			{{#  layui.each(d.goods, function(index, item){ }}
+				<div class="layui-col-lg12" style="height:170px;{{# if(index!=d.goods.length-1){ }}border-bottom:1px solid #E6E6E6{{# } }};border-right:1px solid #E6E6E6">
+					<!-- 商品图片 -->
+					<div class="layui-col-lg2" style="height:150px;margin-top:10px;">
+						<img src="{{item.ICON}}" style="height:100%;"/>
+					</div>
+					<!-- 商品名字 -->
+					<div class="layui-col-lg6" style="height:100%;border-right:1px solid #E6E6E6;padding-top:20px">
+						<div class="layui-col-lg12" style="white-space:normal;word-wrap:normal">
+							<span>商品名字：{{item.GOODS_NAME}}</span>
+						</div>
+						<div class="layui-col-lg12" style="white-space:normal;word-wrap:normal">
+							<span>属性：{{item.ATTRIBUTE}}</span>
+						</div>
+					</div>
+					<!-- 商品价格 -->
+					<div class="layui-col-lg2" style="height:100%;border-right:1px solid #E6E6E6;padding-top:65px" align="center">
+						<span>￥{{item.PRICE}}</span>
+					</div>
+					<!-- 商品数量 -->
+					<div class="layui-col-lg2" style="height:100%;padding-top:65px" align="center">
+						<span>{{item.NUMBER}}</span>
+					</div>
+				</div>
+			{{#  }); }}
+		</div>
+		<!-- 收货人/地址  -->
+		<div class="layui-col-lg2" style="height:100%;padding-left:20px" align="center">
+			<div class="layui-col-lg12" style="padding-top:{{d.goods.length*85-25}}px;white-space:normal;word-wrap:normal">
+				<span>收货人：{{d.CONTACT}}({{d.LXPHONE}})</span><br/>
+				<span>收货地址：{{d.p}}{{d.c}}{{d.a}}{{d.ADDR}}</span>
+			</div>
+		</div>
+	</div>
+	<!-- 订单底部 -->
+	<div class="layui-col-lg12" style="height:55px">
+		<div class="layui-col-lg1" style="height:100%">
+			<p style="margin-top:10px;margin-left:10px">合计：￥{{d.sumPrice}}</p>
+		</div>
+		<div class="layui-col-lg8 layui-col-lg-offset3" style="height:100%">
+			{{# if(d.state=='0'){ }}
+				<a th:if="${delivery}" class="layui-btn" style="float:right;margin-right:10px;margin-top:5px" href="toSendGoods2?orderId={{d.ORDER_ID}}">发货</a>
+			{{# } }}
+			{{# if(d.state=='2'){ }}
+				<a class="layui-btn" style="float:right;margin-right:10px;margin-top:5px" href="toOrderLogistics?orderId={{d.ORDER_ID}}">查看物流</a>
+				<a class="layui-btn" onclick="updateLogistics(this)" id="{{d.ORDER_ID}}" name="{{d.ORDER_NUMBER}}" style="float:right;margin-right:10px;margin-top:5px">修改物流信息</a>
+			{{# } }}
+			{{# if(d.state=='1'){ }}
+				<a class="layui-btn" style="float:right;margin-right:10px;margin-top:5px" href="cancelOrder?orderNumber={{d.ORDER_NUMBER}}&amp;money={{d.sumPrice}}&amp;userId={{d.USERS_ID}}&amp;payType={{d.PAY_TYPE}}">同意取消</a>
+			{{# } }}
+			{{# if(d.state=='3'){ }}
+				<div class="layui-col-lg9" style="height:100%">
+					<p style="color:red">未上传交易凭证</p>
+				</div>
+				<div class="layui-col-lg3" style="height:100%">
+					<a class="layui-btn" style="float:right;margin-right:10px;margin-top:5px" href="toTradingProof?orderNumber={{d.ORDER_NUMBER}}">交易凭证上传</a>
+				</div>
+			{{# } }}
+			{{# if(d.state=='4'){ }}
+				<div class="layui-col-lg9" style="height:100%;white-space:normal;word-wrap:normal">
+					<p style="color:red">审核未通过，请重新上传交易凭证;失败原因：{{d.STATE_CONTENT}}</p>
+				</div>
+				<div class="layui-col-lg3" style="height:100%">
+					<a class="layui-btn" style="float:right;margin-right:10px;margin-top:5px" href="toTradingProof?orderNumber={{d.ORDER_NUMBER}}">重新上传交易凭证</a>
+				</div>
+			{{# } }}
+			{{# if(d.state=='5'){ }}
+				<div style="height:100%">
+					<p style="color:red">审核中，审核通过后订单会变为待发货状态</p>
+				</div>
+			{{# } }}
+		</div>
+	</div>
+</script>
+</html>

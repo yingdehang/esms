@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>收藏管理</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<h2><a href="javascript:void(0)" onclick="location.reload()">收藏管理</a></h2>
+	</div>
+	<div class="search" style="margin-top:10px">
+		<div class="layui-inline">
+			<input name="id" class="layui-input" id="phoneNumber" autocomplete="off" placeholder="按账号查询（电话号码）"/>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+	</div>
+
+	<table id="collectionList"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+layui.use(['table','jquery','form'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#collectionList'
+		,url: '/collection/getCollectionList'
+		,page: true
+		,cols:[[
+			{field:'PHONE',title:'账号（电话号码）'}
+			,{field:'COLLECTION_TYPE',title:'类型'}
+			,{field:'NAME',title:'物品名字'}
+			,{field:'COLLECTION_TIME',title:'收藏时间'}
+		]]
+	});
+	<!-- 监听搜索按钮 -->
+	$('.search .layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索时执行重载-->
+	var $ = layui.$, active = {
+		reload: function(){
+			var phoneNumber = $('#phoneNumber');
+			//执行重载
+			table.reload('collectionList', {
+				where: {
+					phoneNumber: phoneNumber.val()
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+	};
+});
+</script>
+</body>
+</html>

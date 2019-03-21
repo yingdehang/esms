@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.operationsManage.StoreVerifyDao">
+	<!-- 未分页的店铺认证数据 -->
+	<select id="getStoreVerifyList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		s.`STORE_NAME`
+		,sc.`STORE_CERTIFICATION_ID`
+		,sc.`PHONE`
+		,sc.`ADDR`
+		,p1.`PHOTO_URL` AS `BUSINESS_LICENSE`
+		,p2.`PHOTO_URL` AS `ID_CARD`
+		,p3.`PHOTO_URL` AS `HEAD_PHOTO`
+		,d1.`DESCRIBES` AS `TYPES`
+		,d2.`DESCRIBES` AS `STORE_TYPE`
+		,d3.`DESCRIBES` AS `LEVELS`
+		,d4.`DESCRIBES` AS `AUDIT_STATE`
+		,sc.`TO_APPLY_FOR_TIME` AS `TIME`
+		FROM 
+		es_store_certification sc
+		LEFT OUTER JOIN es_store s ON sc.`STORE_ID`=s.`STORE_ID`
+		LEFT OUTER JOIN es_dictionary d1 ON sc.`TYPES`=d1.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary d2 ON sc.`STORE_TYPE`=d2.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary d3 ON sc.`LEVELS`=d3.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary d4 ON sc.`AUDIT_STATE`=d4.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_photo p1 ON sc.`BUSINESS_LICENSE`=p1.`PHOTO_ID`
+		LEFT OUTER JOIN es_photo p2 ON sc.`ID_CARD`=p2.`PHOTO_ID`
+		LEFT OUTER JOIN es_photo p3 ON sc.`HEAD_PHOTO`=p3.`PHOTO_ID`
+		<where>
+			<if test="storeName != null and storeName != ''">
+				AND s.STORE_NAME LIKE concat('%',#{storeName},'%')
+			</if>
+			<if test="storeGrade != null and storeGrade != ''">
+				AND sc.LEVELS=#{storeGrade}
+			</if>
+			<if test="storeType != null and storeType != ''">
+				AND sc.STORE_TYPE=#{storeType}
+			</if>
+			<if test="type != null and type != ''">
+				AND sc.TYPES=#{type}
+			</if>
+		</where>
+	</select>
+	<!-- 已分页的店铺认证数据 -->
+	<select id="getStoreVerifyListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		s.`STORE_NAME`
+		,sc.`STORE_CERTIFICATION_ID`
+		,sc.`PHONE`
+		,sc.`ADDR`
+		,p1.`PHOTO_URL` AS `BUSINESS_LICENSE`
+		,p2.`PHOTO_URL` AS `ID_CARD`
+		,p3.`PHOTO_URL` AS `HEAD_PHOTO`
+		,d1.`DESCRIBES` AS `TYPES`
+		,d2.`DESCRIBES` AS `STORE_TYPE`
+		,d3.`DESCRIBES` AS `LEVELS`
+		,d4.`DESCRIBES` AS `AUDIT_STATE`
+		,sc.`TO_APPLY_FOR_TIME` AS `TIME`
+		FROM 
+		es_store_certification sc
+		LEFT OUTER JOIN es_store s ON sc.`STORE_ID`=s.`STORE_ID`
+		LEFT OUTER JOIN es_dictionary d1 ON sc.`TYPES`=d1.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary d2 ON sc.`STORE_TYPE`=d2.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary d3 ON sc.`LEVELS`=d3.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary d4 ON sc.`AUDIT_STATE`=d4.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_photo p1 ON sc.`BUSINESS_LICENSE`=p1.`PHOTO_ID`
+		LEFT OUTER JOIN es_photo p2 ON sc.`ID_CARD`=p2.`PHOTO_ID`
+		LEFT OUTER JOIN es_photo p3 ON sc.`HEAD_PHOTO`=p3.`PHOTO_ID`
+		<where>
+			<if test="storeName != null and storeName != ''">
+				AND s.STORE_NAME LIKE concat('%',#{storeName},'%')
+			</if>
+			<if test="storeGrade != null and storeGrade != ''">
+				AND sc.LEVELS=#{storeGrade}
+			</if>
+			<if test="storeType != null and storeType != ''">
+				AND sc.STORE_TYPE=#{storeType}
+			</if>
+			<if test="type != null and type != ''">
+				AND sc.TYPES=#{type}
+			</if>
+		</where>
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 获取店铺等级 -->
+	<select id="getStoreGradeList" resultType="java.util.Map">
+		SELECT * FROM es_dictionary WHERE PID='64'
+	</select>
+	<!-- 获取类型 -->
+	<select id="getTypeList" resultType="java.util.Map">
+		SELECT * FROM es_dictionary WHERE PID='79'
+	</select>
+	<!-- 获取店铺类型 -->
+	<select id="getStoreTypeList" resultType="java.util.Map">
+		SELECT * FROM es_dictionary WHERE PID='78'
+	</select>
+	<!-- 获取店铺认证状态 -->
+	<select id="getVerifyStates" resultType="java.util.Map">
+		SELECT * FROM es_dictionary WHERE PID='26' AND DICTIONARY_VALUE!='STORE_AUTHENTICATION_UNAUTHORIZED'
+	</select>
+	<!-- 进行店铺认证 -->
+	<update id="toVerify" parameterType="java.util.Map">
+		UPDATE es_store_certification SET AUDIT_STATE=#{verifyState} 
+		<if test="content != ''">
+			,CONTENT=#{content}
+		</if>
+		WHERE STORE_CERTIFICATION_ID=#{storeVerifyId}
+	</update>
+	<!-- 获取某个店铺的信息 -->
+	<select id="getStoreVerifyInfo" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT 
+		sc.`STORE_CERTIFICATION_ID`
+		,s.`STORE_NAME`
+		,sc.`PHONE`
+		,p1.PHOTO_URL AS BUSINESS_LICENSE
+		,p2.PHOTO_URL AS ID_CARD
+		,p3.PHOTO_URL AS HEAD_PHOTO
+		,sc.`ADDR`
+		,sc.`STORE_TYPE`
+		,sc.`TYPES`
+		,sc.`LEVELS`
+		,sc.LONGITUDE
+		,sc.LATITUDE
+		FROM 
+		es_store_certification sc
+		LEFT OUTER JOIN es_store s ON sc.`STORE_ID`=s.`STORE_ID`
+		LEFT OUTER JOIN es_photo p1 ON sc.`BUSINESS_LICENSE`=p1.`PHOTO_ID`
+		LEFT OUTER JOIN es_photo p2 ON sc.`ID_CARD`=p2.`PHOTO_ID`
+		LEFT OUTER JOIN es_photo p3 ON sc.`HEAD_PHOTO`=p3.`PHOTO_ID`
+		WHERE 
+		sc.STORE_CERTIFICATION_ID=#{storeVerifyId}
+	</select>
+	<!-- 修改店铺认证基本信息 -->
+	<update id="editStoreVerify" parameterType="java.util.Map">
+		UPDATE es_store_certification 
+		SET 
+		PHONE=#{phone},
+		ADDR=#{addr},
+		STORE_TYPE=#{storeType},
+		TYPES=#{type},
+		LEVELS=#{storeGrade},
+		LONGITUDE=#{longitude},
+		LATITUDE=#{latitude}
+		<if test="province!=null and province!=''">
+			,PROVINCE=#{province}
+		</if>
+		<if test="city!=null and city!=''">
+			,CITY=#{city}
+		</if>
+		<if test="area!=null and area!=''">
+			,AREA=#{area}
+		</if>
+		WHERE STORE_CERTIFICATION_ID=#{storeVerifyId}
+	</update>
+	<!-- 获取店铺认证的图片信息 -->
+	<select id="getStoreVerifyPhotoInfo" resultType="java.util.Map">
+		select 
+		p1.PHOTO_ID as lId
+		,p1.PHOTO_URL as lUrl
+		,p2.PHOTO_ID AS iId
+		,p2.PHOTO_URL AS iUrl
+		,p3.PHOTO_ID AS hId
+		,p3.PHOTO_URL AS hUrl
+		from
+		es_store_certification sc
+		left outer join es_photo p1 on sc.`BUSINESS_LICENSE`=p1.`PHOTO_ID`
+		left outer join es_photo p2 on sc.`ID_CARD`=p2.`PHOTO_ID`
+		left outer join es_photo p3 on sc.`HEAD_PHOTO`=p3.`PHOTO_ID`
+		where sc.`STORE_CERTIFICATION_ID`='1'
+	</select>
+	<!-- 将身份证Id保存到店铺认证表里面 -->
+	<update id="updateIdCard" parameterType="java.util.Map">
+		UPDATE es_store_certification SET ID_CARD=#{photoId} WHERE STORE_CERTIFICATION_ID=#{storeVerifyId}
+	</update>
+	<!-- 将门头照片Id保存到店铺认证表里面 -->
+	<update id="updateHeadPhoto" parameterType="java.util.Map">
+		UPDATE es_store_certification SET HEAD_PHOTO=#{photoId} WHERE STORE_CERTIFICATION_ID=#{storeVerifyId}
+	</update>
+	<!-- 将营业执照Id保存到店铺认证表里面 -->
+	<update id="updateLicense" parameterType="java.util.Map">
+		UPDATE es_store_certification SET BUSINESS_LICENSE=#{photoId} WHERE STORE_CERTIFICATION_ID=#{storeVerifyId}
+	</update>
+	<!-- 根据ID获取店铺认证信息 -->
+	<select id="getStoreVerifyById" parameterType="java.lang.String" resultType="java.util.Map">
+		select * from es_store_certification where STORE_ID=#{storeId}
+	</select>
+	<!-- 添加店铺认证基本信息 -->
+	<insert id="addStoreVerify" parameterType="java.util.Map">
+		INSERT INTO 
+		es_store_certification 
+		(STORE_CERTIFICATION_ID,STORE_ID,PHONE,ADDR,`TYPES`,STORE_TYPE,LEVELS,TO_APPLY_FOR_TIME,AUDIT_STATE,LONGITUDE,LATITUDE,PROVINCE,CITY,AREA) 
+		VALUES
+		(#{storeVerifyId},#{storeId},#{phone},#{addr},#{type},#{storeType},#{storeGrade},now(),'STORE_AUTHENTICATION_UNAUTHORIZED',#{longitude},#{latitude},#{province},#{city},#{area})
+	</insert>
+	<!-- 判断此ID对应的店铺是否存在 -->
+	<select id="storeIsExists" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_store WHERE STORE_ID=#{storeId}
+	</select>
+	<!-- 根据pId获得所有的下级地区 -->
+	<select id="getSubordinateArea" parameterType="int" resultType="java.util.Map">
+		SELECT * FROM es_area WHERE PID=#{pId}
+	</select>
+</mapper>

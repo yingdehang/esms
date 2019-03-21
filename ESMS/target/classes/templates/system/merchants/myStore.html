@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>我的店铺</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<style type="text/css">
+</style>
+</head>
+<body>
+	<input type="hidden" id="userId" th:value="${userId}" />
+	<input type="hidden" id="storeId" th:value="${store.STORE_ID}" />
+	<!-- 标题栏 -->
+	<div style="padding-bottom: 10px; border-bottom: 2px solid #5FB878">
+		<h2>
+			<a href="javascript:void(0)" onclick="location.reload()">我的店铺</a>
+		</h2>
+	</div>
+	<div class="layui-form"
+		style="margin-top: 20px; font-size: 16px; margin-bottom: 80px">
+		<div class="layui-form-item">
+			<div class="layui-input-inline">
+				<button id="toOrderDispose" data-type="jump" class="layui-btn"
+					style="margin-left: 13px">
+					待处理订单<span class="layui-badge layui-bg-gray" th:text="${count}"></span>
+				</button>
+			</div>
+		</div>
+		<hr />
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺名称：</label>
+			<div class="layui-input-inline" style="width: 80%;">
+				<input class="layui-input" th:value="${store.STORE_NAME}"
+					type="text" style="border: 0px" disabled="" />
+			</div>
+		</div>
+		<hr />
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺图标：</label>
+			<div class="layui-input-inline">
+				<img id="icon" th:src="${store.STORE_ICON}"
+					style="height: 50px; width: 50px" />
+			</div>
+			<div class="layui-input-block">
+				<button class="layui-btn" id="demo1" type="button"
+					style="font-size: 13px">修改</button>
+			</div>
+		</div>
+		<hr />
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺状态：</label>
+			<div class="layui-input-inline">
+				<input class="layui-input"
+					th:if="${store.STATE!='STORE_AUTHENTICATION_FREEZE'}" value="正常"
+					type="text" style="border: 0px" disabled="" /> <input
+					class="layui-input"
+					th:if="${store.STATE=='STORE_AUTHENTICATION_FREEZE'}" value="冻结"
+					type="text" style="border: 0px" disabled="" />
+			</div>
+		</div>
+		<hr />
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺等级：</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" th:value="${storeCertification.oldLevel}"
+					type="text" style="border: 0px" disabled="" />
+			</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" type="text"
+					th:if="${storeCertification.newLevel!=''}"
+					th:value="'店铺等级已修改为'+${storeCertification.newLevel}+',下月一号生效'"
+					style="border: 0px; color: green; width: 300px; font-size: 14px"
+					disabled="" />
+			</div>
+		</div>
+		<hr />
+		<div class="layui-form-item">
+			<label class="layui-form-label">营业状态：</label>
+			<div class="layui-input-inline">
+				<select id="states" lay-filter="state">
+					<option th:each="state:${storeState}"
+						th:value="${state.DICTIONARY_VALUE}" th:text="${state.DESCRIBES}"></option>
+				</select> <input type="hidden" id="state" th:value="${store.STATE}" />
+			</div>
+		</div>
+		<hr />
+		<div class="layui-form-item">
+			<label class="layui-form-label">客服电话：</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="servicePhone"
+					th:value="${store.SERVICE_PHONE}" onblur="changeServicePhone()" />
+				<input class="layui-input" id="oldPhone"
+					th:value="${store.SERVICE_PHONE}" type="hidden" />
+			</div>
+		</div>
+	</div>
+	<fieldset class="layui-elem-field layui-field-title">
+		<legend>消息</legend>
+	</fieldset>
+	<ul class="layui-timeline" th:each="message:${message}">
+		<li class="layui-timeline-item"><i
+			class="layui-icon layui-timeline-axis">&#xe63f;</i>
+			<div class="layui-timeline-content layui-text">
+				<h3 class="layui-timeline-title" th:text="${message.MESSAGE_TIME}"></h3>
+				<h4 th:text="${message.TITLE}" style="font-size: 17px; color: black"></h4>
+				<p th:text="${message.CONTENT}"></p>
+			</div></li>
+	</ul>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript" th:src="@{/js/jquery-1.4.4.min.js}"></script>
+<script>
+	var userId = $("#userId").val();
+	var storeId = $("#storeId").val();
+	var layers;
+	layui
+			.use(
+					[ 'element', 'form', 'table', 'laydate', 'upload', 'layer' ],
+					function() {
+						var element = layui.element, form = layui.form, $ = layui.jquery, table = layui.table, laydate = layui.laydate;
+						var upload = layui.upload;
+						layers = layui.layer;
+						var uploadInst = upload.render({
+							elem : '#demo1',
+							url : '/onLineStore/changeStoreIcon',
+							data : {
+								'storeId' : storeId
+							},
+							size : '1024',
+							before : function(obj) {
+								obj.preview(function(index, file, result) {
+									$("#icon").attr("src", result);
+								});
+							},
+							done : function(res) {
+								layer.msg("店铺图片已修改");
+							}
+						});
+						//修改店铺营业状态
+						/* <![CDATA[ */
+						form.on('select(state)', function(data) {
+							var state = $("#states").val();
+							$.post("/myStore/changeState", {
+								state : state,
+								storeId : storeId
+							}, function(data) {
+							});
+							layer.msg("营业状态已修改");
+						});
+						/* ]]> */
+						var active = {
+							jump : function() {
+								window.location.href = "/merchantsOrder/toOrderDispose?userId="
+										+ userId;
+							}
+						};
+						$('#toOrderDispose').on('click', function() {
+							var type = $(this).data('type');
+							active[type] ? active[type].call(this) : '';
+						});
+					});
+	//修改客服电话
+	function changeServicePhone() {
+		var servicePhone = $("#servicePhone").val();
+		if (servicePhone == "") {
+			layers.msg("请填写客服电话")
+		} else {
+			if (servicePhone != $("#oldPhone").val()) {
+				$.post("/myStore/changeServicePhone", {
+					servicePhone : servicePhone,
+					storeId : storeId
+				}, function(data) {
+				});
+				$("#oldPhone").val(servicePhone);
+				layers.msg("客服电话已修改")
+			}
+		}
+	}
+	$(function() {
+		$("select option[value='" + $("#state").val() + "']").attr("selected",
+				true);
+	});
+</script>
+</html>

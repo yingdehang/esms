@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.operationsManage.ShoppingCarDao">
+	<!-- 未分页的购物车数据 -->
+	<select id="getShoppingCarList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		g.`GOODS_NAME`
+		,u.`PHONE`
+		,sc.`SHOPPING_CART_ID`
+		,sc.`NUMBER`
+		,sc.`ADD_TIME` AS `TIME`
+		FROM 
+		es_shopping_cart sc
+		,es_goods g
+		,es_users u 
+		WHERE 
+		sc.`GOODSID`=g.`GOODSID` 
+		AND sc.`USERS_ID`=u.`USERS_ID`
+		<if test="goodsName != null and goodsName != ''">
+			AND g.GOODS_NAME LIKE concat('%',#{goodsName},'%')
+		</if>
+		<if test="phoneNumber != null and phoneNumber != ''">
+			AND u.PHONE=#{phoneNumber}
+		</if>
+	</select>
+	<!-- 已分页的购物车数据 -->
+	<select id="getShoppingCarListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		g.`GOODS_NAME`
+		,u.`PHONE`
+		,sc.`SHOPPING_CART_ID`
+		,sc.`NUMBER`
+		,sc.`ADD_TIME` AS `TIME`
+		FROM 
+		es_shopping_cart sc
+		,es_goods g
+		,es_users u 
+		WHERE 
+		sc.`GOODSID`=g.`GOODSID` 
+		AND sc.`USERS_ID`=u.`USERS_ID`
+		<if test="goodsName != null and goodsName != ''">
+			AND g.GOODS_NAME LIKE concat('%',#{goodsName},'%')
+		</if>
+		<if test="phoneNumber != null and phoneNumber != ''">
+			AND u.PHONE=#{phoneNumber}
+		</if>
+		LIMIT #{which},#{limit}
+	</select>
+</mapper>

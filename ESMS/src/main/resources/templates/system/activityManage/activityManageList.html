@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>首页活动管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<script th:src="@{/layui/layui.js}"></script>
+</head>
+<body>
+	<!-- 活动管理顶部 -->
+	<div class="layui-tab layui-tab-card" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label>首页活动管理</label>
+		</div>
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			<button th:if="${addNewActivity}" class="layui-btn layui-btn-xs"
+				id="addActive">
+				<i class="layui-icon" style="font-size: 14px;">&#xe61f;</i>新建活动
+			</button>
+		</div>
+	</div>
+	<table class="layui-table"
+		lay-data="{url:'/activity/getNewActiveList/', page:true, id:'actionlist'}"
+		lay-filter="demo">
+		<thead>
+			<tr>
+				<th
+					lay-data="{fixed:'left',toolbar:'#index',align:'center',width:80}">序号</th>
+				<th lay-data="{field:'TITLE',align:'center'}">标题</th>
+				<th lay-data="{toolbar:'#ntype',align:'center',width:260}">类型</th>
+				<th lay-data="{toolbar:'#eastate',align:'center',width:120}">状态</th>
+				<th
+					lay-data="{field:'DSORT',align:'center',event:'setSORT',width:100}">排序</th>
+				<th
+					lay-data="{fixed:'right',toolbar: '#barDemo',align:'center',width:200}">操作</th>
+			</tr>
+		</thead>
+	</table>
+	<script id="index" type="text/html">
+    	{{d.LAY_TABLE_INDEX+1}}
+	</script>
+	<script id="ntype" type="text/html">
+    	{{#if(d.NTYPE==1){}}
+			1张图+商品列表
+		{{#}else if(d.NTYPE==2){}}
+			3张图
+		{{#}else{}}
+			1张图
+		{{#}}}
+	</script>
+	<script id="barDemo" type="text/html">
+		<a th:if="${updateNewActivity}" class="layui-btn layui-btn-xs" lay-event="updateNewActivity">管理</a>  		
+		{{# if(d.IS_OPEN=='0'){}}
+			<a th:if="${openNewActivity}" class="layui-btn layui-btn-xs" lay-event="openActive">开启</a>
+		{{#}else if(d.IS_OPEN=='1'){}}
+  			<a th:if="${closeNewActivity}" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="closeActive">关闭</a>
+		{{#}}}
+			<a th:if="${deleteNewActivity}" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="deleteActive">删除</a>
+	</script>
+	<script id="eastate" type="text/html">
+  		{{# if(d.IS_OPEN=='0'){}}
+			<span style="color:red;">活动关闭</span>
+		{{#}else if(d.IS_OPEN=='1'){}}
+  			<span style="color:green;">活动开启</span>
+		{{#}}}
+	</script>
+	<div id="addbox" class="layui-form layui-form-pane"
+		style="display: none; padding: 15px 15px 0px 15px;">
+		<div class="layui-form-item">
+			<label class="layui-form-label">标题</label>
+			<div class="layui-input-block">
+				<input id="TITLE" class="layui-input" type="text"
+					placeholder="请输入活动标题" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">类型</label>
+			<div class="layui-input-block">
+				<select id="NTYPE">
+					<option value="0" selected="selected" disabled="disabled">请选择类型</option>
+					<option value="1">1张图+商品列表</option>
+					<option value="2">3张图</option>
+					<option value="3">1张图</option>
+				</select>
+			</div>
+		</div>
+	</div>
+</body>
+<script>
+	/* <![CDATA[ */
+	layui.use('table', function() {
+		var $ = layui.jquery, table = layui.table;
+		//监听工具条
+		table.on('tool(demo)', function(obj) {
+			var data = obj.data;
+			//修改排序
+			if (obj.event === 'setSORT') {
+				layer.prompt({
+					formType : 2,
+					title : '默认为0,请输入一个整数数字用于排序',
+					value : data.DSORT
+				}, function(value, index) {
+					if (!isNaN(value)) {
+						$.post("/activity/updateNewActivitySort", {
+							NID : data.NID,
+							DSORT : value
+						}, function(da) {
+							if (da > 0) {
+								layer.msg("修改活动排序成功");
+								obj.update({
+									DSORT : value
+								});
+							} else {
+								layer.msg("修改失败");
+							}
+						});
+						layer.close(index);
+					} else {
+						layer.msg("请输入正确的数字");
+					}
+				});
+			}
+			//活动管理
+			else if (obj.event === 'updateNewActivity') {
+				var type = data.NTYPE;
+				if (type == '1') {
+					window.location.href = "/activity/typeOne?NID=" + data.NID;
+				}
+			}
+			//开启活动
+			else if (obj.event === 'openActive') {
+				$.post("/activity/updateNewActivityState", {
+					NID : data.NID,
+					IS_OPEN : '1'
+				}, function(d) {
+					if (d > 0) {
+						table.reload('actionlist', {
+							page : {
+								curr : 1
+							}
+						});
+					} else {
+						layer.msg("操作失败");
+					}
+				});
+			}
+			//删除活动
+			else if (obj.event === 'deleteActive') {
+				layer.confirm('确定删除' + data.TITLE + '活动吗？', function(index) {
+					$.post("/activity/deleteNewActivity", {
+						NID : data.NID
+					}, function(d) {
+						if (d > 0) {
+							layer.msg("操作成功");
+							obj.del();
+							layer.close(index);
+						} else {
+							layer.msg("操作失败！");
+						}
+					});
+				});
+			}
+			//关闭活动
+			else if (obj.event === 'closeActive') {
+				$.post("/activity/updateNewActivityState", {
+					NID : data.NID,
+					IS_OPEN : '0'
+				}, function(d) {
+					if (d > 0) {
+						table.reload('actionlist', {
+							page : {
+								curr : 1
+							}
+						});
+					} else {
+						layer.msg("操作失败");
+					}
+				});
+			}
+		});
+		$("#addActive").click(function() {
+			layer.open({
+				type : 1,
+				title : '添加活动',
+				area : [ '500px', '400px' ],
+				content : $('#addbox'),
+				btn : [ '确定添加', '取消添加' ],
+				btnAlign : 'c',
+				yes : function() {
+					var title = $("#TITLE").val();
+					var ntype = $("#NTYPE").val();
+					if (title == "" || title == null) {
+						layer.msg("请输入活动标题");
+						return;
+					}
+					if (ntype == 0 || ntype == null) {
+						layer.msg("请选择活动类型");
+						return;
+					}
+					$.post("/activity/addNewActivity", {
+						title : title,
+						ntype : ntype
+					}, function(d) {
+						if (d > 0) {
+							table.reload('actionlist', {
+								page : {
+									curr : 1
+								}
+							});
+						}
+					});
+					layer.closeAll();
+				},
+				btn2 : function() {
+					layer.closeAll();
+				},
+				done : function() {
+					$("#TITLE").val("");
+					$("#NTYPE").val("");
+				}
+			});
+		});
+
+	});
+	/* ]]> */
+</script>
+</html>

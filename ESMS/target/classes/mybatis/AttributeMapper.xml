@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.goodsManage.AttributeDao">
+	<!-- 未分页的属性数据 -->
+	<select id="getAttributeList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		ga.`ATTRIBUTE_ID`
+		,g.`GOODS_NAME`
+		,ga.`ATTRIBUTE_NAME`
+		,ga.`ATTRIBUTE_VALUE`
+		,ga.`CREATE_TIME` AS `TIME`
+		FROM 
+		es_goods_attribute ga
+		,es_goods g 
+		WHERE 
+		ga.`GOODSID`=g.`GOODSID`
+		<if test="goodsName != null and goodsName != ''">
+			AND g.`GOODS_NAME` LIKE concat('%',#{goodsName},'%')
+		</if>
+		<if test="attributeName != null and attributeName != ''">
+			AND ga.`ATTRIBUTE_NAME` LIKE concat('%',#{attributeName},'%')
+		</if>
+	</select>
+	<!-- 已分页的属性数据 -->
+	<select id="getAttributeListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		ga.`ATTRIBUTE_ID`
+		,g.`GOODS_NAME`
+		,ga.`ATTRIBUTE_NAME`
+		,ga.`ATTRIBUTE_VALUE`
+		,ga.`CREATE_TIME` AS `TIME`
+		FROM 
+		es_goods_attribute ga
+		,es_goods g 
+		WHERE 
+		ga.`GOODSID`=g.`GOODSID`
+		<if test="goodsName != null and goodsName != ''">
+			AND g.`GOODS_NAME` LIKE concat('%',#{goodsName},'%')
+		</if>
+		<if test="attributeName != null and attributeName != ''">
+			AND ga.`ATTRIBUTE_NAME` LIKE concat('%',#{attributeName},'%')
+		</if>
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 修改店铺分类的名称 -->
+	<update id="edit">
+		update es_store_classification set CLASSIFICATION_NAME=#{storeClassName} where STORE_CLASSIFICATION_ID=#{storeClassId}
+	</update>
+	<!-- 删除属性 -->
+	<delete id="delete" parameterType="java.lang.String">
+		delete from es_goods_attribute where ATTRIBUTE_ID=#{attributeId}
+	</delete>
+	<!-- 修改属性名 -->
+	<update id="editAttributeName" parameterType="java.lang.String">
+		UPDATE es_goods_attribute SET ATTRIBUTE_NAME=#{value} WHERE ATTRIBUTE_ID=#{attributeId}
+	</update>
+	<!-- 修改属性值 -->
+	<update id="editAttributeValue" parameterType="java.lang.String">
+		UPDATE es_goods_attribute SET ATTRIBUTE_VALUE=#{value} WHERE ATTRIBUTE_ID=#{attributeId}
+	</update>
+</mapper>

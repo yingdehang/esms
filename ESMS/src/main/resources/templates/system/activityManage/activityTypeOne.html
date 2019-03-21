@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>首页活动类型1</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<script th:src="@{/layui/layui.js}"></script>
+<style>
+#activityImage {
+	height: 199px;
+	float: left;
+}
+
+.layui-upload-drag {
+	width: 258px;
+	height: 137px;
+}
+
+#pictureradio {
+	height: 199px;
+	float: left;
+	margin-left: 60px;
+}
+
+.picRadio {
+	width: 120px !important;
+	padding-left: 20px;
+}
+
+.pictureAddr {
+	display: none;
+}
+</style>
+</head>
+<body>
+	<!-- 活动管理顶部 -->
+	<div class="layui-tab layui-tab-card" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label><a href="javascript:history.back(-1)">首页活动管理</a>
+				>>活动类型（1张图片+商品列表）</label>
+		</div>
+	</div>
+	<form class="layui-form layui-form-pane"
+		style="padding: 15px 15px 0px 15px;" action="/activity/submitTypeOne">
+		<div class="layui-form-item">
+			<label class="layui-form-label">活动标题</label> <input type="hidden"
+				name="NID" id="NID" th:value="${activityInfo.NID}" />
+			<div class="layui-input-block">
+				<input name="TITLE" class="layui-input" type="text"
+					th:value="${activityInfo.TITLE}" placeholder="请输入标题"
+					autocomplete="off" />
+			</div>
+		</div>
+		<div style="height: 200px;">
+			<div id="activityImage">
+				<div th:if="${activityInfo.PICTURE == '0'}"
+					class="layui-upload-drag" style="">
+					<div id="djsc" style="margin-top: 20px;">
+						<i class="layui-icon"></i>
+						<p>点击上传，或将文件拖拽到此处</p>
+					</div>
+					<img th:unless="${activityInfo.PICTURE == '0'}"
+						th:src="${activityInfo.PICTURE}" width="100%" height="100%"
+						id="image" />
+				</div>
+				<div th:unless="${activityInfo.PICTURE == '0'}"
+					class="layui-upload-drag">
+					<img th:src="${activityInfo.PICTURE}" width="100%" height="100%"
+						id="image" />
+				</div>
+			</div>
+			<input type="hidden" id="PICTURE" name="PICTURE"
+				th:value="${activityInfo.PICTURE}" />
+			<div id="pictureradio">
+				<div class="layui-form-item">
+					<div class="layui-input-inline picRadio">
+						<input name="TTYPE" title="商品" type="radio" lay-filter="ttype"
+							th:checked="${activityInfo.TTYPE=='1'}" value="1" />
+					</div>
+					<div class="layui-input-inline pictureAddr type_one">
+						<select lay-search="" lay-filter="store">
+							<option value="">请选择店铺</option>
+							<option th:each="slist:${storelist}" th:value="${slist.storeId}"
+								th:text="${slist.storeName}"
+								th:selected="${activityInfo.TTYPE=='1' and activityInfo.storeId == slist.storeId}"></option>
+						</select>
+					</div>
+					<div class="layui-input-inline pictureAddr type_one">
+						<select name="goodsId" id="goods" lay-search="">
+							<option value="">请选择商品</option>
+							<option th:each="glist:${activityInfo.goodslist}"
+								th:value="${glist.GOODSID}" th:text="${glist.GOODS_NAME}"
+								th:selected="${activityInfo.TTYPE=='1'} and ${activityInfo.PICTURE_ADDR==glist.GOODSID}"></option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<div class="layui-input-inline picRadio">
+						<input name="TTYPE" title="活动页面" type="radio" lay-filter="ttype"
+							th:checked="${activityInfo.TTYPE=='2'}" value="2" />
+					</div>
+					<div class="layui-input-inline pictureAddr type_two"
+						style="width: 390px;">
+						<input name="activityUrl" class="layui-input" type="text"
+							placeholder="请输入活动链接" autocomplete="off" />
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<div class="layui-input-inline picRadio">
+						<input name="TTYPE" title="店铺" type="radio" lay-filter="ttype"
+							th:checked="${activityInfo.TTYPE=='3'}" value="3" />
+					</div>
+					<div class="layui-input-inline pictureAddr type_three">
+						<select name="storeId" lay-search="">
+							<option value="">请选择店铺</option>
+							<option th:each="slist:${storelist}" th:value="${slist.storeId}"
+								th:text="${slist.storeName}"
+								th:selected="${activityInfo.TTYPE=='3' and activityInfo.PICTURE_ADDR == slist.storeId}"></option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<div class="layui-input-inline picRadio">
+						<input name="TTYPE" title="无跳转" type="radio" lay-filter="ttype"
+							th:checked="${activityInfo.TTYPE=='4'}" value="4" />
+					</div>
+				</div>
+			</div>
+		</div>
+		<div
+			style="margin-top: 20px; border: 1px solid #f6f6f6; padding: 10px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">添加商品</label>
+				<div class="layui-input-inline">
+					<select id="addstore" lay-search="" lay-filter="addstore">
+						<option value="">请选择店铺</option>
+						<option th:each="slist:${storelist}" th:value="${slist.storeId}"
+							th:text="${slist.storeName}"></option>
+					</select>
+				</div>
+				<div class="layui-input-inline">
+					<select id="addgoods" lay-search="">
+						<option value="">请选择商品</option>
+					</select>
+				</div>
+				<div class="layui-input-inline">
+					<button type="button" id="goodsAdd" class="layui-btn">确定添加</button>
+				</div>
+			</div>
+			<table class="layui-table" id="goodsTable" lay-filter="demo">
+			</table>
+			<script id="index" type="text/html">
+    			<span id="{{d.tid}}">{{d.LAY_TABLE_INDEX+1}}</span>
+			</script>
+			<script id="barDemo" type="text/html">
+				<a class="layui-btn layui-btn-xs" lay-event="updateactivitygoodssort">修改排序</a>  		
+				<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="deleteActiveGoods">删除</a>
+			</script>
+		</div>
+		<div class="layui-form-item">
+			<button class="layui-btn" lay-filter="submitform" lay-submit="">立即提交</button>
+			<a href="javascript:history.back(-1)" class="layui-btn">取消编辑</a>
+		</div>
+	</form>
+</body>
+<script>
+	/* <![CDATA[ */
+	layui.use([ 'element', 'upload', 'form', 'table' ], function() {
+		var element = layui.element, $ = layui.$;
+		var upload = layui.upload, form = layui.form;
+		var table = layui.table;
+		var goods = [];
+		var dsort = [];
+		//拖拽上传
+		upload.render({
+			elem : '#activityImage',
+			url : '/activity/uploadBanner',
+			done : function(res) {
+				var src = res.data.src;
+				var parent = $(".layui-upload-drag");
+				var picture = $("#PICTURE");
+				if (picture.val() != 0) {
+					picture.val(src);
+					$("#image").attr("src", src);
+				} else {
+					var img = $('<img/>');
+					img.attr("src", src);
+					img.css({
+						"width" : "100%",
+						"height" : "100%"
+					});
+					img.attr("id", "image");
+					parent.html(img);
+					picture.val(src);
+				}
+			}
+		});
+
+		form.on('radio(ttype)', function(data) {
+			var value = data.value;
+			$(".pictureAddr").hide();
+			if (value == 1) {
+				$(".type_one").show();
+			} else if (value == 2) {
+				$(".type_two").show();
+			} else if (value == 3) {
+				$(".type_three").show();
+			}
+		});
+		form.on('select(store)', function(data) {
+			$("#goods").empty();
+			$("#goods").append('<option value="">请选择商品</option>');
+			$.post("/activity/querygoodslistByStoreId", {
+				storeId : data.value
+			}, function(list) {
+				var l = eval(list);
+				for (var i = 0; i < l.length; i++) {
+					$("#goods").append(
+							"<option value='" + l[i].GOODSID + "'>"
+									+ l[i].GOODS_NAME + "</option>");
+				}
+				form.render('select');
+			});
+		});
+		form.on('select(addstore)', function(data) {
+			$("#addgoods").empty();
+			$("#addgoods").append('<option value="">请选择商品</option>');
+			$.post("/activity/querygoodslistByStoreId", {
+				storeId : data.value
+			}, function(list) {
+				var l = eval(list);
+				for (var i = 0; i < l.length; i++) {
+					$("#addgoods").append(
+							"<option value='" + l[i].GOODSID + "'>"
+									+ l[i].GOODS_NAME + "</option>");
+				}
+				form.render('select');
+			});
+		});
+		var array = [ {
+			fixed : 'left',
+			toolbar : '#index',
+			align : 'center',
+			width : 80,
+			title : '序号'
+		}, {
+			field : 'storeName',
+			align : 'center',
+			title : '店铺名'
+		}, {
+			field : 'goodsName',
+			align : 'center',
+			title : '商品名'
+		}, {
+			field : 'dsort',
+			width : 80,
+			align : 'center',
+			title : '排序'
+		}, {
+			fixed : 'right',
+			toolbar : '#barDemo',
+			align : 'center',
+			title : '操作',
+			width : 200
+		} ];
+		var nid = $("#NID").val();
+		var goodstable = table.render({
+			elem : '#goodsTable',
+			url : '/activity/queryactivitygoods/',
+			cols : [ array ],
+			id : 'goodsTable',
+			height : 315,
+			where : {
+				nid : nid
+			},
+			done : function(data) {
+				goods = [];
+				sort = [];
+				var g1 = data.data;
+				var g=eval(g1);
+				for (var i = 0; i < g.length; i++) {
+					goods.push(g[i].goodsId);
+					dsort[dsort.length]=g[i].dsort;
+				}
+			}
+		});
+		var goodsAdd = "";
+		var goodsDel = "";
+		$("#goodsAdd").click(
+				function() {
+					var storeId = $("#addstore").val();
+					var storeName = $("#addstore option:selected").text();
+					var goodsId = $("#addgoods").val();
+					var goodsName = $("#addgoods option:selected").text();
+					if (null == goodsId || goodsId == "") {
+						layer.msg("请选择商品");
+						return;
+					}
+					var a = storeId + "|," + storeName + "|," + goodsId + "|,"
+							+ goodsName + "|,0";
+					goodsAdd += a + "||;";
+					goodstable.reload({
+						where : {
+							goodsAdd : goodsAdd,
+							goodsDel : goodsDel
+						},
+						done : function(data) {
+							goods = [];
+							sort = [];
+							var g1 = data.data;
+							var g=eval(g1);
+							for (var i = 0; i < g.length; i++) {
+								goods.push(g[i].goodsId);
+								dsort[dsort.length]=g[i].dsort;
+							}
+						}
+					});
+					$("#addgoods").val("");
+					form.render('select');
+				});
+
+		table.on('tool(demo)', function(obj) {
+			var data = obj.data;
+			//修改排序
+			if (obj.event === 'updateactivitygoodssort') {
+				layer.prompt({
+					formType : 2,
+					title : '默认为0,请输入一个整数数字用于排序',
+					value : data.dsort
+				}, function(value, index) {
+					if (!isNaN(value)) {
+						layer.msg("修改活动排序成功");
+						obj.update({
+							dsort : value
+						});
+						var id = "#" + data.tid;
+						var i = $(id).text();
+						var n = i - 1;
+						sort.splice(n, 1, [ value ]);
+						layer.close(index);
+					} else {
+						layer.msg("请输入正确的数字");
+					}
+				});
+			} else if (obj.event === 'deleteActiveGoods') {
+				layer.confirm('确定删除吗？', function(index) {
+					var goodsId = data.goodsId;
+					var sort = data.dsort;
+					var b = goodsId + "|," + sort;
+					goodsDel += b + "||;";
+					var id = "#" + data.tid;
+					var i = $(id).text();
+					var n = i - 1;
+					dsort.splice(n, 1);
+					goods.splice(n, 1);
+					obj.del();
+					layer.close(index);
+				});
+			}
+		});
+
+		form.on('submit(submitform)', function(data) {
+			var TITLE = data.field.TITLE;
+			if (TITLE == null || TITLE == "") {
+				layer.msg("请输入活动标题");
+				return false;
+			}
+			var PICTURE = data.field.PICTURE;
+			/* if (PICTURE == "0" || PICTURE == "") {
+				layer.msg("请上传活动图片");
+				return false;
+			} */
+			var TTYPE = data.field.TTYPE;
+			var goodsId = data.field.goodsId;
+			var activityUrl = data.field.activityUrl;
+			var storeId = data.field.storeId;
+			var pictureUrl;
+			if (TTYPE == null || TTYPE == "") {
+				layer.msg("请选项图片类型");
+				return false;
+			} 
+			
+			else if (TTYPE == '1' && (goodsId == "" || goodsId == null)) {
+				layer.msg("请选择一个图片链接商品");
+				return false;
+			}
+			
+			else if (TTYPE == '2'
+					&& (activityUrl == "" || activityUrl == null)) {
+				layer.msg("请填写活动链接");
+				return false;
+			}
+			
+			else if (TTYPE == '3' && (storeId == "" || storeId == null)) {
+				layer.msg("请选择一个图片链接商品");
+				return false;
+			}
+			
+			var goods = data.field.goods;
+			if (null == goods || goods == "") {
+				layer.msg("商品列表不能为空");
+				return false;
+			}
+			return true;
+		});
+
+	});
+	/* ]]> */
+</script>
+</html>

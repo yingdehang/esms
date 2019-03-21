@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>报单审核</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<!-- 审核人Id -->
+	<input type="hidden" id="userId" th:value="${userId}"/>
+	<!-- 买家Id -->
+	<input type="hidden" id="customerId" th:value="${details.userId}"/>
+	<!-- 商家Id -->
+	<input type="hidden" id="merchantId" th:value="${details.merchantId}"/>
+	<!-- 站长Id -->
+	<input type="hidden" id="zzId" th:value="${details.zzId}"/>
+	<!-- 站长会员等级 -->
+	<input type="hidden" id="memberGrade" th:value="${details.memberGrade}"/>
+	<!-- 店铺认证Id -->
+	<input type="hidden" id="scId" th:value="${details.STORE_CERTIFICATION_ID}"/>
+	<!-- 报单金额 -->
+	<input type="hidden" id="money" th:value="${details.MONEY}"/>
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<h2><a href="javascript:history.back(-1)">报单管理</a>><a href="javascript:void(0)" onclick="location.reload()">报单审核</a></h2>
+	</div>
+	<input type="hidden" id="id" th:value="${details.EOID}"/>
+	<div class="layui-form layui-form-pane" style="margin-top:20px">
+		<div id="reason" class="layui-form-item" style="display:none;margin:45px">
+			<label class="layui-form-label">拒绝理由</label>
+			<div class="layui-input-inline">
+				<input id="content" class="layui-input"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺名称</label>
+			<div class="layui-input-block">
+				<input class="layui-input" th:value="${details.STORE_NAME}" disabled=""/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">报单商家</label>
+			<div class="layui-input-block">
+				<input class="layui-input" th:value="${details.UC_NAMES}+'('+${details.PHONE}+')'" disabled=""/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">区域</label>
+			<div class="layui-input-block">
+				<input class="layui-input" th:value="${details.PROVINCE}+${details.CITY}+${details.AREA}" disabled=""/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">区域站长</label>
+			<div class="layui-input-block">
+				<input class="layui-input" th:value="${details.zz}" disabled=""/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">报单金额</label>
+			<div class="layui-input-block">
+				<input class="layui-input" th:value="${details.MONEY}" disabled=""/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">报单用户</label>
+			<div class="layui-input-block">
+				<input class="layui-input" th:value="${details.NICKNAME}+'('+${details.BUY_USERPHONE}+')'" disabled=""/>
+			</div>
+		</div>
+	</div>
+	<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+		<legend>报单凭证图片</legend>
+	</fieldset>
+	<div class="layui-form-item" th:each="pics:${details.pics}">
+		<img th:src="${pics}"/>
+	</div>
+	<button class="layui-btn" data-type="yes">同意</button>
+	<button class="layui-btn" data-type="no">拒绝</button>
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript" th:src="@{/js/jquery-1.4.4.min.js}"></script>
+<script type="text/javascript">
+var id = $("#id").val();
+var userId = $("#userId").val();
+var customerId = $("#customerId").val();
+var merchantId = $("#merchantId").val();
+var zzId = $("#zzId").val();
+var money = $("#money").val();
+var scId = $("#scId").val();
+var memberGrade = $("#memberGrade").val();
+layui.use('form',function(){
+	var form = layui.form,$=layui.jquery;
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	var $ = layui.$, active = {
+		yes:function()
+		{
+			layer.confirm('确定通过吗?', {icon: 3, title:'提示'}, function(index){
+				$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/declaration/pass",   
+					data : {   
+						id:id,userId:userId,customerId:customerId,merchantId:merchantId,zzId:zzId,money:money,scId:scId,memberGrade:memberGrade
+					},  
+					success : function(da) {  
+						if(da!="ok")
+						{
+							layer.msg(da);
+						}
+						else
+						{
+							layer.close(index);
+							window.location.href="/declaration/toDeclaration?userId="+userId;
+						}
+					}   
+				});
+			});
+		}			
+		,no: function()
+		{
+			var index = layer.open({
+				type:1,
+				content:$('#reason'),
+				title:['审核失败原因',''],
+				area:['400px','250px'],
+				shade: 0,
+		        maxmin: true,
+		        skin:'layui-layer-molv',
+			    btnAlign: 'c',
+				btn:['确定','取消']
+				,yes: function(index, layero){
+					var content = $("#content").val();
+					if(content=='')
+					{
+						layer.msg("请填写拒绝理由");
+					}
+					else
+					{
+						layer.confirm('确定拒绝吗?', {icon: 3, title:'提示'}, function(index){
+							$.post("/declaration/refuse",{id:id,userId:userId,content:content},function(da){});
+							layer.close(index);
+							window.location.href="/declaration/toDeclaration?userId="+userId;
+						});
+					}
+				}
+			});
+		}
+	};
+});
+</script>
+</body>
+</html>

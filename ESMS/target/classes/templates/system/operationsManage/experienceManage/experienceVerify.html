@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>礼包审核</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<div class="layui-form layui-form-pane" id="v" style="display:none;margin-left:50px;margin-top:20px">
+	<div class="layui-form-item">
+		<label class="layui-form-label">审核</label>
+		<div class="layui-input-inline">
+			<select name="quiz1" id="verifyState" lay-filter="changeState">
+				<option value="1">审核通过</option>
+				<option value="0">审核失败</option>
+			</select>
+		</div>
+	</div>
+	<div class="layui-form-item" style="display:none" id="reason">
+		<label class="layui-form-label">失败原因</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" id="content" />
+		</div>
+	</div>
+</div>
+<body>
+	<!-- 页面头部 -->
+	<div style="padding-bottom: 5px; border-bottom: 2px solid #5FB878;margin-bottom:10px">
+		<h2>
+			<a href="javascript:void(0)" onclick="location.reload()">礼包审核</a>
+		</h2>
+	</div>
+	<div id="search" class="layui-form layui-form-pane">
+		<button th:if="${auditRecords}" class="layui-btn" data-type="record">审核记录</button>
+		<button th:if="${packageManagement}" class="layui-btn" data-type="activitis">礼包管理</button>
+	</div>
+	<table id="verify" lay-filter="operation"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+layui.use(['table','jquery','layer','form','laydate'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var layer = layui.layer;
+	var form = layui.form;
+	var laydate = layui.laydate;
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#verify'
+		,url: '/experience/getVerifyList'
+		,page: true
+		,cols:[[
+			{field:'userPhone',title:'买家手机号'}
+			,{field:'ACTIVITY_NAME',title:'礼包名'}
+			,{field:'MONEY',title:'礼包金额'}
+			,{field:'REMARK',title:'礼包类型',templet:'#type'}
+			,{field:'PAY_TIME',title:'支付时间'}
+			,{field:'LINK_MAN',title:'收货人'}
+			,{field:'PHONE',title:'收货电话'}
+			,{field:'ADDR',title:'收货地址'}
+			,{fixed: 'right', width:150, align:'center', toolbar: '#toolbar',title:'操作'}
+		]]
+	});
+	<!-- 监听搜索按钮 -->
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	
+	var phone = $("#phone");
+	var start = $("#start");
+	var end = $("#end");
+	var userName = $("#userName");
+	var $ = layui.$, active = {
+		//跳转到审核记录页面
+		record: function() {
+			window.location.href="/experience/toExperienceVerifyRecord";
+		}
+		,activitis: function() {
+			window.location.href="/experience/toExperienceActivity";
+		}
+	};
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'verify'){ //审核
+			layer.open({
+				type:1,
+				content:$('#v'),
+				title:['礼包审核',''],
+				area:['400px','250px'],
+				shade: 0,
+		        maxmin: true,
+			    btnAlign: 'c',
+				btn:['确定','取消']
+				,yes: function(index, layero){
+					var auId = data.EEAUID;
+					var verifyState = $("#verifyState").val();
+					var content = $("#content").val();
+					if(verifyState=='0'&&content=='')
+					{
+						layer.msg("请填写审核失败理由");
+					}
+					else
+					{
+						layer.confirm('确定?', {icon: 3, title:'提示'}, function(i){
+							$.ajax({   
+								type : "POST",
+								async:false,
+								url : "/experience/experienceVerify",   
+								data : {   
+									auId:data.EEAUID,
+									verifyState:verifyState,
+									content:content,
+									userId:data.USERS_ID,
+									money:data.MONEY,
+									integral:data.INTEGRAL,
+									activityName:data.ACTIVITY_NAME,
+									accId:data.EEAID,
+									type:data.REMARK
+								},  
+								success : function(da) {//返回数据根据结果进行相应的处理   
+									$("#content").val("");
+									layer.close(i);
+	  								layer.close(index);
+									table.reload('verify', {
+									});
+								}   
+							});   
+						});
+					}
+				}
+				,btn2:function(index, layero){
+					$("#content").val("");
+					layer.close(index);
+				}
+			});
+		}
+	});
+	form.on('select(changeState)', function(data){
+		if(data.value=='0')
+		{
+			$("#reason").css("display","block");
+		}
+		if(data.value=='1')
+		{
+			$("#content").val("");
+			$("#reason").css("display","none");
+		}
+	}); 
+});
+/*]]>*/
+</script>
+<script type="text/html" id="toolbar">
+	<a th:if="${giftBagAudit}" class="layui-btn layui-btn-xs" lay-event="verify">审核</a>
+</script>
+<script type="text/html" id="type">
+	{{# if(d.REMARK=='1'){ }}
+		体验专区
+	{{# }else if(d.REMARK=='2'){ }}
+		购买专区
+	{{# } }}
+</script>
+</body>
+</html>

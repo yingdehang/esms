@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>好货推荐</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<script th:src="@{/layui/layui.js}"></script>
+</head>
+<body>
+	<!-- 活动管理顶部 -->
+	<div class="layui-tab layui-tab-card" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label>优质商品列表</label>
+		</div>
+	</div>
+	<div class="layui-form layui-form-pane"
+		style="margin-top: 20px; border: 1px solid #f6f6f6; padding: 10px;">
+		<div class="layui-form-item">
+			<label class="layui-form-label" style="width: 120px;">添加优质商品</label>
+			<div class="layui-input-inline">
+				<select id="addstore" lay-search="" lay-filter="addstore">
+					<option value="">请选择店铺</option>
+					<option th:each="slist:${slist}" th:value="${slist.storeId}"
+						th:text="${slist.storeName}"></option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select id="addgoods" lay-search="">
+					<option value="">请选择商品</option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<button type="button" id="goodsAdd" class="layui-btn">确定添加</button>
+			</div>
+		</div>
+		<table class="layui-table" id="goodsTable" lay-filter="demo">
+		</table>
+		<script id="index" type="text/html">
+    		<span id="{{d.tid}}">{{d.LAY_TABLE_INDEX+1}}</span>
+		</script>
+		<script id="barDemo" type="text/html">
+			<a class="layui-btn layui-btn-xs" lay-event="updategoodgoodssort">修改排序</a>  		
+			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="deletegoodGoods">删除</a>
+		</script>
+	</div>
+
+</body>
+<script>
+	/* <![CDATA[ */
+	layui.use([ 'table', 'form' ], function() {
+		var $ = layui.jquery, table = layui.table, form = layui.form;
+		form.on('select(addstore)', function(data) {
+			$("#addgoods").empty();
+			$("#addgoods").append('<option value="">请选择商品</option>');
+			$.post("/activity/querygoodslistByStoreId", {
+				storeId : data.value
+			}, function(list) {
+				var l = eval(list);
+				for (var i = 0; i < l.length; i++) {
+					$("#addgoods").append(
+							"<option value='" + l[i].GOODSID + "'>"
+									+ l[i].GOODS_NAME + "</option>");
+				}
+				form.render('select');
+			});
+		});
+
+		var array = [ {
+			fixed : 'left',
+			toolbar : '#index',
+			align : 'center',
+			width : 80,
+			title : '序号'
+		}, {
+			field : 'storeName',
+			align : 'center',
+			title : '店铺名'
+		}, {
+			field : 'goodsName',
+			align : 'center',
+			title : '商品名'
+		}, {
+			field : 'gsort',
+			width : 80,
+			align : 'center',
+			title : '排序'
+		}, {
+			fixed : 'right',
+			toolbar : '#barDemo',
+			align : 'center',
+			title : '操作',
+			width : 200
+		} ];
+		var goodstable = table.render({
+			elem : '#goodsTable',
+			url : '/goods/querygoodGoods/',
+			cols : [ array ],
+			id : 'goodsTable',
+			height : 600,
+			page : true
+		});
+		$("#goodsAdd").click(function() {
+			var goodsId = $("#addgoods").val();
+			if (null == goodsId || goodsId == "") {
+				layer.msg("请选择商品");
+				return;
+			}
+			$.post("/goods/addgoodGoods", {
+				goodsId : goodsId
+			}, function(d) {
+				if (d > 0) {
+					goodstable.reload();
+				} else {
+					layer.msg("添加失败！！！");
+				}
+			});
+			$("#addgoods").val("");
+			form.render('select');
+		});
+		table.on('tool(demo)', function(obj) {
+			var data = obj.data;
+			//修改排序
+			if (obj.event === 'updategoodgoodssort') {
+				layer.prompt({
+					formType : 2,
+					title : '默认为0,请输入一个整数数字用于排序',
+					value : data.gsort
+				}, function(value, index) {
+					if (!isNaN(value)) {
+						$.post("/goods/updategoodGoodssort", {
+							gid : data.gid,
+							gsort : value
+						}, function(d) {
+							if (d > 0) {
+								obj.update({
+									gsort : value
+								});
+								layer.msg("修改活动排序成功");
+							} else {
+								layer.msg("操作失败");
+							}
+						});
+						layer.close(index);
+					} else {
+						layer.msg("请输入正确的数字");
+					}
+				});
+			} else if (obj.event === 'deletegoodGoods') {
+				layer.confirm('确定删除吗？', function(index) {
+					$.post("/goods/deletegoodGoods", {
+						gid : data.gid
+					}, function(d) {
+						if (d > 0) {
+							obj.del();
+						} else {
+							layer.msg("删除操作失败！！！");
+						}
+					});
+					layer.close(index);
+				});
+			}
+		});
+
+	});
+	/* ]]> */
+</script>
+</html>

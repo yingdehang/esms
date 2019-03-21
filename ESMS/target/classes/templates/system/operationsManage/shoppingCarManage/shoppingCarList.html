@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>购物车管理</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<h2><a href="javascript:void(0)" onclick="location.reload()">购物车管理</a></h2>
+	</div>
+	<div class="search" style="margin-top:10px">
+		<div class="layui-inline">
+			<input class="layui-input" id="phoneNumber" autocomplete="off" placeholder="请输入账号（电话号码）"/>
+		</div>
+		<div class="layui-inline">
+			<input class="layui-input" id="goodsName" autocomplete="off" placeholder="请输入商品名"/>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+	</div>
+
+	<table id="shoppingCarList"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+layui.use(['table','jquery','form'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#shoppingCarList'
+		,url: '/shoppingCar/getShoppingCarList'
+		,page: true
+		,cols:[[
+			{field:'GOODS_NAME',title:'商品名称'}
+			,{field:'PHONE',title:'用户账号'}
+			,{field:'NUMBER',title:'购买数量'}
+			,{field:'TIME',title:'加入购物车时间'}
+		]]
+	});
+	<!-- 监听搜索按钮 -->
+	$('.search .layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索时执行重载-->
+	var $ = layui.$, active = {
+		reload: function(){
+			var phoneNumber = $('#phoneNumber');
+			var goodsName = $('#goodsName');
+			//执行重载
+			table.reload('shoppingCarList', {
+				where: {
+					phoneNumber: phoneNumber.val()
+					,goodsName:goodsName.val()
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+	};
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>线下店铺日流水</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<input type="hidden" id="storeId" th:value="${storeId}"/>
+	<input type="hidden" id="month" th:value="${month}"/>
+	<!-- 页面头部 -->
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<div class="layui-fluid">
+			<div class="layui-row">
+				<div class="layui-col-lg6">
+					<h2><a href="/offLineStore/toOffLineStoreManage">线下店铺管理</a>><a href="javascript:history.back(-1)">线下店铺月流水</a>><a href="javascript:void(0)" onclick="location.reload()">线下店铺日流水</a></h2>
+				</div>
+				<div class="layui-col-lg6">
+					<button id="export" class="layui-btn layui-btn-radius" style="float:right" data-type="exports">导出流水</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<table id="dayWater" lay-filter="operation"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+layui.use(['table','jquery','form','laydate'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	var laydate = layui.laydate;
+	
+	var storeId = $("#storeId").val();
+	var month = $("#month").val();
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#dayWater'
+		,url: '/offLineStore/getOffLineStoreDayWater'
+		,page: true
+		,cols:[[
+			{type:'checkbox'}
+			,{field:'time',title:'年、月、日'}
+			,{field:'STORE_NAME',title:'店铺名称'}
+			,{field:'STORE_CLASS',title:'店铺分类'}
+			,{field:'LEVELS',title:'店铺等级'}
+			,{field:'storeUser',title:'店主信息',width:160}
+			,{field:'area',title:'所在区域',width:150}
+			,{field:'zz',title:'站长信息',width:160}
+			,{field:'gMoney',title:'收款流水'}
+			,{field:'gCommission',title:'收款佣金'}
+			,{field:'dMoney',title:'报单流水'}
+			,{field:'dCommission',title:'报单佣金'}
+			,{field:'allCommission',title:'报单佣金'}
+		]]
+		,where: {
+			storeId:storeId,month:month
+		}
+	});
+	<!-- 监听导出流水按钮 -->
+	$('#export').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	var $ = layui.$, active = {
+		//点击导出流水按钮
+		exports: function(){
+			var checkStatus = table.checkStatus('dayWater'), data = checkStatus.data;
+			var len = data.length;
+			if (len > 0) {
+				var dayArray = new Array(len);
+				var storeId = "";
+				var userId = "";
+				for(var i=0;dayArray.length>i;i++)
+				{
+					dayArray[i]=data[i].time;
+					storeId = data[i].STORE_ID;
+					userId = data[i].USERS_ID;
+				}
+				window.location.href="/offLineStore/exportDayWater?dayArray="+dayArray+"&storeId="+storeId+"&userId="+userId;
+			} else {
+				layer.msg("请勾选您需要导出的数据");
+			}
+		}
+	};
+});
+/*]]>*/
+</script>
+<!-- 是否自营 -->
+</body>
+</html>

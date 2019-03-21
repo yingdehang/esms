@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.webmaster.WebmasterManageDao">
+	<!-- 查询地区 -->
+	<select id="queryAreaList" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM `es_area` WHERE PID=#{pid}
+	</select>
+	<!-- 查站长列表 -->
+	<select id="getWebmasterList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		eu.`USERS_ID`,
+		eu.`PHONE`,
+		euc.`UC_NAMES`,
+		eu.`ZZTIME`,
+		eu.`WEBMASTER_MONEY`,
+		eu.`AREAID`
+		FROM
+		`es_users` AS eu
+		LEFT JOIN
+		`es_user_certification` AS euc
+		ON eu.`USERS_ID` = euc.`USERS_ID`
+		WHERE
+		IS_ZZ = '1'
+		<if test="null!=areas and areas.size>0">
+			AND AREAID IN
+			<foreach collection="areas" item="area" open="(" close=")"
+				separator=",">
+				#{area}
+			</foreach>
+		</if>
+		<if test="phone!=null and phone!=''">
+			AND eu.`PHONE` LIKE CONCAT('%',#{phone},'%')
+		</if>
+		<if test="userName!=null and userName!=''">
+			AND euc.`UC_NAMES` LIKE CONCAT('%',#{userName},'%')
+		</if>
+		limit #{page},#{limit}
+	</select>
+	<!-- 查询站长count -->
+	<select id="getWebmasterListCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM
+		`es_users` AS eu
+		LEFT JOIN
+		`es_user_certification` AS
+		euc
+		ON eu.`USERS_ID` = euc.`USERS_ID`
+		WHERE
+		IS_ZZ = '1'
+		<if test="null!=areas and areas.size>0">
+			AND AREAID IN
+			<foreach collection="areas" item="area" open="(" close=")"
+				separator=",">
+				#{area}
+			</foreach>
+		</if>
+		<if test="phone!=null and phone!=''">
+			AND eu.`PHONE` LIKE CONCAT('%',#{phone},'%')
+		</if>
+		<if test="userName!=null and userName!=''">
+			AND euc.`UC_NAMES` LIKE CONCAT('%',#{userName},'%')
+		</if>
+	</select>
+	<!-- 撤销站长 -->
+	<update id="updateISZZ" parameterType="java.util.Map">
+		UPDATE `es_users` SET
+		IS_ZZ=#{IS_ZZ} WHERE USERS_ID=#{USERS_ID}
+	</update>
+	<!-- 修改站长余额 -->
+	<update id="updateWebmasterYue" parameterType="java.util.Map">
+		UPDATE `es_users`
+		SET WEBMASTER_MONEY=WEBMASTER_MONEY-#{money} WHERE
+		USERS_ID=#{USERS_ID}
+	</update>
+	<!-- 插入站长流水 -->
+	<insert id="insetWebmasterWater" parameterType="java.util.Map">
+		INSERT INTO
+		`es`.`es_zz_payments` (`EZPID`, `USERS_ID`, `EMONY`, `ETIME`, `ETYPE`,
+		`CNAME`) VALUES (#{uuid}, #{USERS_ID}, #{money}, now(), '2',
+		#{cname});
+	</insert>
+	<!-- 查询站长结算记录 -->
+	<select id="masterSettlementRecordList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		eu.`USERS_ID`,
+		eu.`PHONE`,
+		euc.`UC_NAMES`,
+		ezp.`ETIME`,
+		ezp.`EMONY`,
+		ezp.`CNAME`,
+		eu.`AREAID`
+		FROM
+		`es_users` AS eu
+		LEFT JOIN
+		`es_user_certification` AS euc
+		ON eu.`USERS_ID` = euc.`USERS_ID`
+		LEFT
+		JOIN `es_zz_payments` AS ezp
+		ON eu.`USERS_ID` = ezp.`USERS_ID`
+		WHERE
+		IS_ZZ = '1' AND ezp.`ETYPE`='2'
+		AND (ezp.`ETIME` BETWEEN #{startTime}
+		AND #{endTime})
+		<if test="null!=areas and areas.size>0">
+			AND AREAID IN
+			<foreach collection="areas" item="area" open="(" close=")"
+				separator=",">
+				#{area}
+			</foreach>
+		</if>
+		<if test="phone!=null and phone!=''">
+			AND eu.`PHONE` LIKE CONCAT('%',#{phone},'%')
+		</if>
+		<if test="userName!=null and userName!=''">
+			AND euc.`UC_NAMES` LIKE CONCAT('%',#{userName},'%')
+		</if>
+		limit #{page},#{limit}
+	</select>
+	<!-- 查询站长结算记录Count -->
+	<select id="getmasterSettlementRecordListCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM
+		`es_users` AS eu
+		LEFT JOIN
+		`es_user_certification` AS
+		euc
+		ON eu.`USERS_ID` = euc.`USERS_ID`
+		LEFT
+		JOIN `es_zz_payments` AS ezp
+		ON eu.`USERS_ID` = ezp.`USERS_ID`
+		WHERE
+		IS_ZZ = '1' AND ezp.`ETYPE`='2'
+		AND (ezp.`ETIME` BETWEEN #{startTime}
+		AND #{endTime})
+		<if test="null!=areas and areas.size>0">
+			AND AREAID IN
+			<foreach collection="areas" item="area" open="(" close=")"
+				separator=",">
+				#{area}
+			</foreach>
+		</if>
+		<if test="phone!=null and phone!=''">
+			AND eu.`PHONE` LIKE CONCAT('%',#{phone},'%')
+		</if>
+		<if test="userName!=null and userName!=''">
+			AND euc.`UC_NAMES` LIKE CONCAT('%',#{userName},'%')
+		</if>
+	</select>
+	<!-- 查询该区域是否还有站长 -->
+	<select id="VerifyThatThereIs" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(*) FROM `es_users` WHERE AREAID=#{areaId} AND
+		IS_ZZ='1'
+	</select>
+	<!-- 通过手机号查询用户 -->
+	<select id="isHavePhone" parameterType="java.lang.String"
+		resultType="int">
+		select count(*) from `es_users` WHERE PHONE=#{userPhone}
+	</select>
+	<!-- 是否实名认证 -->
+	<select id="readyshimingrenzheng" parameterType="java.lang.String"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM
+		`es_users` eu
+		LEFT JOIN
+		`es_user_certification`
+		euc
+		ON eu.`USERS_ID` = euc.`USERS_ID`
+		WHERE
+		eu.`PHONE` = #{userPhone}
+		AND euc.`STATE` = 'USER_AUTHENTICATION_PASS'
+	</select>
+	<!-- 查询用户是否已经为站长 -->
+	<select id="isZhanzhanga" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(*) FROM `es_users` WHERE PHONE=#{userPhone}
+		AND IS_ZZ='1'
+	</select>
+	<!-- 添加站长 -->
+	<update id="addWebmaster" parameterType="java.util.Map">
+		UPDATE `es_users` SET
+		IS_SYSTEM='USER_LEVEL_SYSTEM',
+		IS_ZZ='1',AREAID=#{area},ZZTIME=NOW()
+		<if test="zzyqr!=null and zzyqr!=''">
+			,ZZYQR=#{zzyqr}
+		</if>
+		WHERE PHONE=#{userphone}
+	</update>
+	<!-- 查詢用户id -->
+	<select id="getUserIdByPhone" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		select USERS_ID from `es_users` WHERE PHONE=#{userphone}
+	</select>
+	<!-- 添加站长角色 -->
+	<insert id="addWebmasterRole" parameterType="java.util.Map">
+		INSERT INTO
+		`es_system_role_user` (`ROLE_USER_ID`, `ROLE_ID`,
+		`USERS_ID`)
+		VALUES
+		(#{uuid}, '58a6b4f9e8a04873a184bba1320e3d3a',
+		#{userId});
+	</insert>
+	<delete id="deleteZZRole" parameterType="java.util.Map">
+		delete from
+		es_system_role_user where ROLE_ID='58a6b4f9e8a04873a184bba1320e3d3a'
+		and USERS_ID=#{USERS_ID}
+	</delete>
+</mapper>

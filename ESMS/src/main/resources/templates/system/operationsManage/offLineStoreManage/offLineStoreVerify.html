@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>线下店铺审核</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div style="padding-bottom: 10px; border-bottom: 2px solid #5FB878">
+		<h2>
+			<a href="javascript:void(0)" onclick="location.reload()">线下店铺审核</a>
+		</h2>
+	</div>
+	<input type="hidden" id="userId" th:value="${userId}" />
+	<div id="search" class="layui-form layui-form-pane">
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">店铺名称</label>
+			<div class="layui-input-inline" style="width: 160px">
+				<input class="layui-input" id="storeName" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 120px">用户手机号</label>
+			<div class="layui-input-inline" style="width: 160px">
+				<input class="layui-input" id="phone" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">店铺分类</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="storeClass">
+					<option value="">请选择</option>
+					<option th:each="storeClass:${storeClass}"
+						th:value="${storeClass.STORE_CLASSIFICATION_ID}"
+						th:text="${storeClass.CLASSIFICATION_NAME}"></option>
+				</select>
+			</div>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+		<button class="layui-btn" data-type="record">认证记录</button>
+	</div>
+
+	<table id="offLineStoreVerify" lay-filter="operation"></table>
+
+	<script th:src="@{/layui/layui.js}"></script>
+	<script type="text/javascript"
+		th:src="@{/js/operationsManageJsFile/offLineStoreManage/offLineStoreVerify.js}">
+		
+	</script>
+	<script type="text/html" id="toolbar">
+		<a th:if="${xxStoreVerify}" class="layui-btn layui-btn-xs" lay-event="verify">审核</a>
+	</script>
+	<script type="text/html" id="business_license">
+	<img src="{{d.BUSINESS_LICENSE}}" onclick="showPhoto(this)"/>
+</script>
+	<script type="text/html" id="id_card">
+	<img src="{{d.ID_CARD_UP}}" onclick="showPhoto(this)"/>
+</script>
+	<script type="text/html" id="head_photo">
+	<img src="{{d.HEAD_PHOTO}}" onclick="showPhoto(this)"/>
+</script>
+	<script type="text/html" id="id_card_don">
+	<img src="{{d.ID_CARD_DON}}" onclick="showPhoto(this)"/>
+</script>
+</body>
+</html>

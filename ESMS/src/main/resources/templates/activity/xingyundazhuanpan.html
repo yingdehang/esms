@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+<title>礼品转不停</title>
+
+<link th:href="@{/xingyundazhuanpan/css/mui.min.css}" rel="stylesheet" />
+<link th:href="@{/xingyundazhuanpan/css/component.css}" rel="stylesheet"
+	type="text/css" />
+<link th:href="@{/xingyundazhuanpan/css/award.css}" rel="stylesheet"
+	type="text/css" />
+<link rel="stylesheet" type="text/css"
+	th:href="@{/xingyundazhuanpan/css/animate.min.css}" />
+
+</head>
+<body>
+	<input type="hidden" id="userId" th:value="${userId}" />
+	<input type="hidden" id="gamed" th:value="${gamed}" />
+	<input type="hidden" id="isLack" th:value="${isLack}" />
+	<input type="hidden" id="isTime" th:value="${isTime}" />
+
+	<!--抽奖页面-->
+	<div class="ml-main" id="ml-main">
+		<img class="main_back" th:src="@{/xingyundazhuanpan/img/back.png}" />
+		<img class="animated zoomIn img_2_1"
+			th:src="@{/xingyundazhuanpan/img/img_1.png}" /> <img
+			class="animated bounceIn img_2_2"
+			th:src="@{/xingyundazhuanpan/img/img_2.png}" />
+		<div class="kePublic">
+			<!--转盘效果开始-->
+			<div style="margin: 0 auto">
+				<div class="banner">
+					<div class="turnplate"
+						style="background-image: url(../xingyundazhuanpan/img/turnplate-bg_2.png); background-size: 100% 100%; font-size: 24px !important;">
+						<canvas class="item" id="wheelcanvas" width="516" height="516"></canvas>
+						<img id="tupBtn" class="pointer"
+							th:src="@{/xingyundazhuanpan/img/turnplate-pointer_2.png}" />
+					</div>
+				</div>
+			</div>
+			<!--转盘效果结束-->
+			<div class="clear"></div>
+		</div>
+		<img class="bottom_shadow"
+			th:src="@{/xingyundazhuanpan/img/bottom_shadow.png}" /> <img
+			class="animated zoomIn kePublic_back"
+			th:src="@{/xingyundazhuanpan/img/back1.png}" />
+
+		<!--滚动中奖纪录-->
+		<div class="record_line" id="Marquee" style="display: none;">
+			<div th:each="list:${winlist}" th:if="${not #lists.isEmpty(winlist)}"
+				id="">
+				恭喜 <span th:text="${list.phone}"></span> 的用户抽中 <span
+					id="gift_coupon" th:text="${list.LOTTERY_NAME}"></span> 一个
+			</div>
+			<div th:unless="${not #lists.isEmpty(winlist)}" id="">
+				<span id="gift_coupon">暂无中奖信息</span>
+			</div>
+		</div>
+		<!--底部声明-->
+		<img class="rule_title"
+			th:src="@{/xingyundazhuanpan/img/rule_title.png}" />
+		<div class="rule_text">
+			排行榜前3名不能参与抽奖环节；5月26日推广会活动现场颁发一、二等奖奖品；三等奖由站长统一代领。</div>
+	</div>
+
+	<!--中奖弹窗页面-->
+	<div class="zj-main" id="zj-main">
+		<div class="txzl">
+			<div class="zj_text">
+				<span style="font: 40px;">中奖啦</span><br /> <span id="jiangpin"></span>
+			</div>
+			<div class="close_zj">关闭</div>
+		</div>
+	</div>
+
+	<!--谢谢参与弹窗-->
+	<div class="xxcy-main" id="xxcy-main">
+		<div class="xxcy">
+			<div class="xxcy_text">
+				很遗憾<br />没有抽中礼品
+			</div>
+			<div class="close_xxcy">关闭</div>
+		</div>
+	</div>
+
+	<script type="text/javascript"
+		th:src="@{/xingyundazhuanpan/js/jquery.min.js}"></script>
+	<script type="text/javascript"
+		th:src="@{/xingyundazhuanpan/js/mui.min.js}"></script>
+	<script type="text/javascript"
+		th:src="@{/xingyundazhuanpan/js/awardRotate.js}"></script>
+	<script type="text/javascript"
+		th:src="@{/xingyundazhuanpan/js/award.js}"></script>
+
+	<script type="text/javascript">
+		$(function() {
+			$("img").on("click", function() {
+				return false;
+			});
+			document.addEventListener("WeixinJSBridgeReady", function() {
+				WeixinJSBridge.call('hideOptionMenu');
+			});
+		});
+	</script>
+
+</body>
+</html>

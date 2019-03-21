@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.merchants.MyStoreDao">
+	<!-- 根据用户Id获得店铺信息 -->
+	<select id="getUserStore" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT es.*,ed.`DESCRIBES`
+		FROM 
+		es_store es LEFT OUTER JOIN es_store_certification esc ON es.`STORE_ID`=esc.`STORE_ID`
+		LEFT OUTER JOIN es_dictionary ed ON es.`STATE`=ed.`DICTIONARY_VALUE`
+		WHERE es.`USERS_ID`=#{userId} AND esc.TYPES='STORE_XS_XS'
+	</select>
+	<!-- 查询待处理的订单 -->
+	<select id="getPendingOrder" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_store es,es_goods eg,es_order eo WHERE es.`USERS_ID`=#{userId} AND es.`STORE_ID`=eg.`STORE_ID` AND eg.`GOODSID`=eo.`GOODSID` AND (eo.`ORDER_STATE`='ORDER_STATE_PAY' OR eo.`ORDER_STATE`='ORDER_STATE_SQQX') GROUP BY eo.ORDER_NUMBER
+	</select>
+	<!-- 查询所有的店铺状态 -->
+	<select id="getStoreState" resultType="java.util.Map">
+		SELECT * FROM es_dictionary WHERE PID='27' AND DICTIONARY_VALUE!='STORE_STATE_FREEZE'
+	</select>
+	<!-- 查询店铺的所有消息 -->
+	<select id="getMessage" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_message WHERE USERS_ID=#{userId} OR MESSAGE_TYPE='MSG_TYPE_SYSTEM' ORDER BY MESSAGE_TIME DESC
+	</select>
+	<!-- 查询店铺认证信息 -->
+	<select id="getStoreCertification" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT 
+		ed1.DESCRIBES AS oldLevel,
+		ed2.DESCRIBES AS newLevel 
+		FROM 
+		es_store_certification esc 
+		LEFT OUTER JOIN es_dictionary ed1 ON esc.LEVELS=ed1.DICTIONARY_VALUE
+		LEFT OUTER JOIN es_dictionary ed2 ON esc.WAITING_STATE=ed2.DICTIONARY_VALUE
+		WHERE   
+		esc.STORE_ID=#{storeId}
+	</select>
+	<!-- 改变店铺营业状态 -->
+	<update id="changeState" parameterType="java.util.Map">
+		UPDATE es_store SET STATE=#{state} WHERE STORE_ID=#{storeId}
+	</update>
+	<!-- 改变店铺客服电话 -->
+	<update id="changeServicePhone" parameterType="java.util.Map">
+		UPDATE es_store SET SERVICE_PHONE=#{servicePhone} WHERE STORE_ID=#{storeId}
+	</update>
+</mapper>

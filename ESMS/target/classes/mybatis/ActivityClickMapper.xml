@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.ActivityClickDao">
+	<!-- 查询 -->
+	<select id="queryRenqidasaiList"
+		parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT `PHONE` as
+		phone,`USERS_ID` AS userId
+		FROM es_users
+		WHERE REGISTERED_TIME &lt;
+		#{endTime}
+		ORDER BY
+		REGISTERED_TIME ASC
+	</select>
+	<!-- 查询普通实名认证用户 -->
+	<select id="queryInvitedUsersNumber"
+		parameterType="java.util.Map" resultType="int">
+		SELECT
+		count(*)
+		FROM
+		es_users u
+		LEFT
+		JOIN es_user_certification uc
+		ON u.USERS_ID = uc.USERS_ID
+		WHERE
+		uc.STATE
+		= 'USER_AUTHENTICATION_PASS'
+		AND u.INVITATION = #{phone}
+		AND
+		(uc.TO_APPLY_FOR_TIME BETWEEN #{startTime}
+		AND #{endTime})
+	</select>
+	<!-- 查询邀请的线上店铺数量 -->
+	<select id="queryInvitedStoreNumber"
+		parameterType="java.util.Map" resultType="int">
+		SELECT
+		count(*)
+		FROM
+		es_store
+		store
+		LEFT JOIN es_store_certification sc
+		ON store.`STORE_ID` =
+		sc.`STORE_ID`
+		WHERE sc.`TYPES` = #{types}
+		AND sc.`AUDIT_STATE` =
+		'STORE_AUTHENTICATION_PASS'
+		AND (store.`OPEN_SHOP_TIME` BETWEEN
+		#{startTime}
+		AND #{endTime})
+		AND store.`USERS_ID` IN (SELECT
+		u.`USERS_ID`
+		FROM
+		es_users u
+		LEFT JOIN es_user_certification uc
+		ON
+		u.USERS_ID = uc.USERS_ID
+		WHERE u.INVITATION = #{phone}
+		AND uc.STATE
+		='USER_AUTHENTICATION_PASS')
+	</select>
+	<!-- 用户是否已经参加转盘游戏 -->
+	<select id="queryIsGamed" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT `IS` FROM es_lottery WHERE USERID=#{userId}
+	</select>
+	<!-- 抽取被抽取礼品数量 -->
+	<select id="queryPrizeNumber" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(*) FROM es_lottery WHERE `IS`='1' AND
+		LOTTERY_NAME=#{prizeName}
+	</select>
+	<!-- 记录用户抽奖结果 -->
+	<update id="updateLottery" parameterType="java.util.Map">
+		UPDATE es_lottery SET
+		ZTIME=NOW(),LOTTERY_NAME=#{lotteyName},`IS`=#{isWin}
+		WHERE
+		USERID=#{userId}
+	</update>
+	<!-- 查询抽奖资格 -->
+	<select id="queryRaffle" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(*) FROM es_lottery WHERE USERID=#{userId}
+	</select>
+	<!-- 查询未抽奖人数 -->
+	<select id="queryUserNumber" resultType="int">
+		SELECT COUNT(*) FROM
+		es_lottery WHERE `IS`='2'
+	</select>
+	<!-- 查询获奖名单 -->
+	<select id="queryWinList" resultType="java.util.Map">
+		SELECT
+		u.`PHONE`,
+		l.`LOTTERY_NAME`
+		FROM es_users u
+		LEFT JOIN es_lottery l
+		ON l.`USERID` =
+		u.`USERS_ID`
+		WHERE l.`IS` = '1'
+		ORDER BY l.`ZTIME` DESC
+	</select>
+	<!-- 符合抽奖条件的人插入抽奖list -->
+	<insert id="insertLottery" parameterType="java.util.Map">
+		INSERT INTO
+		`es_lottery` (`ELID`, `USERID`, `IS`) VALUES (#{uuid},#{userId},'2');
+	</insert>
+</mapper>

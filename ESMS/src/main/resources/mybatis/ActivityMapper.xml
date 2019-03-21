@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.activityManage.ActivityDao">
+	<!-- 查询活动list -->
+	<select id="getActiveList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT * FROM `es_activity` ORDER BY SORT DESC LIMIT
+		#{page},${limit}
+	</select>
+	<!-- 查询活动count -->
+	<select id="getActiveListCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT count(*) FROM `es_activity`
+	</select>
+	<!-- 修改活动状态 -->
+	<update id="updateActivityState" parameterType="java.util.Map">
+		update
+		`es_activity` set EASTATE=#{EASTATE} WHERE ESID=#{ESID}
+	</update>
+	<!-- 修改排序 -->
+	<update id="updateActivitySort" parameterType="java.util.Map">
+		update
+		`es_activity` set SORT=#{SORT} WHERE ESID=#{ESID}
+	</update>
+	<!-- 添加活动 -->
+	<insert id="addactivity" parameterType="java.util.Map">
+		INSERT INTO
+		`es_activity`
+		(`ESID`, `EANAME`, `EAPHOTO`, `EAURL`, `STARTTIME`,
+		`ENDTIME`,
+		`EASTATE`) VALUES (#{uuid}, #{EANAME},#{activityBANNER},
+		#{EAURL},
+		#{startTime}, #{endTime}, '0')
+	</insert>
+	<!-- 查询活动信息 -->
+	<select id="queryActivityInfo" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM
+		`es_activity` WHERE ESID=#{ESID}
+	</select>
+	<!-- 删除活动 -->
+	<delete id="deleteActivity" parameterType="java.lang.String">
+		delete from
+		`es_activity` WHERE ESID=#{ESID}
+	</delete>
+	<!-- 查询首页活动list -->
+	<select id="getNewActiveList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT * FROM es_activity_new ORDER BY DSORT ASC, ADD_TIME
+		DESC,IS_OPEN,TITLE LIMIT #{page},${limit};
+	</select>
+	<!-- 查询首页活动count -->
+	<select id="getNewActiveListCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT count(*) FROM es_activity_new
+	</select>
+	<!-- 添加首页活动 -->
+	<insert id="addNewActivity" parameterType="java.util.Map">
+		INSERT INTO
+		`es_activity_new` (`NID`, `TITLE`, `NTYPE`, `IS_OPEN`,`DSORT`,
+		`ADD_TIME`)
+		VALUES (#{uuid}, #{title}, #{ntype}, '0',0, now());
+	</insert>
+	<!-- 删除首页活动 -->
+	<delete id="deleteNewActivity" parameterType="java.lang.String">
+		delete from
+		es_activity_new where `NID`=#{NID}
+	</delete>
+	<!-- 开启关闭首页活动 -->
+	<update id="updateNewActivityState"
+		parameterType="java.util.Map">
+		update es_activity_new set IS_OPEN=#{IS_OPEN} where
+		`NID`=#{NID}
+	</update>
+	<!-- 修改排序 -->
+	<update id="updateNewActivitySort" parameterType="java.util.Map">
+		update
+		es_activity_new set DSORT=#{DSORT} where
+		`NID`=#{NID}
+	</update>
+	<!-- 查询首页活动信息 -->
+	<select id="queryNewActivityInfo"
+		parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT
+		neacti.`NID`,
+		neacti.`TITLE`,
+		IFNULL(typeone.`TID`,0) AS TID,
+		IFNULL(typeone.`PICTURE`,0) AS PICTURE,
+		IFNULL(typeone.`PICTURE_ADDR`,0) AS PICTURE_ADDR,
+		IFNULL(typeone.`TTYPE`,0) AS TTYPE
+		FROM
+		es_activity_new neacti
+		LEFT
+		JOIN
+		es_type_one typeone
+		ON neacti.`NID` = typeone.`NID`
+		WHERE
+		neacti.`NID`=#{nID}
+	</select>
+	<!-- 首页活动类型1商品list -->
+	<select id="querygoodslist" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		ag.`TID` as tid,
+		ag.`GOODSID` as goodsId,
+		goods.`GOODS_NAME` as goodsName,
+		goods.`STORE_ID` as storeId,
+		store.`STORE_NAME` as storeName,
+		ag.`DSORT` as dsort
+		FROM
+		es_activity_goods ag
+		LEFT JOIN
+		es_goods goods
+		ON ag.`GOODSID` =
+		goods.`GOODSID`
+		LEFT JOIN
+		es_store
+		store ON
+		goods.`STORE_ID`=store.`STORE_ID`
+		WHERE ag.`NID` =
+		#{NID}
+	</select>
+	<!-- 查询店铺list -->
+	<select id="querystorelist" resultType="java.util.Map">
+		SELECT
+		store.`STORE_ID` AS
+		storeId,
+		store.`STORE_NAME` AS storeName
+		FROM
+		es_store store
+		LEFT JOIN
+		es_store_certification sc
+		ON
+		store.`STORE_ID` = sc.`STORE_ID`
+		WHERE
+		sc.`TYPES` = 'STORE_XS_XS'
+		AND
+		sc.`AUDIT_STATE` =
+		'STORE_AUTHENTICATION_PASS'
+	</select>
+	<!-- 通过商品查询店铺id -->
+	<select id="queryStoreId" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT STORE_ID as storeId FROM es_goods WHERE
+		GOODSID=#{goodsId}
+	</select>
+	<!-- 通过店铺id查询商品列表 -->
+	<select id="querygoodslistByStoreId"
+		parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_goods
+		WHERE STORE_ID=#{storeId}
+	</select>
+</mapper>

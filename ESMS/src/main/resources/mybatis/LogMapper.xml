@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.log.LogDao">
+	<!-- 操作记录插入日志表 -->
+	<insert id="insertLog"
+		parameterType="com.example.elephantshopping.entity.Log">
+		INSERT INTO
+		`es_operation_record` (`EORID`, `USERS_ID`,
+		`CTIME`,
+		`ACTION_NAME`, `NOTE`, `IP`) VALUES (#{EORID}, #{USERS_ID},
+		now(),
+		#{ACTION_NAME}, #{NOTE}, #{IP})
+	</insert>
+	<!-- 查询用户名 -->
+	<select id="getNIKENAMEBYID" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM `es_users` WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 查询线下店铺分类名 -->
+	<select id="queryXxStoreClassNameById"
+		parameterType="java.lang.String" resultType="java.lang.String">
+		select CLASSIFICATION_NAME
+		FROM es_store_classification WHERE
+		STORE_CLASSIFICATION_ID=#{storeClassId}
+	</select>
+	<!-- 查询线上店铺分类名 -->
+	<select id="queryXsStoreClassNameById"
+		parameterType="java.lang.String" resultType="java.lang.String">
+		select CLASS_NAME
+		FROM
+		es_classification WHERE
+		CLASSIFICATION_ID=#{CLASSIFICATION_ID}
+	</select>
+</mapper>

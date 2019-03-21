@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width,height=device-height,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title th:text="${store.storeName}">店铺详情</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<style type="text/css">
+body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	background-color: #f9f9f9;
+}
+
+.storehead {
+	width: 100% -20px;
+	padding: 10px;
+	height: 60px;
+	background-color: white;
+}
+
+.storeicon {
+	float: left;
+	width: 60px;
+	height: 60px;
+}
+
+.nameAndState {
+	height: 60px;
+	float: left;
+	margin-left: 5px;
+}
+
+.storelogo {
+	float: left;
+	width: 50px;
+	height: 20px;
+	margin-right: 5px;
+	margin-top: 9px;
+}
+
+.storeState {
+	float: right;
+	font-size: 14px;
+	color: #666666;
+	line-height: 60px;
+}
+
+.storeGoods {
+	width: 100%;
+	height: 50px;
+	margin-top: 10px;
+	background-color: white;
+}
+
+.goodssort {
+	float: left;
+	font-size: 16px;
+	color: #999999;
+	line-height: 50px;
+}
+
+.sortselect {
+	font-size: 16px;
+	line-height: 48px;
+	color: #444444;
+	border-bottom: 2px #fe7449 solid;
+}
+
+.goodsbox {
+	width: 100%;
+	border-radius: 6px;
+}
+
+.parentdiv {
+	width: 100%;
+	margin-bottom: 10px;
+	background-color: white;
+	border-radius: 10px;
+	padding-bottom: 5px;
+}
+
+.namediv {
+	margin: 5px auto;
+	text-align: left;
+	font-size: 16px;
+	font-family: PingFang;
+	color: #222222;
+	line-height: 18px;
+}
+
+.pricediv {
+	text-align: left;
+	margin: 5px auto;
+	font-size: 18px;
+	font-family: PingFang;
+	color: #ff554f;
+	line-height: 20px;
+}
+
+.salesdiv {
+	margin: 5px auto;
+	text-align: left;
+	font-size: 10px;
+	font-family: PingFang;
+	color: #999999;
+	line-height: 12px;
+}
+</style>
+</head>
+<body>
+	<div class="storehead">
+		<div class="storeicon">
+			<img th:src="${store.storeIcon}" width="100%" height="100%"
+				style="border-radius: 6px; border: 1px solid #f9f9f9;" />
+		</div>
+		<div class="nameAndState">
+			<span style="font-size: 16px; color: #222222; font-family: PingFang;"
+				th:text="${store.storename}"></span>
+			<div>
+				<img class="storelogo" th:if="${store.isSelf} == '1'"
+					th:src="@{/img/storelogo/zy.png}" /> <img class="storelogo"
+					th:if="${store.levels} == 'STORE_DJ_GOLD'"
+					th:src="@{/img/storelogo/jp.png}" /> <img class="storelogo"
+					th:if="${store.levels} == 'STORE_DJ_SILVER'"
+					th:src="@{/img/storelogo/yp.png}" /> <img class="storelogo"
+					th:if="${store.levels} == 'STORE_DJ_COPPER'"
+					th:src="@{/img/storelogo/tp.png}" /> <img class="storelogo"
+					th:if="${store.storeType} == 'STORE_DJ_QJ'"
+					th:src="@{/img/storelogo/qj.png}" /> <img class="storelogo"
+					th:if="${store.storeType} == 'STORE_DJ_ZM'"
+					th:src="@{/img/storelogo/zm.png}" />
+			</div>
+		</div>
+		<div class="storeState">
+			<span th:if="${store.state}=='STORE_STATE_NORMAL'">营业中</span> <span
+				th:if="${store.state}=='STORE_STATE_REST'">已打烊</span> <i
+				class="layui-icon">&#xe602;</i>
+		</div>
+	</div>
+	<div class="storeGoods">
+		<div class="goodssort sortselect"
+			style="float: left; margin-left: 10px;">默认排序</div>
+		<div class="goodssort" style="margin-left: 15px;">销量优先</div>
+		<div id="collection"
+			style="float: right; margin-right: 10px; font-size: 14px; color: #666666; line-height: 50px;">
+			收藏<img th:src="@{/img/storelogo/tx.png}"
+				style="width: 16px; height: 14px; margin-left: 5px; line-height: 50px;" />
+		</div>
+	</div>
+	<input id="storeId" type="hidden" th:value="${store.storeId}" />
+	<div id="goodsleft"></div>
+	<div id="goodsright"></div>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script>
+	/* <![CDATA[ */
+	layui
+			.use(
+					[ 'flow', 'jquery' ],
+					function() {
+						var $ = layui.jquery;
+						var storeId = $("#storeId").val();
+						var flow = layui.flow;
+						var count, sort = 0;
+						var w = document.body.clientWidth;
+						var wid = (w - 30) / 2;
+						$("#goodsleft").css({
+							"float" : "left",
+							"margin-left" : "10px",
+							"margin-top" : "10px",
+							"width" : wid + "px",
+						});
+						$("#goodsright").css({
+							"float" : "right",
+							"margin-right" : "10px",
+							"margin-top" : "10px",
+							"width" : wid + "px",
+						});
+						querygoods(1, 10, sort);
+						setTimeout(function() {
+							flow.load({
+								elem : 'body',
+								isAuto : true,
+								done : function(page, next) { //到达临界点（默认滚动触发），触发下一页
+									next(querygoods(page + 1, 10, sort),
+											(page + 1) * 10 < count);
+								}
+							});
+						}, 1000);
+						function querygoods(page, limit, sort) {
+							setTimeout(
+									function() {
+										//加载商品数据
+										$.post("/share/queryStoreGoodsList",
+														{
+															storeId : storeId,
+															page : page,
+															limit : limit,
+															sort : sort
+														},
+														function(data) {
+															var list = data.data;
+															count = data.count;
+															var one = $("#goodsleft"), two = $("#goodsright");
+															for (var i = 0; i < list.length; i++) {
+																var o = one
+																		.height(), t = two
+																		.height();
+																var d;
+																if (t < o) {
+																	d = two;
+																} else {
+																	d = one;
+																}
+																var icon = list[i].GOODS_ICON, name = list[i].GOODS_NAME;
+																var price = list[i].PRESENT_PRICE;
+																var sales = list[i].PURCHASE_QUANTITY;
+																var id = list[i].GOODSID;
+																addgoodsbox(i,
+																		icon,
+																		name,
+																		price,
+																		sales,
+																		id, d)
+															}
+														});
+									}, 500);
+						}
+						function addgoodsbox(index, src, name, price, sales,id,
+								document) {
+							//创建一个商品div容器，父容器
+							var h = $('<a></a>');
+							h.attr("href", "/share/toGoodsShareHtml?goodsId="+id);
+							h.appendTo(document);
+							var parentdiv = $('<div></div>'); //创建一个父div
+							parentdiv.attr('id', 'goods' + index); //给父div设置id
+							parentdiv.addClass('parentdiv'); //添加css样式
+							parentdiv.appendTo(h);
+							//父容器中包含商品图片、名称、价格、销量
+							var img = $('<img/>');
+							img.attr("src", src);
+							img.css({
+								"width" : (wid - 2) + "px",
+								"height" : (wid - 2) + "px",
+								"border" : "1px solid #f6f6f6",
+								"border-radius" : "10px 10px 0px 0px"
+							});
+							img.appendTo(parentdiv);
+							var namediv = $("<div></div>");
+							namediv.text(name);
+							namediv.css("width", (wid - 10) + "px");
+							namediv.addClass("namediv");
+							namediv.appendTo(parentdiv);
+							var pricediv = $("<div></div>");
+							pricediv.text("¥" + price.toFixed(2));
+							pricediv.css("width", (wid - 10) + "px");
+							pricediv.addClass("pricediv");
+							pricediv.appendTo(parentdiv);
+							var salesdiv = $("<div></div>");
+							salesdiv.text(sales + "人购买");
+							salesdiv.css({
+								"width" : (wid - 10) + "px"
+							});
+							salesdiv.addClass("salesdiv");
+							salesdiv.appendTo(parentdiv);
+						}
+						$(".goodssort").click(function() {
+							$(".goodssort").removeClass('sortselect');
+							$(this).addClass('sortselect');
+							$("#goodsleft").empty();
+							$("#goodsright").empty();
+							var b = $(this).text();
+							if (b == "默认排序") {
+								sort = 0;
+							} else {
+								sort = 1;
+							}
+							querygoods(1, 10, sort);
+						});
+						$(".storeState").click(function() {
+							window.location.href = "/share/toDownloadHtml";
+						});
+						$("#collection").click(function() {
+							window.location.href = "/share/toDownloadHtml";
+						});
+					});
+	/* ]]> */
+</script>
+</html>

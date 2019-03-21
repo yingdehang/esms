@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>添加商品</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<!-- 商品详情 -->
+	<div class="layui-tab layui-tab-card"
+		style="width: 80%; height: 32px; margin: 0 auto;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label><a href="/onLineStore/toOnLineStoreList">线上店铺管理</a><i
+				class="layui-icon" style="font-size: 14px;">&#xe65b;</i><a
+				th:href="@{/goodsManage/toGoodsManageHtml/(storeId=${storeId})}">商品管理</a><i
+				class="layui-icon" style="font-size: 14px;">&#xe65b;</i> 添加商品 </label>
+		</div>
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			<a class="layui-btn layui-btn-xs"
+				th:href="@{/goodsManage/toGoodsManageHtml/(storeId=${storeId})}">返回列表</a>
+		</div>
+	</div>
+	<div style="width: 80%; margin: 10px auto;">
+		<!-- 表单 -->
+		<form class="layui-form layui-form-pane"
+			action="/goodsManage/addgoods">
+			<div class="layui-form-item">
+				<label class="layui-form-label">商品名称</label>
+				<div class="layui-input-block">
+					<input name="GOODS_NAME" class="layui-input" type="text"
+						placeholder="请输入商品名称，商品名称1~50个字符" autocomplete="off"
+						lay-verify="required" />
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">商品分类</label>
+				<div class="layui-input-inline">
+					<select id="classification1" lay-filter="getsonClass1">
+						<option value="">请选择商品分类名称</option>
+						<option th:each="classifications:${classifications}"
+							th:value="${classifications.CLASSIFICATION_ID}"
+							th:text="${classifications.CLASS_NAME}"></option>
+					</select>
+				</div>
+				<div class="layui-input-inline" id="selectbox1">
+					<select id="classification2" lay-filter="getsonClass2"><option
+							value="">请选择二级分类名称</option>
+					</select>
+				</div>
+				<div class="layui-input-inline" id="selectbox2">
+					<select id="classification3" name="CLASSIFICATION_ID"
+						lay-filter="selectClassification">
+						<option value="">请选择三级分类名称</option>
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">商品单价</label>
+				<div class="layui-input-inline">
+					<input name="PRESENT_PRICE" class="layui-input"
+						placeholder="请输入商品单价" autocomplete="off"
+						lay-verify="required|number" />
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">商品库存</label>
+				<div class="layui-input-inline">
+					<input name="INVENTORY" class="layui-input" placeholder="请输入商品库存"
+						autocomplete="off" lay-verify="required|number" />
+				</div>
+			</div>
+			<div style="margin: 0 auto; border-top: solid 1px #C3C3C3;">
+				<div class="layui-tab layui-tab-card demoTable"
+					style="height: 32px;">
+					<div
+						style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+						<label>商品属性：</label>
+					</div>
+					<div style="float: left; line-height: 32px; padding-left: 10px;">
+						<button type="button" class="layui-btn layui-btn-xs"
+							data-type="addAttribute">添加属性/规格名称</button>
+					</div>
+				</div>
+				<table class="layui-hide" id="goodsAttributeList"
+					lay-filter="goodsAttributeList"></table>
+			</div>
+			<div style="margin: 0 auto; border-top: solid 1px #C3C3C3;">
+				<div class="layui-tab layui-tab-card demoTable"
+					style="height: 32px;">
+					<div
+						style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+						<label>商品主图：<input type="hidden" name="goodsphotos"
+							id="goodsphotos" /></label>
+					</div>
+					<div style="float: left; line-height: 32px; padding-left: 10px;">
+						<button type="button" id="goodsImguploadbutton"
+							class="layui-btn layui-btn-xs" data-type="batchUpload">选择图片</button>
+						<button type="button" id="testListAction"
+							class="layui-btn layui-btn-xs">立即上传</button>
+						<span style="color: #EB4849; font-size: 10px; margin-top: 20px;">
+							注：选择好商品图片后,请点击上传按钮,第一张图片将做为商品展示小图片,如有部分图片上传失败,请手动点击重试 </span>
+					</div>
+				</div>
+				<div class="layui-upload-list">
+					<table class="layui-table">
+						<thead>
+							<tr>
+								<th>文件名</th>
+								<th>大小</th>
+								<th>状态</th>
+								<th>操作</th>
+							</tr>
+						</thead>
+						<tbody id="demoList"></tbody>
+					</table>
+				</div>
+			</div>
+			<div style="margin: 0 auto; border-top: solid 1px #C3C3C3;">
+				<div class="layui-tab layui-tab-card demoTable"
+					style="height: 32px;">
+					<div
+						style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+						<label>商品详情：<input type="hidden" id="DETAILS"
+							name="DETAILS" /></label>
+					</div>
+					<div style="float: left; line-height: 32px; padding-left: 10px;">
+						支持图文混排,图片建议宽度1080,建议单张图片物理大小1M以内。
+						<button type="button"
+							class="layui-btn site-demo-layedit layui-btn-xs"
+							data-type="content">保存内容</button>
+						<span style="color: #EB4849; font-size: 10px; margin-top: 20px;">
+							注：编辑完成商品详情后，请点击保存内容按钮保存编辑内容再提交。 </span>
+					</div>
+				</div>
+				<textarea id="goodsxiangqing" style="display: none;"
+					onchange="getfuwenbencontent();"></textarea>
+			</div>
+			<input name="storeId" id="storeId" type="hidden"
+				th:value="${storeId}" /> <input name="testgoodsId" id="testgoodsId"
+				type="hidden" /> <input name="goodsState" type="hidden"
+				value="GOODS_STATE_DSH" />
+			<div class="layui-form-item" style="margin-top: 20px;">
+				<div class="layui-input-block demoTable">
+					<button class="layui-btn" lay-filter="demo1" lay-submit="">立即提交</button>
+					<button class="layui-btn" type="reset" data-type="CancelAddGoods">取消添加</button>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div id="addbox" class="layui-form layui-form-pane"
+		style="display: none; padding: 15px 0px 0px 15px">
+		<div class="layui-form-item">
+			<label class="layui-form-label">属性名</label>
+			<div class="layui-input-inline">
+				<input id="attributeName" class="layui-input" type="text"
+					placeholder="请输入属性名" autocomplete="off" lay-verify="required" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">属性值</label>
+			<div class="layui-input-inline">
+				<input id="attributeValue" class="layui-input" type="text"
+					placeholder="多个属性值,用逗号分隔开" autocomplete="off" lay-verify="required" />
+			</div>
+		</div>
+	</div>
+	<script id="toolbar" type="text/html">
+  		<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+	</script>
+	<script th:src="@{/layui/layui.js}"></script>
+	<script th:src="@{/js/merchantsJsFile/addgoods.js}"></script>
+</body>
+</html>

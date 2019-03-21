@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>线下店铺审核</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878;margin-bottom:10px">
+		<h2><a href="javascript:void(0)" onclick="location.reload()">收益比例管理</a></h2>
+	</div>
+	<div class="layui-form layui-form-pane" id="add" style="width: 300px; margin: 20px auto; text-align: center; display: none;">
+		<div class="layui-form-item">
+			<label class="layui-form-label">名称</label>
+			<div class="layui-input-block">
+				<input id="name" class="layui-input" type="text" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">值</label>
+			<div class="layui-input-block">
+				<input id="value" class="layui-input" type="text" autocomplete="off" />
+			</div>
+		</div>
+	</div>
+	<button class="layui-btn" data-type="add">添加</button>
+	<table id="earningRatio" lay-filter="operation"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+layui.use(['table','jquery','form','laydate'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	var laydate = layui.laydate
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#earningRatio'
+		,url: '/earningRatio/getEarningRatio'
+		,page: true
+		,cols:[[
+			{field:'NAMES',title:'名称'}
+			,{field:'ER_VALUES',title:'值'}
+			,{field:'ADD_TIME',title:'添加时间'}
+			
+		]]
+	});
+	<!-- 监听单元格修改 -->
+	table.on('edit(operation)',function(obj){
+		var value = obj.value //得到修改后的值
+	    ,data = obj.data //得到所在行所有键值
+	    ,field = obj.field; //得到字段
+	    $.post("/earningRatio/edit",{id:data.EARNINGS_RATIO_ID,value:value,field:field},function(da){
+	    });
+	    layer.msg('已修改');
+	});
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'delete'){ //删除
+			$.post("/earningRatio/delete",{id:data.EARNINGS_RATIO_ID},function(da){
+			});
+		}
+		table.reload('earningRatio', {
+		});
+	});
+	<!-- 监听添加按钮 -->
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	var $ = layui.$, active = {
+			add: function(){
+				var index1 = layer.open({
+					type:1,
+					content:$('#add'),
+					title:['添加',''],
+					area:['400px','250px'],
+					shade: 0,
+			        maxmin: true,
+			        skin:'layui-layer-molv',
+				    btnAlign: 'c',
+					btn:['确定','取消']
+					,yes: function(index, layero){
+						var name=$("#name").val();
+						var value=$("#value").val();
+						if(name==''||value=='')
+						{
+							layer.msg("不能输入空值");
+						}
+						else if(isNaN(value))
+						{
+							layer.msg("值只能输入数字")
+						}
+						else
+						{
+							$.post("/earningRatio/add",{name:name,value:value},function(da){
+								table.reload('earningRatio', {
+								});
+							});
+							layer.close(index1);
+						}
+					}
+				});
+			}
+	};
+});
+</script>
+<script type="text/html" id="toolbar">
+	<a class="layui-btn layui-btn-xs" lay-event="delete">删除</a>
+</script>
+</body>
+</html>

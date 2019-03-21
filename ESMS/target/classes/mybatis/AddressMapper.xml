@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.systemManage.AddressDao">
+	<!-- 获取地址管理list -->
+	<select id="getAddressList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT * FROM `es_area`
+		<where>
+			<if test="PID != null and PID!=''">
+				PID=#{PID}
+			</if>
+			<if test="PID == null or PID==''">
+				PID='1'
+			</if>
+			<if test="CITY_NAME != null and CITY_NAME !=''">
+				AND
+				CITY_NAME
+				LIKE CONCAT('%',#{CITY_NAME},'%')
+			</if>
+		</where>
+		limit #{page},#{limit};
+	</select>
+	<!-- 查询地址管理总数 -->
+	<select id="getAddressListCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT count(*) FROM `es_area`
+		<where>
+			<if test="PID != null and PID!=''">
+				PID=#{PID}
+			</if>
+			<if test="PID == null or PID==''">
+				PID='1'
+			</if>
+			<if test="CITY_NAME != null and CITY_NAME !=''">
+				AND
+				CITY_NAME
+				LIKE CONCAT('%',#{CITY_NAME},'%')
+			</if>
+		</where>
+	</select>
+
+	<!-- 查询地址PID，用于返回上一级地址list -->
+	<select id="queryAddressParentId" parameterType="java.lang.Integer"
+		resultType="java.lang.Integer">
+		SELECT PID FROM `es_area` WHERE CITY_CODE=#{PID}
+	</select>
+
+	<!-- 是否存在子菜单 -->
+	<select id="isHaveSon" parameterType="java.lang.Integer"
+		resultType="int">
+		SELECT count(*) FROM `es_area` WHERE
+		PID=#{CITY_CODE}
+	</select>
+
+	<!-- 删除地址 -->
+	<delete id="deleteAddressById" parameterType="java.lang.String">
+		DELETE FROM
+		`es`.`es_area` WHERE `CITY_CODE` = #{CITY_CODE}
+	</delete>
+
+	<!-- 添加地址 -->
+	<insert id="addAddress" parameterType="java.util.Map">
+		INSERT INTO `es`.`es_area`
+		(`PID`, `CITY_NAME`, `CITY_PY`) VALUES (
+		#{PID},
+		#{CITY_NAME},
+		#{CITY_PY})
+	</insert>
+
+	<!-- 修改地址 -->
+	<update id="updateAddress" parameterType="java.util.Map">
+		UPDATE `es`.`es_area`
+		SET `CITY_NAME` = #{CITY_NAME} , `CITY_PY` = #{CITY_PY} WHERE
+		`CITY_CODE` = #{CITY_CODE};
+	</update>
+</mapper>

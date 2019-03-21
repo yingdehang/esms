@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>线下店铺管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<div class="layui-form" id="exportCondition" style="display: none">
+	<div class="layui-form-item">
+		<label class="layui-form-label">店铺数量：</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" type="text" id="count" style="border: 0" />
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label">时间类型：</label>
+		<div class="layui-input-block">
+			<input type="radio" name="time" value="month" title="按月流水导出"
+				checked="checked" lay-filter="date" /> <input type="radio"
+				name="time" value="day" title="按日流水导出" lay-filter="date" />
+		</div>
+	</div>
+	<div class="layui-form-item" id="month">
+		<label class="layui-form-label">月份：</label>
+		<div class="layui-input-inline">
+			<input type="text" class="layui-input" id="m" />
+		</div>
+	</div>
+	<div class="layui-form-item" style="display: none" id="day">
+		<label class="layui-form-label">日期范围：</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" id="startTime" type="text"
+				placeholder="起始时间" />
+		</div>
+		<div class="layui-form-mid">至</div>
+		<div class="layui-input-inline">
+			<input class="layui-input" id="endTime" type="text"
+				placeholder="结束时间" />
+		</div>
+	</div>
+</div>
+
+<body>
+	<!-- 页面头部 -->
+	<div style="padding-bottom: 10px; border-bottom: 2px solid #5FB878">
+		<div class="layui-fluid">
+			<div class="layui-row">
+				<div class="layui-col-lg4">
+					<h2>
+						<a href="javascript:void(0)" onclick="location.reload()">线下店铺管理</a>
+					</h2>
+				</div>
+				<div class="layui-col-lg4"
+					style="line-height: 38px; text-align: center; font-size: 32px">
+					<span th:if="${storeDJ} != null and ${storeDJ}=='STORE_DJ_GOLD'">金牌店铺</span>
+					<span th:if="${storeDJ} != null and ${storeDJ}=='STORE_DJ_SILVER'">银牌店铺</span>
+					<span th:if="${storeDJ} != null and ${storeDJ}=='STORE_DJ_COPPER'">铜牌店铺</span>
+					<span th:unless="${storeDJ} != null">&nbsp;&nbsp;&nbsp;&nbsp;</span>
+				</div>
+				<div class="layui-col-lg4">
+					<a th:if="${storeDJ} != null" class="layui-btn layui-btn-radius"
+						style="float: right; margin-left: 10px;"
+						href="javascript:history.back(-1)">返回统计系统</a> <input
+						th:if="${storeDJ} != null" type="hidden" id="storeDJ"
+						th:value="${storeDJ}" />
+					<button th:if="${exportXxStoreWater}" id="export"
+						class="layui-btn layui-btn-radius" style="float: right"
+						data-type="exports">导出流水</button>
+				</div>
+			</div>
+		</div>
+
+	</div>
+	<div id="search" class="layui-form layui-form-pane">
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">店铺名称</label>
+			<div class="layui-input-inline" style="width: 160px">
+				<input class="layui-input" id="storeName" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">店铺分类</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="storeClass">
+					<option value="">请选择</option>
+					<option th:each="storeClass:${storeClass}"
+						th:value="${storeClass.STORE_CLASSIFICATION_ID}"
+						th:text="${storeClass.CLASSIFICATION_NAME}"></option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 120px">店主手机号</label>
+			<div class="layui-input-inline" style="width: 160px">
+				<input class="layui-input" id="phone" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">店铺状态</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="storeState">
+					<option value="">请选择</option>
+					<option th:each="storeState:${storeState}"
+						th:value="${storeState.DICTIONARY_VALUE}"
+						th:if="${storeState.DICTIONARY_VALUE=='STORE_AUTHENTICATION_PASS'}">正常</option>
+					<option th:each="storeState:${storeState}"
+						th:value="${storeState.DICTIONARY_VALUE}"
+						th:if="${storeState.DICTIONARY_VALUE=='STORE_AUTHENTICATION_FREEZE'}">冻结</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label">开店时间</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="start" type="text" placeholder="起始时间" />
+			</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="end" type="text" placeholder="结束时间" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label">选择地区</label>
+			<div class="layui-input-inline">
+				<select name="province" id="province" lay-filter="changeProvince"
+					lay-verify="required">
+					<option value="0">请选择省</option>
+					<option th:each="province:${province}"
+						th:value="${province.CITY_CODE}" th:text="${province.CITY_NAME}"></option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select name="city" id="city" lay-filter="changeCity"
+					lay-verify="required">
+					<option value="0">请选择市</option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select name="area" id="area" lay-verify="required">
+					<option value="0">请选择区</option>
+				</select>
+			</div>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+	</div>
+
+	<table id="offLineStore" lay-filter="operation"></table>
+	<div id="laypage"></div>
+
+	<script th:src="@{/layui/layui.js}"></script>
+	<script type="text/javascript">
+/*<![CDATA[*/
+var page = 1;
+var limit = 10;
+layui.use(['table','jquery','form','laydate','laypage'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	var laydate = layui.laydate;
+	var laypage = layui.laypage;
+	laydate.render({
+		elem: '#start'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#end'
+		,type: 'datetime'
+	});
+	//导出日期条件
+	laydate.render({
+		elem: '#m'
+		,type: 'month'
+	});
+	laydate.render({
+		elem: '#startTime'
+		,type: 'date'
+	});
+	laydate.render({
+		elem: '#endTime'
+		,type: 'date'
+	});
+	//监听导出流水时间选择radio
+	form.on('radio(date)', function(data){
+		if(data.value=="month"){
+			$("#month").css("display","block");
+			$("#day").css("display","none");
+		}else if(data.value=="day"){
+			$("#month").css("display","none");
+			$("#day").css("display","block");
+		}
+	});
+	
+	$(function(){
+		page = localStorage.getItem("offPage");
+		limit = localStorage.getItem("offLimit");
+	});
+	
+	var storeName = $("#storeName");
+	var storeClass = $("#storeClass");
+	var phone = $("#phone");
+	var storeState = $("#storeState");
+	var start = $("#start");
+	var end = $("#end");
+	var province = $("#province");
+	var city = $("#city");
+	var area = $("#area");
+	var storeDJ=$("#storeDJ");
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#offLineStore'
+		,url: '/offLineStore/getOffLineStoreList'
+		,page: false
+		,cols:[[
+			{field:'STORE_NAME',title:'店铺名称'}
+			,{field:'CLASSIFICATION_NAME',title:'店铺分类'}
+			,{field:'UC_NAMES',title:'店主姓名'}
+			,{field:'userPhone',title:'店主手机号'}
+			,{field:'OPEN_SHOP_TIME',title:'开店时间'}
+			,{field:'area',title:'地区'}
+			,{field:'AUDIT_STATE',title:'店铺状态',templet:'#state'}
+			,{fixed: 'right', width:300, align:'center', toolbar: '#toolbar',title:'操作'}
+		]]
+		,where:{
+			storeName: localStorage.getItem("offStoreName")
+			,storeClass: localStorage.getItem("offStoreClass")
+			,phone: localStorage.getItem("offPhone")
+			,storeState: localStorage.getItem("offStoreState")
+			,start: localStorage.getItem("offStart")
+			,end: localStorage.getItem("offEnd")
+			,province: localStorage.getItem("offProvince")
+			,city: localStorage.getItem("offCity")
+			,area: localStorage.getItem("offArea")
+			,page: localStorage.getItem("offPage")
+			,limit: localStorage.getItem("offLimit")
+			,storeDJ:storeDJ.val()
+		}
+		,done :function(res,curr,count){
+			laypage.render({  
+	            elem:'laypage'  
+	            ,count:count  
+	            ,curr:page  
+	            ,limit:limit  
+	            ,layout: ['prev', 'page', 'next', 'skip','count','limit']  
+	            ,jump:function (obj,first) {  
+	                if(!first){  
+	                   page = obj.curr;  
+	                   limit = obj.limit;  
+	                   table.reload('offLineStore', {
+	           			where: {
+	           				page: page
+	           				,limit: limit
+	           			}
+	           		   }); 
+	                }  
+	            }  
+	        })
+		}
+	});
+	
+	//页面加载时执行
+	$(function(){
+		$('#storeName').val(localStorage.getItem("offStoreName"));
+		$('#start').val(localStorage.getItem("offStart"));
+		$('#end').val(localStorage.getItem("offEnd"));
+		$('#phone').val(localStorage.getItem("offPhone"));
+		$("#storeClass").find("option[value='"+localStorage.getItem("offStoreClass")+"']").attr("selected",true);
+		$("#storeState").find("option[value='"+localStorage.getItem("offStoreState")+"']").attr("selected",true);
+		$("#province").find("option[value='"+localStorage.getItem("offProvince")+"']").attr("selected",true);
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/storeVerify/getSubordinateArea",   
+			data : {   
+				pId:localStorage.getItem("offProvince")
+			},  
+			success : function(da) {//返回数据根据结果进行相应的处理   
+				var city = eval(da);
+				$("#city").empty();
+				$("#area").empty();
+				$("#city").append("<option value='0'>请选择市</option>");
+				$("#area").append("<option value='0'>请选择区</option>");
+				for (var i = 0; i < city.length; i++) {
+					$("#city").append(
+							"<option value='"+city[i].CITY_CODE+"'>"
+									+ city[i].CITY_NAME
+									+ "</option>");
+				}
+				form.render('select');
+			}   
+		});
+		$("#city").find("option[value='"+localStorage.getItem("offCity")+"']").attr("selected",true);
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/storeVerify/getSubordinateArea",   
+			data : {   
+				pId:localStorage.getItem("offCity")
+			},  
+			success : function(da) {//返回数据根据结果进行相应的处理   
+				var area = eval(da);
+				$("#area").empty();
+				$("#area").append("<option value='0'>请选择县/区</option>");
+				for (var i = 0; i < area.length; i++) {
+					$("#area").append(
+							"<option value='"+area[i].CITY_CODE+"'>"
+									+ area[i].CITY_NAME
+									+ "</option>");
+				}
+				form.render('select');
+			}   
+		});
+		$("#area").find("option[value='"+localStorage.getItem("offArea")+"']").attr("selected",true);
+		form.render('select');
+		localStorage.clear();
+	});
+	
+	//监听省份选择
+	form.on('select(changeProvince)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var city = eval(da);
+			$("#city").empty();
+			$("#area").empty();
+			$("#city").append("<option value='0'>请选择市</option>");
+			$("#area").append("<option value='0'>请选择区</option>");
+			for (var i = 0; i < city.length; i++) {
+				$("#city").append(
+						"<option value='"+city[i].CITY_CODE+"'>"
+								+ city[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	//监听城市选择
+	form.on('select(changeCity)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var area = eval(da);
+			$("#area").empty();
+			$("#area").append("<option value='0'>请选择县/区</option>");
+			for (var i = 0; i < area.length; i++) {
+				$("#area").append(
+						"<option value='"+area[i].CITY_CODE+"'>"
+								+ area[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	<!-- 监听搜索按钮 -->
+	$('#search .layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 监听导出流水按钮 -->
+	$('#export').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索 -->
+	var $ = layui.$, active = {
+		<!-- 搜索时执行重载-->
+		reload: function(){
+			//执行重载
+			page=1;
+			table.reload('offLineStore', {
+				where: {
+					storeName:storeName.val(),
+					storeClass:storeClass.val(),
+					phone:phone.val(),
+					storeState: storeState.val(),
+					start : start.val(),
+					end : end.val(),
+					province:province.val(),
+					city:city.val(),
+					area:area.val(),
+					page:page,
+					limit:limit
+				}
+				,page:false
+			});
+		}
+		//点击导出流水按钮，根据条件查询有多少个店铺，并弹出弹窗
+		,exports: function(){
+			$.ajax({   
+				type : "POST",
+				async:false,
+				url : "/offLineStore/toExport",   
+				data : {   
+					storeName:storeName.val(),
+					storeClass:storeClass.val(),
+					phone:phone.val(),
+					storeState: storeState.val(),
+					start : start.val(),
+					end : end.val(),
+					province:province.val(),
+					city:city.val(),
+					area:area.val()
+				},  
+				success : function(da) {
+					if(da==0)
+					{
+						layer.msg("没有符合条件的店铺")
+					}
+					else
+					{
+						$("#count").val(da);
+						var index = layer.open({
+							type:1,
+							content:$('#exportCondition'),
+							title:['导出流水',''],
+							area:['550px','300px'],
+							shade: 0,
+					        maxmin: true,
+						    btnAlign: 'c',
+							btn:['确定','取消']
+							,yes: function(index, layero){
+								var timeType = $("[name='time']:checked").val();
+								var month = $("#m").val();
+								var startTime = $("#startTime").val();
+								var endTime = $("#endTime").val();
+								if(timeType=="month"&&month==""){
+									layer.msg("请选择月份");
+								}else if(timeType=="day"&&startTime==""&&endTime==""){
+									layer.msg("请选择日期范围");
+								}else if(timeType=="day"&&(startTime==""||endTime=="")){
+									layer.msg("请选择正确的日期范围");
+								}else if(timeType=="day"&&startTime>endTime){
+									layer.msg("请选择正确的日期范围");
+								}else{
+									window.location.href="/offLineStore/export?storeName="+storeName.val()+"&phone="+phone.val()
+											+"&storeClass="+storeClass.val()+"&storeState="+storeState.val()+"&start="+start.val()+"&end="+end.val()
+											+"&province="+province.val()+"&city"+city.val()+"&area="+area.val()+"&timeType="+timeType
+											+"&month="+month+"&startTime="+startTime+"&endTime="+endTime;
+									layer.close(index);
+								}
+							}
+						});
+					}
+				}   
+			});
+			
+		}
+	};
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'freeze'){ //冻结
+			layer.confirm('是否冻结?', {icon: 3, title:'提示'}, function(index){
+				$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/offLineStore/changeState",   
+					data : {   
+						id:data.STORE_ID,result:0
+					},  
+					success : function(da) {  
+					}   
+				});
+				layer.close(index);
+				table.reload('offLineStore', {
+				});
+			});
+		}else if(layEvent === 'unfreeze'){
+			layer.confirm('是否解除冻结?', {icon: 3, title:'提示'}, function(index){
+				$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/offLineStore/changeState",   
+					data : {   
+						id:data.STORE_ID,result:1
+					},  
+					success : function(da) {  
+					}   
+				});
+				layer.close(index);
+				table.reload('offLineStore', {
+				});
+			});
+			
+		}else if(layEvent === 'detail'){
+			localStorage.setItem("offStoreName",storeName.val());
+			localStorage.setItem("offStoreClass",storeClass.val());
+			localStorage.setItem("offPhone",phone.val());
+			localStorage.setItem("offStoreState",storeState.val());
+			localStorage.setItem("offStart",start.val());
+			localStorage.setItem("offEnd",end.val());
+			localStorage.setItem("offProvince",province.val());
+			localStorage.setItem("offCity",city.val());
+			localStorage.setItem("offArea",area.val());
+			localStorage.setItem("offPage",page);
+			localStorage.setItem("offLimit",limit);
+			window.location.href="/offLineStore/toDetails?id="+data.STORE_CERTIFICATION_ID;
+		}else if(layEvent === 'checkWater'){//查看流水
+			localStorage.setItem("offStoreName",storeName.val());
+			localStorage.setItem("offStoreClass",storeClass.val());
+			localStorage.setItem("offPhone",phone.val());
+			localStorage.setItem("offStoreState",storeState.val());
+			localStorage.setItem("offStart",start.val());
+			localStorage.setItem("offEnd",end.val());
+			localStorage.setItem("offProvince",province.val());
+			localStorage.setItem("offCity",city.val());
+			localStorage.setItem("offArea",area.val());
+			localStorage.setItem("offPage",page);
+			localStorage.setItem("offLimit",limit);
+			window.location.href="/offLineStore/toMonthWater?storeId="+data.STORE_ID;
+		}
+	});
+});
+function showPhoto(t) {
+	layer.open({
+		type : 1,
+		title : false,
+		area : 'auto',
+		maxWidth : '20000px',
+		anim : 0,
+		skin : 'layui-layer-nobg', //没有背景色
+		shadeClose : true,
+		content : '<img src="'+t.src+'" />'
+	});
+}
+/*]]>*/
+</script>
+	<script type="text/html" id="toolbar">
+	<a th:if="${updateXxStore}" class="layui-btn layui-btn-xs" lay-event="detail">查看/修改</a>
+	<a th:if="${exportXxStoreWater}" class="layui-btn layui-btn-xs" lay-event="checkWater">查看流水</a>
+	{{# if(d.STATE!='STORE_AUTHENTICATION_FREEZE'){ }}
+		<a th:if="${changeXxStoreState}" class="layui-btn layui-btn-xs" lay-event="freeze">冻结</a>
+	{{# }else if(d.STATE=='STORE_AUTHENTICATION_FREEZE'){ }}
+		<a th:if="${changeXxStoreState}" class="layui-btn layui-btn-xs" lay-event="unfreeze">解冻</a>
+	{{# } }}
+</script>
+	<script type="text/html" id="business_license">
+	<img src="{{d.BUSINESS_LICENSE}}" onclick="showPhoto(this)"/>
+</script>
+	<script type="text/html" id="id_card">
+	<img src="{{d.ID_CARD_UP}}" onclick="showPhoto(this)"/>
+</script>
+	<script type="text/html" id="head_photo">
+	<img src="{{d.HEAD_PHOTO}}" onclick="showPhoto(this)"/>
+</script>
+	<script type="text/html" id="state">
+	{{# if(d.STATE!='STORE_AUTHENTICATION_FREEZE'){ }}
+		<span>正常</span>
+	{{# }else if(d.STATE=='STORE_AUTHENTICATION_FREEZE'){ }}
+		<span style="color:blue">冻结</span>
+	{{# } }}
+</script>
+</body>
+</html>

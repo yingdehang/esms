@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>查看流水</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<!-- 账户数据顶部 -->
+	<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label><a href="/statisticalSystem/toStatisticalSystemHtml">统计主页</a>>查看流水</label>
+		</div>
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			<button class="layui-btn layui-btn-primary layui-btn-xs"
+				data-type="batchExport">导出列表</button>
+		</div>
+	</div>
+	<div class="layui-form layui-form-pane demoTable"
+		style="float: left; line-height: 40px;">
+		<div class="layui-form-item">
+			<label class="layui-form-label">选择区域</label>
+			<div class="layui-input-inline">
+				<select id="allorarea" lay-filter="allorarea">
+					<option value="1">按区域统计</option>
+					<option value="0" th:selected="${areaId} eq 0">全部</option>
+				</select>
+			</div>
+			<div id="province1" class="layui-input-inline">
+				<select id="province" lay-filter="province">
+					<option value="0">请选择省</option>
+					<option th:each="list:${provincelist}" th:value="${list.CITY_CODE}"
+						th:text="${list.CITY_NAME}"
+						th:selected="${list.CITY_CODE} eq ${provinceId}">请选省</option>
+				</select>
+			</div>
+			<div id="city1" class="layui-input-inline">
+				<select id="city" lay-filter="city">
+					<option th:each="list:${citylist}" th:value="${list.CITY_CODE}"
+						th:text="${list.CITY_NAME}"
+						th:selected="${list.CITY_CODE} eq ${cityId}">请选市</option>
+				</select>
+			</div>
+			<div id="area1" class="layui-input-inline">
+				<select id="area" lay-filter="area">
+					<option th:each="list:${arealist}" th:value="${list.CITY_CODE}"
+						th:text="${list.CITY_NAME}"
+						th:selected="${list.CITY_CODE} eq ${areaId}">请选区</option>
+				</select>
+			</div>
+			<div id="area1" class="layui-input-inline">
+				<button class="layui-btn" data-type="relocad">查询</button>
+			</div>
+		</div>
+	</div>
+	<div class="tablebox">
+		<table class="layui-table" id="runningwaterlist"
+			lay-filter="runningwaterlist"></table>
+	</div>
+	<script type="text/html" id="chakanmingxi">
+		<button class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看明细</button>
+	</script>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript"
+	th:src="@{/js/operationsManageJsFile/statisticalSystem/runningWater.js}"></script>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>确认发货</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+	<style type="text/css">
+		.layui-table-cell{height:auto;line-height:auto;padding:0 15px;position:relative;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box}
+	</style>
+</head>
+<body>
+	<div class="layui-fluid">
+		<div class="layui-row">
+			<!-- 标题栏 -->
+			<div class="layui-col-lg12" style="padding-bottom:10px;border-bottom:2px solid #5FB878;margin-bottom:10px">
+				<div class="layui-col-lg2">
+					<h2><a href="javascript:history.go(-1)">订单处理</a>><a href="javascript:void(0)" onclick="location.reload()">发货</a></h2>
+				</div>
+				<div class="layui-col-lg1 layui-col-lg-offset9">
+					<button class="layui-btn layui-btn-radius" style="margin-left:60px">查看帮助</button>
+				</div>
+			</div>
+			<!-- 收货信息确认 -->
+			<div class="layui-col-lg12" style="background-color:#F2F2F2;height:30px">
+				<p style="font-size:15px;margin-top:4px;margin-left:5px">第一步：收货信息确认</p>
+			</div>
+			<div th:if="${differentAddress}==true" class="layui-col-lg12" style="height:100px;background-color:#990000">
+				<div class="layui-col-lg4 layui-col-lg-offset6" style="height:100px">
+					<p style="font-size:20px;color:white;margin-top:30px;margin-left:-250px">警告：存在不同收货地址的订单，请确认订单收货信息，以免错发</p>
+				</div>
+			</div>
+			<div th:if="${differentAddress}==false" class="layui-col-lg12" style="height:100px">
+				<div class="layui-form" style="font-size:14px;margin-bottom:80px">
+					<div class="layui-form-item">
+						<label class="layui-form-label">收货人：</label>
+						<div class="layui-input-inline">
+							<input class="layui-input" th:value="${contact}" type="text" style="border:0px" disabled=""/>
+						</div>
+					</div>
+					<div class="layui-form-item">
+						<label class="layui-form-label">收货地址：</label>
+						<div class="layui-input-inline">
+							<input class="layui-input" th:value="${addr}" type="text" style="border:0px" disabled=""/>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- 确认发货商品 -->
+			<div class="layui-col-lg12" style="background-color:#F2F2F2;height:30px">
+				<p style="font-size:15px;margin-top:4px;margin-left:5px">第二步：确认发货商品</p>
+			</div>
+			<div class="layui-col-lg12" style="height:30px">
+				<div style="height:100%;width:1%;float:left">
+					<input type="checkbox" style="margin-top:10px" id="selectAll"/>
+				</div>
+				<p style="margin-top:7px">全选</p>
+			</div>
+			<div th:each="order : ${orders}">
+				<!-- 订单编号 -->
+				<div class="layui-col-lg12" style="height:30px;font-size:15px;border-bottom:1px solid #E6E6E6;border-top:1px solid #E6E6E6">
+					<div class="layui-col-lg2" style="height:30px">
+						<span th:text="订单编号：+${order.ORDER_NUMBER}"></span>
+					</div>
+					<div class="layui-col-lg2 layui-col-lg-offset2" style="height:30px">
+						<span th:text="下单时间：+${order.ORDER_TIME}"></span>
+					</div>
+					<div class="layui-col-lg2 layui-col-lg-offset2" style="height:30px">
+						<span th:text="买家：+${order.NICKNAME}+'('+${order.PHONE}+')'"></span>
+					</div>
+				</div>
+				<!-- 商品信息 -->
+				<div class="layui-col-lg12">
+					<!-- 已发货 -->
+					<div th:each="goods : ${order.goods}" th:if="${goods.ORDER_STATE!='ORDER_STATE_PAY'}" class="layui-col-lg12" style="height:170px;border-bottom:1px solid #E6E6E6">
+						<div style="height:100%;width:1%;float:left">
+						</div>
+						<div style="height:100%;width:99%;float:left">
+							<!-- 商品图片 -->
+							<div class="layui-col-lg2" style="height:150px;margin-top:10px;margin-left:10px;">
+								<img th:src="${goods.ICON}" style="height:100%;"/>
+							</div>
+							<!-- 商品名字 -->
+							<div class="layui-col-lg7 layui-col-lg-offset2" style="height:70px;margin-top:10px;margin-left:10px">
+								<span th:text="商品名字：+${goods.GOODS_NAME}"></span>
+							</div>
+							<!-- 商品属性/数量/价格 -->
+							<div class="layui-col-lg7 layui-col-lg-offset2" style="height:70px;margin-top:10px;margin-left:10px">
+								<div class="layui-col-lg2" style="height:70px">
+									<span th:text="属性：+${goods.ATTRIBUTE}"></span>
+								</div>
+								<div class="layui-col-lg2 layui-col-lg-offset2" style="height:70px">
+									<span th:text="数量：+${goods.NUMBER}"></span>
+								</div>
+								<div class="layui-col-lg2 layui-col-lg-offset2" style="height:70px">
+									<span th:text="价格：￥+${goods.PRICE}"></span>
+								</div>
+							</div>
+							<div class="layui-col-lg1" style="height:150px;">
+								<span style="color:red;font-size:35px">已发货</span>
+							</div>
+						</div>
+					</div>
+					<!-- 未发货 -->
+					<div th:each="goods : ${order.goods}" th:if="${goods.ORDER_STATE=='ORDER_STATE_PAY'}" class="layui-col-lg12" style="height:170px;border-bottom:1px solid #E6E6E6">
+						<div style="height:100%;width:1%;float:left">
+							<input name="goods" class="goods" type="checkbox" style="margin-top:80px" th:value="${goods.ORDER_ID}"/>
+						</div>
+						<div style="height:100%;width:99%;float:left">
+							<!-- 商品图片 -->
+							<div class="layui-col-lg2" style="height:150px;margin-top:10px;margin-left:10px;">
+								<img th:src="${goods.ICON}" style="height:100%;"/>
+							</div>
+							<!-- 商品名字 -->
+							<div class="layui-col-lg7 layui-col-lg-offset2" style="height:70px;margin-top:10px;margin-left:10px">
+								<span th:text="商品名字：+${goods.GOODS_NAME}"></span>
+							</div>
+							<!-- 商品属性/数量/价格 -->
+							<div class="layui-col-lg7 layui-col-lg-offset2" style="height:70px;margin-top:10px;margin-left:10px">
+								<div class="layui-col-lg2" style="height:70px">
+									<span th:text="属性：+${goods.ATTRIBUTE}"></span>
+								</div>
+								<div class="layui-col-lg2 layui-col-lg-offset2" style="height:70px">
+									<span th:text="数量：+${goods.NUMBER}"></span>
+								</div>
+								<div class="layui-col-lg2 layui-col-lg-offset2" style="height:70px">
+									<span th:text="价格：￥+${goods.PRICE}"></span>
+								</div>
+							</div>
+						</div>
+					</div>			
+				</div>
+			</div>
+			<!-- 填写物流信息 -->
+			<div class="layui-col-lg12" style="background-color:#F2F2F2;height:30px;margin-bottom:20px">
+				<p style="font-size:15px;margin-top:4px;margin-left:5px">第三步：填写物流信息</p>
+			</div>
+			<div class="layui-form" style="font-size:14px;">
+				<div class="layui-form-item">
+					<label class="layui-form-label">物流公司：</label>
+					<div class="layui-input-inline">
+						<select id="logistics" lay-search="">
+							<option value="">直接选择或搜索选择</option>
+							<option th:each="logistics:${logistics}" th:value="${logistics.COMPANY_CODE}" th:text="${logistics.COMPANY_NAME}"></option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">运单号：</label>
+					<div class="layui-input-inline">
+						<input id="awb" type="text" class="layui-input"/>
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label"></label>
+					<div class="layui-input-inline">
+						<button class="layui-btn" data-type="confirm">确认发货</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div> 
+	
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script>
+layui.use(['element','form','table','laydate','layer'], function(){
+	var element = layui.element,form = layui.form,$ = layui.jquery,table = layui.table,laydate = layui.laydate,layer=layui.layer;
+	$("#selectAll").change(function(){
+		var goods = $(".goods");
+		if(this.checked==true)
+		{
+			goods.prop("checked",true);
+		}
+		else
+		{
+			goods.prop("checked",false);
+		}
+	});
+	<!-- 监听发货 -->
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	
+	var active = {
+		confirm: function(){
+			var awb = $("#awb").val();
+			var logistics = $("#logistics").val();
+			var goods = document.getElementsByName("goods");
+			var orderId = new Array();
+			var j = 0;
+			for(var i=0;goods.length>i;i++)
+			{
+				if(goods[i].checked==true)
+				{
+					orderId[j] = goods[i].value;
+					j++;
+				}
+			}
+			if(orderId.length>0)
+			{
+						$.ajax({   
+							type : "POST",
+							async:false,
+							url : "/merchantsOrder/sendGoods",   
+							data : {   
+								orderId:orderId,awb:awb,logistics:logistics
+							},  
+							success : function(da) {//返回数据根据结果进行相应的处理   
+								if(da!="ok")
+								{
+									layer.msg(da);
+								}
+								else
+								{
+									history.back(-1);
+								}
+							}   
+						});
+						//window.location.href="/merchantsOrder/toOrderDispose";
+			}
+			else
+			{
+				layer.msg("您未选择订单");
+			}
+		}
+	};
+});
+</script>
+</html>

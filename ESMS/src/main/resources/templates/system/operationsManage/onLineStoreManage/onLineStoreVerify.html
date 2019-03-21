@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>线上店铺审核</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<div class="layui-form layui-form-pane" id="selectClass"
+	style="display: none; margin-left: 50px; margin-top: 20px">
+	<div class="layui-form-item">
+		<label class="layui-form-label">一级分类</label>
+		<div class="layui-input-inline">
+			<select lay-filter="class1">
+				<option value="">请选择</option>
+				<option th:each="storeClass:${storeClass}"
+					th:value="${storeClass.CLASSIFICATION_ID}"
+					th:text="${storeClass.CLASS_NAME}"></option>
+			</select>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label">二级分类</label>
+		<div class="layui-input-inline">
+			<select id="class1">
+			</select>
+		</div>
+	</div>
+</div>
+<body>
+	<input type="hidden" id="classes" th:value="${oldClass}" />
+	<input id="userId" type="hidden" th:value="${userId}" />
+	<input id="storeUserId" type="hidden" th:value="${details.USERS_ID}" />
+	<div style="padding-bottom: 10px; border-bottom: 2px solid #5FB878">
+		<h2>
+			<a href="javascript:history.back(-1)">线上店铺申请</a>><a
+				href="javascript:void(0)" onclick="location.reload()">线上店铺审核</a>
+		</h2>
+	</div>
+	<input type="hidden" id="certificationId"
+		th:value="${details.STORE_CERTIFICATION_ID}" />
+	<input type="hidden" id="storeId" th:value="${details.STORE_ID}" />
+	<div class="layui-form layui-form-pane" style="margin-top: 20px">
+		<div id="reason" class="layui-form-item"
+			style="display: none; margin: 45px">
+			<label class="layui-form-label">拒绝理由</label>
+			<div class="layui-input-inline">
+				<input id="content" class="layui-input" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺名称</label>
+			<div class="layui-input-block">
+				<input class="layui-input" id="storeName"
+					th:value="${details.STORE_NAME}" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">联系方式</label>
+			<div class="layui-input-block">
+				<input class="layui-input" th:value="${details.PHONE}" disabled="" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺类型</label>
+			<div class="layui-input-block">
+				<select id="storeType" lay-filter="type">
+					<option th:each="storeType:${storeType}"
+						th:value="${storeType.DICTIONARY_VALUE}"
+						th:text="${storeType.DESCRIBES}"></option>
+				</select> <input type="hidden" id="type" th:value="${details.STORE_TYPE}" />
+			</div>
+		</div>
+
+		<div class="layui-form-item">
+			<label class="layui-form-label">店主姓名</label>
+			<div class="layui-input-block">
+				<input class="layui-input" th:value="${details.UC_NAMES}"
+					disabled="" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">店主手机号</label>
+			<div class="layui-input-block">
+				<input class="layui-input" th:value="${details.USER_PHONE}"
+					disabled="" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">店主区域</label>
+			<div class="layui-input-block">
+				<input class="layui-input" th:value="${details.area}" disabled="" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">客服电话</label>
+			<div class="layui-input-block">
+				<input class="layui-input" id="servicePhone"
+					th:value="${details.SERVICE_PHONE}" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺等级</label>
+			<div class="layui-input-block">
+				<select id="storeLevel" lay-filter="level">
+					<option th:each="storeLevel:${storeLevel}"
+						th:value="${storeLevel.DICTIONARY_VALUE}"
+						th:text="${storeLevel.DESCRIBES}"></option>
+				</select> <input type="hidden" id="level" th:value="${details.LEVELS}" />
+			</div>
+		</div>
+		<fieldset class="layui-elem-field layui-field-title"
+			style="margin-top: 30px;">
+			<legend>选择店铺经营分类</legend>
+		</fieldset>
+
+		<button class="layui-btn" data-type="add">添加</button>
+		<table id="storeClasses" lay-filter="operation"></table>
+	</div>
+	<fieldset class="layui-elem-field layui-field-title"
+		style="margin-top: 30px;">
+		<legend>店铺图标</legend>
+	</fieldset>
+	<div class="layui-form-item">
+		<img th:src="${details.STORE_ICON}" />
+	</div>
+	<div class="layui-upload">
+		<div class="layui-upload-list">
+			<img class="layui-upload-img" id="demo1" />
+		</div>
+		<button class="layui-btn" id="test1" type="button">修改店铺图片</button>
+		<button class="layui-btn" id="test2" type="button">确认修改</button>
+	</div>
+
+	<fieldset class="layui-elem-field layui-field-title"
+		style="margin-top: 30px;">
+		<legend>营业执照</legend>
+	</fieldset>
+	<div class="layui-form-item">
+		<img th:src="${details.BUSINESS_LICENSE}" />
+	</div>
+	<fieldset class="layui-elem-field layui-field-title"
+		style="margin-top: 30px;">
+		<legend>店家身份证正面</legend>
+	</fieldset>
+	<div class="layui-form-item">
+		<img th:src="${details.ID_CARD_UP}" />
+	</div>
+	<fieldset class="layui-elem-field layui-field-title"
+		style="margin-top: 30px;">
+		<legend>店家身份证反面</legend>
+	</fieldset>
+	<div class="layui-form-item">
+		<img th:src="${details.ID_CARD_DON}" />
+	</div>
+	<button class="layui-btn" data-type="ok">通过</button>
+	<button class="layui-btn" data-type="no">不通过</button>
+	<a class="layui-btn" href="javascript:history.back(-1)">取消</a>
+	<script th:src="@{/layui/layui.js}"></script>
+	<script type="text/javascript" th:src="@{/js/jquery-1.4.4.min.js}"></script>
+	<script type="text/javascript">
+var id = $("#certificationId").val();
+var storeId = $("#storeId").val();
+var userId = $("#userId").val();
+var storeUserId = $("#storeUserId").val();
+layui.use(['form','layer','upload','table'],function(){
+	var form = layui.form;
+	var $ = layui.jquery;
+	var layer = layui.layer;
+	var upload = layui.upload;
+	var table = layui.table;
+	var uploadInst = upload.render({
+		elem: '#test1'
+		,url: '/onLineStore/changeStoreIcon'
+		,auto: false
+		,bindAction: '#test2'
+		,data:{'storeId':storeId}
+		,choose: function(obj){
+		    obj.preview(function(index, file, result){
+		    	$('#demo1').attr('src', result);
+	    	});
+		}
+	    ,done: function(res){
+	    	//location.reload();
+	    	layer.msg("修改成功");
+	    }
+	});
+	
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#storeClasses'
+		,url: '/onLineStore/getOnLineStoreClasses'
+		,cols:[[
+			{title:'序号',type:'numbers'}
+			,{field:'storeClass',title:'已选店铺分类'}
+			,{field:'parentClass',title:'所属一级分类'}
+			,{fixed: 'right',align:'center', toolbar: '#toolbar',title:'操作'}
+		]]
+		,where:{
+			storeId:storeId
+		}
+		,text: {
+			none: '暂无相关数据' //默认：无数据。注：该属性为 layui 2.2.5 开始新增
+		}
+	});
+	<!-- 监听工具条操作 -->
+	/* <![CDATA[ */
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'delete'){ //删除
+			layer.confirm('确定删除吗?', {icon: 3, title:'提示'}, function(index){
+				$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/onLineStore/deleteClass",   
+					data : {   
+						classId:data.CLASSIFICATION_ID,storeId:storeId
+					},  
+					success : function(da){  
+						if(da!="ok")
+						{
+							layer.msg(da);
+						}else{
+							layer.msg("删除成功");
+							table.reload('storeClasses', {
+								where: {
+									storeId:storeId
+								}
+							});
+							var oldClass = $("#classes").val();//店铺已有的分类
+							var classArray = oldClass.split(",");
+							var classes = "";//classes就是删除一个分类后的店铺分类
+							var j = 0;
+							var classId = data.CLASSIFICATION_ID;
+							for(var i=0;i<classArray.length;i++)
+							{
+								if(classArray[i]!=classId)
+								{
+									if(j>0)
+									{
+										classes += ",";
+									}
+									classes += classArray[i];
+									j++;
+								}
+							}
+							$("#classes").val(classes);
+						}
+					}   
+				});
+				layer.close(index);
+			});
+		}
+	});
+	/* ]]> */
+	form.on('select(class1)',function(data){
+		$.post("/onLineStore/getStoreClass",{pId:data.value},function(da){
+			var classes = eval(da);
+			$("#class1").empty();
+			/* <![CDATA[ */
+			$("#class1").append("<option value=''>请选择</option>");
+			for (var i = 0; i < classes.length; i++) {
+				$("#class1").append(
+						"<option value='"+classes[i].CLASSIFICATION_ID+"'>"
+								+ classes[i].CLASS_NAME
+								+ "</option>");
+			}
+			form.render('select');
+			/* ]]> */
+		});
+	});
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	
+	var $ = layui.$, active = {
+		no:function(){//拒绝申请
+			var index = layer.open({
+				type:1,
+				content:$('#reason'),
+				title:['审核失败原因',''],
+				area:['400px','250px'],
+				shade: 0,
+		        maxmin: true,
+		        skin:'layui-layer-molv',
+			    btnAlign: 'c',
+				btn:['确定','取消']
+				,yes: function(index, layero){
+					var content = $("#content").val();
+					if(content=='')
+					{
+						layer.msg("请填写拒绝理由");
+					}
+					else
+					{
+						layer.confirm('确定拒绝吗?', {icon: 3, title:'提示'}, function(index){
+							$.ajax({   
+								type : "POST",
+								async:false,
+								url : "/onLineStore/refuse",   
+								data : {   
+									id:id,content:content,userId:userId
+								},  
+								success : function(da){  
+								}   
+							});
+							layer.close(index);
+							window.history.back(-1);
+						});
+					}
+				}
+			});
+		}
+		/* <![CDATA[ */
+		,ok:function(){//同意申请
+			var type = $("#storeType").val();
+			var class1 = $("#class1").val();
+			var class2 = $("#class2").val();
+			var class3 = $("#class3").val();
+			var class4 = $("#class4").val();
+			var storeName = $("#storeName").val();
+			var servicePhone = $("#servicePhone").val();
+			var level = $("#storeLevel").val();
+			var classes = $("#classes").val();
+			if(classes=="")
+			{
+				layer.msg("请选择至少一个分类");
+			}
+			else if(storeName=="")
+			{
+				layer.msg("请输入店铺名")
+			}
+			else if(servicePhone=="")
+			{
+				layer.msg("请输入客服电话")
+			}
+			else
+			{
+				$.post("/onLineStore/storeNameIsExist",{storeName:storeName,storeId:storeId},function(da){
+					if(da==true)
+					{
+						layer.msg("店铺名重复");
+					}
+					else
+					{
+						layer.confirm('确定通过吗?', {icon: 3, title:'提示'}, function(index){
+							//改变店铺名
+							$.ajax({   
+								type : "POST",
+								async:false,
+								url : "/onLineStore/changeStoreName",   
+								data : {   
+									storeName:storeName,storeId:storeId
+								},  
+								success : function(da){  
+								}   
+							});
+							//改变客服电话
+							$.ajax({   
+								type : "POST",
+								async:false,
+								url : "/onLineStore/changeServicePhone",   
+								data : {   
+									servicePhone:servicePhone,storeId:storeId
+								},  
+								success : function(da){  
+								}   
+							});
+							//改变店铺类型
+							$.ajax({   
+								type : "POST",
+								async:false,
+								url : "/onLineStore/changeType",   
+								data : {   
+									type:type,id:id,storeId:storeId
+								},  
+								success : function(da){
+								}   
+							});
+							//改变店铺等级
+							$.ajax({   
+								type : "POST",
+								async:false,
+								url : "/onLineStore/changeLevel",   
+								data : {   
+									level:level,id:id
+								},  
+								success : function(da){ 
+								}   
+							});
+							//改变审核状态
+							$.ajax({   
+								type : "POST",
+								async:false,
+								url : "/onLineStore/pass",   
+								data : {   
+									id:id,storeId:storeId,userId:userId,storeUserId:storeUserId
+								},  
+								success : function(da){  
+								}   
+							});
+							layer.close(index);
+							//window.location.href="/onLineStore/toOnLineStoreApply";
+							window.history.back(-1);
+						});
+						
+					}
+				});
+ 			}
+		}
+		,add:function(){//添加分类
+			layer.open({
+				type:1,
+				content:$('#selectClass'),
+				title:['选择分类',''],
+				area:['400px','500px'],
+				shade: 0,
+		        maxmin: true,
+			    btnAlign: 'c',
+				btn:['确定','取消']
+				,yes: function(index, layero){
+					var classId = $("#class1").val();
+					if(classId==null||classId=="")
+					{
+						layer.msg("请选择要添加的分类");	
+					}
+					else
+					{
+						$.ajax({   
+							type : "POST",
+							async:false,
+							url : "/onLineStore/addClass",   
+							data : {   
+								classId:classId,storeId:storeId
+							},  
+							success : function(da){ 
+								if(da!="ok")
+								{
+									layer.msg(da);
+								}
+								else
+								{
+									layer.close(index);
+									table.reload('storeClasses', {
+										where: {
+											storeId:storeId
+										}
+									});
+									var classes = $("#classes").val();
+									if(classes=="")
+									{
+										$("#classes").val(classId);
+									}
+									else
+									{
+										$("#classes").val(classes+","+classId);
+									}
+								}
+							}   
+						});
+					}
+				}
+			});
+		}
+		/* ]]> */
+	};
+});
+$(function(){
+	$("select option[value='"+$("#type").val()+"']").attr("selected",true);
+	$("select option[value='"+$("#level").val()+"']").attr("selected",true);
+});
+</script>
+	<script type="text/html" id="toolbar">
+	<a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+</script>
+</body>
+</html>

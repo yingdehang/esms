@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>商品审核</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body class="layui-layout-body">
+	<!-- 商品管理顶部 -->
+	<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label>商品审核</label>
+		</div>
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			<button class="layui-btn layui-btn-primary layui-btn-xs"
+				data-type="torecord">审核记录</button>
+		</div>
+	</div>
+	<div class="layui-form layui-form-pane demoTable">
+		<div class="layui-inline">
+			<label class="layui-form-label">商品名称</label>
+			<div class="layui-inline">
+				<input class="layui-input" id="goodsName" autocomplete="off"
+					placeholder="商品名称" />
+			</div>
+		</div>
+		<div class="layui-inline">
+			<label class="layui-form-label">店铺名称</label>
+			<div class="layui-inline">
+				<input class="layui-input" id="storeName" autocomplete="off"
+					placeholder="店铺名称" />
+			</div>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+	</div>
+	<table id="goodsList" lay-filter="operation"></table>
+	<script type="text/html" id="indexnumber">
+		{{d.LAY_INDEX}}
+	</script>
+	<script type="text/html" id="dianzhuxinxi">
+		<div class="layui-inline">
+			{{d.UC_NAMES}}<i>，电话:</i>{{d.PHONE}}
+		</div>		
+	</script>
+	<script type="text/html" id="toolbar">
+		<a th:if="${updategoodsState}" class="layui-btn layui-btn-xs" href="/goods/queryGoodsInfo?goodsId={{d.GOODSID}}">审核</a>
+	</script>
+	<script th:src="@{/layui/layui.js}"></script>
+	<script type="text/javascript">
+layui.use(['table','jquery','form'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#goodsList'
+		,url: '/goods/getGoodsList'
+		,page: true
+		,id:'goodsList'
+		,where:{
+			listType:'DSH'
+		}
+		,cols:[[
+			{fixed: 'left', align:'center',width:'5%', toolbar: '#indexnumber',title:'序号'}
+			,{toolbar:'#dianzhuxinxi',align:'center',title:'店主信息',width:'15%'}
+			,{field:'STORE_NAME',title:'店铺名称', align:'center',width:'20%'}
+			,{field:'GOODS_NAME',title:'商品名称', align:'center'}
+			,{field:'CLASS_NAME',title:'商品类型', align:'center'}
+			,{field:'STORE_SORT',title:'排序',sort:true, align:'center',width:'5%'}
+			,{fixed: 'right', align:'center',toolbar: '#toolbar',title:'操作',width:'5%'}
+		]]
+	});
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'detail'){ //查看
+			window.location.href='/goods/detialGoods?goodsID='+data.GOODSID;
+		}
+	});
+	<!-- 监听搜索按钮 -->
+	$('.demoTable .layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索时执行重载-->
+	var $ = layui.$, active = {
+		reload: function(){
+			var goodsName = $('#goodsName').val();
+			var storeName = $('#storeName').val();
+			//执行重载
+			table.reload('goodsList', {
+				page : {
+					curr : 1
+				},
+				where: {
+					goodsName: goodsName
+					,storeName: storeName
+				}
+			});
+		},
+		torecord:function(){
+			window.location.href="/goods/tocommodityAuditRecordHtml";
+		}
+	};
+});
+</script>
+</body>
+</html>

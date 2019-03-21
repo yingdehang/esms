@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>礼包商品管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div id="add" style="margin-left:50px;display:none;margin-right:50px">
+		<div class="layui-form layui-form-pane" style="margin-top:20px">
+			<div class="layui-form-item">
+				<label class="layui-form-label">商品名称</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="name" maxlength="100"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">商品总价</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="money"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">商品数量</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="number"/>
+				</div>
+			</div>
+			<div class="layui-upload">
+				<button class="layui-btn" id="test1" type="button">上传图片</button>
+				<div class="layui-upload-list">
+					<img class="layui-upload-img" id="demo1" style="margin-right:50px"/>
+				</div>
+			</div> 
+			
+		</div>
+	</div>
+	<div id="modify" style="margin-left:50px;display:none;margin-right:50px">
+		<div class="layui-form layui-form-pane" style="margin-top:20px">
+			<div class="layui-form-item">
+				<label class="layui-form-label">商品名称</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="name2" maxlength="100"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">商品总价</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="money2"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">商品数量</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="number2"/>
+				</div>
+			</div>
+			<div class="layui-upload">
+				<button class="layui-btn" id="test2" type="button">修改图片</button>
+				<div class="layui-upload-list">
+					<img class="layui-upload-img" id="demo2" style="margin-right:50px"/>
+				</div>
+			</div> 
+			
+		</div>
+	</div>
+	<div style="padding-bottom: 5px; border-bottom: 2px solid #5FB878;margin-bottom:10px">
+		<h2>
+			<a href="/experience/toExperienceVerify">礼包审核</a>>
+			<a href="javascript:history.go(-1)">礼包管理</a>>
+			<a href="javascript:void(0)" onclick="location.reload()">礼包商品管理</a>
+		</h2>
+	</div>
+	<input type="hidden" id="id" th:value="${activity.EEACID}"/>
+	<button class="layui-btn" data-method="add">添加</button>
+	<table id="goods" lay-filter="operation"></table>
+
+	<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+var count = 0;
+var count2 = 0;
+var id;
+layui.use(['table','jquery','layer','form','upload'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var layer = layui.layer;
+	var form = layui.form;
+	var upload = layui.upload;
+	//添加商品的上传
+	var uploadInst = upload.render({
+	    elem: '#test1'
+	    ,url: '/experience/addActivityImg'
+	    ,accept: 'images'
+	    ,auto: false
+	    ,choose: function(obj){ 
+	    	count++;
+	    	obj.preview(function(index, file, result){
+		        $('#demo1').attr('src', result); //图片链接（base64）
+		    });
+		}
+	    ,done: function(res, index, upload){
+		      if(res.code == 0){ //上传成功
+		    	var url = res.url;
+		      	$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/experience/addActivityGoods",   
+					data : {   
+						aId:$("#id").val(),name:$("#name").val(),money:$("#money").val(),number:$("#number").val(),url:url
+					},  
+					success : function(da) {  
+						table.reload('goods', {
+						});
+						$('#demo1').attr('src', '');
+				      	count=0;
+				      	$("#name").val("");
+				      	$("#money").val("");
+				      	$("#number").val("");
+					}   
+				});
+		      }
+		}
+	});
+	//修改图片的上传
+	var uploadInst2 = upload.render({
+	    elem: '#test2'
+	    ,url: '/experience/addActivityImg'
+	    ,accept: 'images'
+	    ,auto: false
+	    ,choose: function(obj){ 
+	    	count2++;
+	    	obj.preview(function(index, file, result){
+		        $('#demo2').attr('src', result); //图片链接（base64）
+		    });
+		}
+	    ,done: function(res, index, upload){
+		      if(res.code == 0){ //上传成功
+		    	var url = res.url;
+		    	$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/experience/modifyActivityGoods",   
+					data : {   
+						id:id,name:$("#name2").val(),money:$("#money2").val(),number:$("#number2").val(),url:url
+					},  
+					success : function(da) {  
+						table.reload('goods', {
+						});
+				      	count2=0;
+				      	$('#demo2').attr('src', '');
+				      	$("#name2").val("");
+				      	$("#money2").val("");
+				      	$("#number2").val("");
+					}   
+				});
+		      }
+		}
+	});
+
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#goods'
+		,url: '/experience/getActivityGoods'
+		,page: true
+		,where: {id:$("#id").val()}
+		,cols:[[
+			{field:'GOODS_NAME',title:'商品名称'}
+			,{field:'GOODS_PHOTO',title:'商品图片',toolbar:'#is_photo'}
+			,{field:'PRICE',title:'总价'}
+			,{field:'NUMBER',title:'数量'}
+			,{fixed:'right', align:'center', toolbar: '#toolbar',title:'操作'}
+		]]
+	});
+	//判断对象是不是整数
+	var r = /^[-\+]?\d+$/;　　//整数  
+	
+	$('.layui-btn').on('click', function(){
+		var othis = $(this), method = othis.data('method');
+		active[method] ? active[method].call(this, othis) : '';
+	});
+	
+	var name = $("#name");
+	var money = $("#money");
+	var number = $("#number");
+	var x = /^\d\d*\.\d+$/;　　//正浮点数
+	var z = /^\d+$/;　　//非负整数  
+	var t = /^[1-9]+$|^[1-9]+\d+$/; //正整数
+	var active = {
+			add: function(){
+				var index1 = layer.open({
+					type: 1
+					,id:'m1'
+			        ,title: '新增商品'
+			        ,area: ['700px', '800px']
+			        ,shade: 0
+			        ,maxmin: true
+			        ,content: $("#add")
+			        ,skin:'layui-layer-molv'
+			        ,btnAlign: 'c'
+			        ,btn: ['确定', '取消']
+			        ,yes: function(){
+			        	if(name.val()!=""){
+				        	if(x.test(money.val())==true||z.test(money.val())==true){
+					        		if(t.test(number.val())==true){
+					        			if(count>0){
+									        layer.confirm('确定?', {icon: 3, title:'提示'}, function(index2){
+									        	uploadInst.upload();
+												layer.close(index2);
+												layer.close(index1);
+											});
+					        			}else{
+					        				layer.msg("请选择图片");
+					        			}
+					        		}else{
+					        			layer.msg("商品数量应为大于0的整数");
+					        		}
+				        	}else{
+				        		layer.msg("请输入正确的金额");
+				        	}
+			        	}else{
+			        		layer.msg("请输入商品名称");
+			        	}
+			        }
+			        ,btn2: function(){
+			        	$('#demo1').attr('src', '');
+				      	count=0;
+				      	$("#name").val("");
+				      	$("#money").val("");
+				      	$("#number").val("");
+						layer.close();
+			        }
+			        ,cancel: function(index, layero){ 
+			        	$('#demo1').attr('src', '');
+				      	count=0;
+				      	$("#name").val("");
+				      	$("#money").val("");
+				      	$("#number").val("");
+			        	layer.close(index)
+			        	return false; 
+			        }  
+				});
+			}
+	}
+	
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'delete'){ //删除
+			layer.confirm('确定删除?', {icon: 3, title:'提示'}, function(index2){
+				$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/experience/deleteGoods",   
+					data : {   
+						id:data.EEGID
+					},  
+					success : function(da) {  
+						table.reload('goods', {
+						});
+						layer.close(index2);
+					}   
+				});
+			});
+		}else if(layEvent === 'modify'){//修改
+			var name2 = $("#name2");
+			var money2 = $("#money2");
+			var number2 = $("#number2");
+			//赋值
+			$.ajax({   
+				type : "POST",
+				async:false,
+				url : "/experience/getActivityGoodsById",   
+				data : {   
+					id:data.EEGID
+				},  
+				success : function(da) {  
+					var d = eval(da);
+					name2.val(d.GOODS_NAME);
+					money2.val(d.PRICE);
+					number2.val(d.NUMBER);
+					$('#demo2').attr('src', d.GOODS_PHOTO);
+				}   
+			});
+			
+			id = data.EEGID;
+			var index1 = layer.open({
+				type: 1
+				,id:'m'
+		        ,title: '修改商品'
+		        ,area: ['700px', '800px']
+		        ,shade: 0
+		        ,maxmin: true
+		        ,content: $("#modify")
+		        ,skin:'layui-layer-molv'
+		        ,btnAlign: 'c'
+		        ,btn: ['确定', '取消']
+		        ,yes: function(){
+		        	if(name2.val()!=""){
+			        	if(x.test(money2.val())==true||z.test(money2.val())==true){
+				        		if(t.test(number2.val())==true){
+				        			if(count2>0){
+								        layer.confirm('确定?', {icon: 3, title:'提示'}, function(index2){
+								        	uploadInst2.upload();
+											layer.close(index2);
+											layer.close(index1);
+										});
+				        			}else{
+				        				layer.confirm('确定?', {icon: 3, title:'提示'}, function(index2){
+				        					$.ajax({   
+					        					type : "POST",
+					        					async:false,
+					        					url : "/experience/modifyActivityGoods",   
+					        					data : {   
+					        						id:id,name:$("#name2").val(),money:$("#money2").val(),number:$("#number2").val()
+					        					},  
+					        					success : function(da) {  
+					        						layer.close(index2);
+													layer.close(index1);
+													$('#demo2').attr('src', '');
+											      	count2=0;
+											      	$("#name2").val("");
+											      	$("#money2").val("");
+											      	$("#number2").val("");
+													table.reload('goods', {
+													});
+					        					}   
+					        				});
+										});
+				        			}
+				        		}else{
+				        			layer.msg("商品数量应为大于0的整数");
+				        		}
+			        	}else{
+			        		layer.msg("请输入正确的金额");
+			        	}
+		        	}else{
+		        		layer.msg("请输入活动名称");
+		        	}
+		        }
+		        ,btn2: function(){
+		        	$('#demo2').attr('src', '');
+			      	count2=0;
+			      	$("#name2").val("");
+			      	$("#money2").val("");
+			      	$("#number2").val("");
+					layer.close();
+		        }
+		        ,cancel: function(index, layero){ 
+		        	$('#demo2').attr('src', '');
+			      	count2=0;
+			      	$("#name2").val("");
+			      	$("#money2").val("");
+			      	$("#number2").val("");
+		        	layer.close(index)
+		        	return false; 
+		        }  
+			});
+		}
+	});
+});
+function showPhoto(t) {
+	layer.open({
+		type : 1,
+		title : false,
+		area : 'auto',
+		maxWidth : '750px',
+		anim : 0,
+		skin : 'layui-layer-nobg', //没有背景色
+		shadeClose : true,
+		content : '<img src="'+t.src+'" width="750px"/>'
+	});
+}
+function getUuid(){
+	  var len=32;//32长度
+	  var radix=16;//16进制
+	  var chars='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');var uuid=[],i;radix=radix||chars.length;if(len){for(i=0;i<len;i++)uuid[i]=chars[0|Math.random()*radix];}else{var r;uuid[8]=uuid[13]=uuid[18]=uuid[23]='-';uuid[14]='4';for(i=0;i<36;i++){if(!uuid[i]){r=0|Math.random()*16;uuid[i]=chars[(i==19)?(r&0x3)|0x8:r];}}}
+	  return uuid.join('');
+}
+/*]]>*/
+</script>
+<script type="text/html" id="toolbar">
+	<a class="layui-btn layui-btn-xs" lay-event="modify">修改</a>
+	<a class="layui-btn layui-btn-xs" lay-event="delete">删除</a>
+</script>
+<script type="text/html" id="is_photo">
+	<img src="{{d.GOODS_PHOTO}}" onclick="showPhoto(this)"/>
+</script>
+</body>
+</html>

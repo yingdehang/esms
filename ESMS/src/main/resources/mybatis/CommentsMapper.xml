@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.operationsManage.CommentsDao">
+	<!-- 未分页的评论数据 -->
+	<select id="getCommentsList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		g.`GOODS_NAME`
+		,u.`PHONE`
+		,c.COMMENTS_ID
+		,c.COMMENTS_TIME AS `TIME`
+		,c.GOODS_ATTRIBUTE
+		,c.CONTENT 
+		FROM 
+		es_comments c
+		,es_goods g
+		,es_users u 
+		WHERE 
+		c.GOODSID=g.`GOODSID` 
+		AND c.USERS_ID=u.`USERS_ID`
+		<if test="goodsName != null and goodsName != ''">
+			AND g.GOODS_NAME LIKE concat('%',#{goodsName},'%')
+		</if>
+		<if test="phoneNumber != null and phoneNumber != ''">
+			AND u.PHONE=#{phoneNumber}
+		</if>
+	</select>
+	<!-- 已分页的评论数据 -->
+	<select id="getCommentsListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		g.`GOODS_NAME`
+		,u.`PHONE`
+		,c.COMMENTS_ID
+		,c.COMMENTS_TIME AS `TIME`
+		,c.GOODS_ATTRIBUTE
+		,c.CONTENT 
+		FROM 
+		es_comments c
+		,es_goods g
+		,es_users u 
+		WHERE 
+		c.GOODSID=g.`GOODSID` 
+		AND c.USERS_ID=u.`USERS_ID`
+		<if test="goodsName != null and goodsName != ''">
+			AND g.GOODS_NAME LIKE concat('%',#{goodsName},'%')
+		</if>
+		<if test="phoneNumber != null and phoneNumber != ''">
+			AND u.PHONE=#{phoneNumber}
+		</if>
+		<if test="goodsName != null and goodsName != ''">
+			AND g.GOODS_NAME LIKE concat('%',#{goodsName},'%')
+		</if>
+		<if test="phoneNumber != null and phoneNumber != ''">
+			AND u.PHONE=#{phoneNumber}
+		</if>
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 删除评论 -->
+	<delete id="delete">
+		delete from es_comments where COMMENTS_ID=#{commentsId}
+	</delete>
+	<!-- 查询所有线上店铺 -->
+	<select id="getOnLineStore" resultType="java.util.Map">
+		SELECT
+		  es.*
+		FROM
+		  es_store es,
+		  es_store_certification esc
+		WHERE es.`STORE_ID` = esc.`STORE_ID`
+		  AND esc.`TYPES` = 'STORE_XS_XS'
+		  AND AUDIT_STATE = 'STORE_AUTHENTICATION_PASS'
+	</select>
+	<!-- 查询店铺商品 -->
+	<select id="getStoreGoods" parameterType="java.lang.String" resultType="java.util.Map">
+		select * from es_goods where STORE_ID=#{storeId}
+	</select>
+	<!-- 查询商品属性 -->
+	<select id="getGoodsAttribute" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_goods_attribute WHERE GOODSID=#{goodsId}
+	</select>
+	<!-- 取出所有积分小于1的用户 -->
+	<select id="getUsers" resultType="java.util.Map">
+		SELECT * FROM es_users WHERE 1>INTEGRAL
+	</select>
+	<!-- 查询用户对某个商品的评价 -->
+	<select id="getUserComments" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from es_comments where GOODSID=#{goodsId} AND USERS_ID=#{userId}
+	</select>
+	<!-- 添加评论 -->
+	<insert id="addComment" parameterType="java.util.Map">
+		INSERT INTO es_comments VALUES(#{commentId},#{goodsId},#{userId},NOW(),#{attribute},#{content})
+	</insert>
+</mapper>

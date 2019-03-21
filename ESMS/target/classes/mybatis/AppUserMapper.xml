@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.userManage.AppUserDao">
+	<!-- 表格获取APP用户数据 -->
+	<select id="getAppUserList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		eu.`USERS_ID`,
+		eu.`NICKNAME`,
+		eu.`PHONE`,
+		eu.PASSWORD,
+		eu.`MONEYS`,
+		eu.`POCKETMONEY`,
+		eu.`CONSUMPTION_VOLUME`,
+		eu.`INTEGRAL`,
+		eu.MEMBERSHIP_GRADE AS
+		membershipGrade,
+		ed2.DESCRIBES AS
+		MEMBERSHIP_GRADE,
+		eu.`REGISTERED_TIME`,
+		eu.`STATE` AS userState,
+		euc.`STATE`,
+		euc.UC_NAMES,
+		euc.TO_APPLY_FOR_TIME,
+		ed.`DESCRIBES`,
+		ea1.`CITY_NAME` AS PROVINCE,
+		ea2.`CITY_NAME` AS CITY,
+		ea3.`CITY_NAME` AS AREA,
+		eu.INVITATION
+		FROM
+		es_users eu
+		LEFT OUTER JOIN es_user_certification euc ON
+		eu.`USERS_ID`=euc.`USERS_ID`
+		LEFT OUTER JOIN es_dictionary ed ON
+		eu.`STATE`=ed.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_area ea1 ON
+		euc.`PROVINCE`= ea1.`CITY_CODE`
+		LEFT
+		OUTER JOIN es_area ea2 ON
+		euc.`CITY`= ea2.`CITY_CODE`
+		LEFT OUTER JOIN
+		es_area ea3 ON euc.`AREA`=
+		ea3.`CITY_CODE`
+		LEFT OUTER JOIN
+		es_dictionary ed2 ON
+		eu.MEMBERSHIP_GRADE=ed2.DICTIONARY_VALUE
+		<where>
+			<if test="start!=null and start!='' and end!=null and end!=''">
+				AND eu.REGISTERED_TIME BETWEEN #{start} AND #{end}
+			</if>
+			<if test="start2!=null and start2!='' and end2!=null and end2!=''">
+				AND euc.TO_APPLY_FOR_TIME BETWEEN #{start2} AND #{end2}
+			</if>
+			<if test="userState!=null and userState!=''">
+				<if test="userState eq 1">
+					and eu.STATE='USER_STATE_NORMAL'
+				</if>
+				<if test="userState eq 0">
+					and eu.STATE='USER_STATE_DISABLE'
+				</if>
+			</if>
+			<if test="phoneNumber!=null and phoneNumber!=''">
+				and eu.PHONE=#{phoneNumber}
+			</if>
+			<if test="invitation!=null and invitation!=''">
+				and eu.INVITATION=#{invitation}
+			</if>
+			<if test="isVerify!=null and isVerify!=''">
+				<if test="isVerify eq 1">
+					and euc.STATE='USER_AUTHENTICATION_PASS'
+				</if>
+				<if test="isVerify eq 0">
+					and euc.STATE!='USER_AUTHENTICATION_PASS'
+				</if>
+			</if>
+			<if test="province!=null and province!=0">
+				AND euc.`PROVINCE`=#{province}
+			</if>
+			<if test="city!=null and city!=0">
+				AND euc.`CITY`=#{city}
+			</if>
+			<if test="area!=null and area!=0">
+				AND euc.`AREA`=#{area}
+			</if>
+			<if test="MEMBERSHIP_GRADE!=null and MEMBERSHIP_GRADE!=''">
+				AND eu.`MEMBERSHIP_GRADE`=#{MEMBERSHIP_GRADE}
+			</if>
+		</where>
+		ORDER BY REGISTERED_TIME DESC
+	</select>
+	<!-- 禁用账号 -->
+	<update id="forbidden" parameterType="java.lang.String">
+		update es_users set
+		STATE='USER_STATE_DISABLE' where USERS_ID=#{userId}
+	</update>
+	<!-- 启用账号 -->
+	<update id="startUsing" parameterType="java.lang.String">
+		update es_users set
+		STATE='USER_STATE_NORMAL' where USERS_ID=#{userId}
+	</update>
+	<!-- 表格获取APP用户数据并分页 -->
+	<select id="getAppUserListPage" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		eu.`USERS_ID`,
+		eu.`NICKNAME`,
+		eu.`PHONE`,
+		eu.PASSWORD,
+		eu.`MONEYS`,
+		eu.`POCKETMONEY`,
+		eu.`CONSUMPTION_VOLUME`,
+		eu.`INTEGRAL`,
+		eu.MEMBERSHIP_GRADE AS
+		membershipGrade,
+		ed2.DESCRIBES AS
+		MEMBERSHIP_GRADE,
+		eu.`REGISTERED_TIME`,
+		eu.`STATE` AS userState,
+		euc.`STATE`,
+		euc.UC_NAMES,
+		euc.TO_APPLY_FOR_TIME,
+		ed.`DESCRIBES`,
+		ea1.`CITY_NAME` AS PROVINCE,
+		ea2.`CITY_NAME` AS CITY,
+		ea3.`CITY_NAME` AS AREA,
+		eu.INVITATION
+		FROM
+		es_users eu
+		LEFT OUTER JOIN es_user_certification euc ON
+		eu.`USERS_ID`=euc.`USERS_ID`
+		LEFT OUTER JOIN es_dictionary ed ON
+		eu.`STATE`=ed.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_area ea1 ON
+		euc.`PROVINCE`= ea1.`CITY_CODE`
+		LEFT
+		OUTER JOIN es_area ea2 ON
+		euc.`CITY`= ea2.`CITY_CODE`
+		LEFT OUTER JOIN
+		es_area ea3 ON euc.`AREA`=
+		ea3.`CITY_CODE`
+		LEFT OUTER JOIN
+		es_dictionary ed2 ON
+		eu.MEMBERSHIP_GRADE=ed2.DICTIONARY_VALUE
+		<where>
+			<if test="start!=null and start!='' and end!=null and end!=''">
+				AND eu.REGISTERED_TIME BETWEEN #{start} AND #{end}
+			</if>
+			<if test="start2!=null and start2!='' and end2!=null and end2!=''">
+				AND euc.TO_APPLY_FOR_TIME BETWEEN #{start2} AND #{end2}
+			</if>
+			<if test="userState!=null and userState!=''">
+				<if test="userState eq 1">
+					and eu.STATE='USER_STATE_NORMAL'
+				</if>
+				<if test="userState eq 0">
+					and eu.STATE='USER_STATE_DISABLE'
+				</if>
+			</if>
+			<if test="phoneNumber!=null and phoneNumber!=''">
+				and eu.PHONE=#{phoneNumber}
+			</if>
+			<if test="invitation!=null and invitation!=''">
+				and eu.INVITATION=#{invitation}
+			</if>
+			<if test="isVerify!=null and isVerify!=''">
+				<if test="isVerify eq 1">
+					and euc.STATE='USER_AUTHENTICATION_PASS'
+				</if>
+				<if test="isVerify eq 0">
+					and euc.STATE!='USER_AUTHENTICATION_PASS'
+				</if>
+			</if>
+			<if test="province!=null and province!=0">
+				AND euc.`PROVINCE`=#{province}
+			</if>
+			<if test="city!=null and city!=0">
+				AND euc.`CITY`=#{city}
+			</if>
+			<if test="area!=null and area!=0">
+				AND euc.`AREA`=#{area}
+			</if>
+			<if test="MEMBERSHIP_GRADE!=null and MEMBERSHIP_GRADE!=''">
+				AND eu.`MEMBERSHIP_GRADE`=#{MEMBERSHIP_GRADE}
+			</if>
+		</where>
+		ORDER BY REGISTERED_TIME DESC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 获取APP用户信息细节 -->
+	<select id="getDetails" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT
+		eu.`USERS_ID`,
+		eu.`NICKNAME`,
+		eu.`PHONE`,
+		eu.`SEX`,
+		eu.`REGISTERED_TIME`,
+		eu.`STATE` AS userState,
+		ed.`DESCRIBES` AS
+		verifyState,
+		euc.`UC_NAMES`,
+		euc.`ID_CARD`,
+		euc.`IS_PHOTO`,
+		ea1.`CITY_NAME` AS PROVINCE,
+		ea2.`CITY_NAME` AS CITY,
+		ea3.`CITY_NAME` AS
+		`AREA`
+		FROM
+		es_users eu
+		LEFT OUTER JOIN es_user_certification euc ON
+		eu.`USERS_ID`=euc.`USERS_ID`
+		LEFT OUTER JOIN es_dictionary ed ON
+		euc.STATE=ed.DICTIONARY_VALUE
+		LEFT OUTER JOIN es_area ea1 ON
+		euc.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea2 ON
+		euc.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON
+		euc.`AREA`=ea3.`CITY_CODE`
+		WHERE eu.`USERS_ID`=#{userId}
+	</select>
+	<!-- 获取用户状态 -->
+	<select id="getUserState" resultType="java.util.Map">
+		select * from es_dictionary
+		where PID='6'
+	</select>
+	<!-- 获取实名认证状态 -->
+	<select id="getVerifyState" resultType="java.util.Map">
+		SELECT * FROM
+		es_dictionary WHERE PID='18' AND
+		DICTIONARY_VALUE!='USER_AUTHENTICATION_UNAUTHORIZED'
+	</select>
+	<!-- 改变账户状态 -->
+	<update id="changeUserState" parameterType="java.util.Map">
+		update es_users set
+		STATE=#{userState} where USERS_ID=#{userId}
+	</update>
+	<!-- 改变账户认证状态 -->
+	<update id="changeVerifytate" parameterType="java.util.Map">
+		update
+		es_user_certification set STATE=#{verifyState} where
+		USERS_ID=#{userId}
+	</update>
+	<!-- 用户余额流水数据 -->
+	<select id="getUserMoneyWater" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM es_money_water WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 用户零花钱流水数据 -->
+	<select id="getUserPocketMoney" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM es_pocket_money WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 用户消费券流水数据 -->
+	<select id="getUserConsumptionVolume"
+		parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM
+		es_consumption_volume WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 用户积分流水数据 -->
+	<select id="getUserIntegral" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM es_integral WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 用户信息 -->
+	<select id="getUserInfo" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM es_users WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 改变会员等级 -->
+	<update id="changeGrade" parameterType="java.util.Map">
+		UPDATE es_users SET
+		MEMBERSHIP_GRADE=#{grade} WHERE USERS_ID=#{userId}
+	</update>
+	<!-- 改变邀请人 -->
+	<update id="changeInvitation" parameterType="java.util.Map">
+		UPDATE es_users SET
+		INVITATION=#{invitation} WHERE USERS_ID=#{userId}
+	</update>
+</mapper>

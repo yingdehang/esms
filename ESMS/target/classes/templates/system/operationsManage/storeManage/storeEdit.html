@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="renderer" content="webkit" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>添加店铺</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<blockquote class="layui-elem-quote layui-text" th:text="修改店铺"></blockquote>
+	<form class="layui-form" method="post" action="/store/edit" enctype="multipart/form-data">
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺名字</label>
+			<div class="layui-input-block">
+				<input name="storeName" th:value="${storeInfo.STORE_NAME}" class="layui-input" type="text" autocomplete="off" lay-verify="required"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">服务电话</label>
+			<div class="layui-input-block">
+				<input name="servicePhone" th:value="${storeInfo.SERVICE_PHONE}" class="layui-input" type="text" autocomplete="off" lay-verify="required|phone"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺分类</label>
+			<div class="layui-input-block">
+				<select name="storeClass" id="class" lay-verify="required">
+					<option value="">请选择</option>
+					<option selected="" th:each="storeClass:${storeClass}" th:value="${storeClass.STORE_CLASSIFICATION_ID}" th:text="${storeClass.CLASSIFICATION_NAME}"></option>
+				</select>
+				<input type="hidden" id="storeClass" th:value="${storeInfo.STORE_CLASSIFICATION_ID}"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺状态</label>
+			<div class="layui-input-block">
+				<select name="storeStates" id="state" lay-verify="required">
+					<option value="">请选择</option>
+					<option selected="" th:each="storeStates:${storeStates}" th:value="${storeStates.DICTIONARY_VALUE}" th:text="${storeStates.DESCRIBES}"></option>
+				</select>
+				<input type="hidden" id="storeStates" th:value="${storeInfo.STATE}"/>
+				<input type="hidden" name="storeId" th:value="${storeInfo.STORE_ID}"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">原店铺图标</label>
+			<div class="layui-input-block">
+				<img th:if="${storeInfo.PHOTO_URL}" th:src="@{${storeInfo.PHOTO_URL}}" class="layui-nav-img" style="width:100px;height:100px"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">修改店铺图标</label>
+			<div class="layui-input-block">
+				<input class="layui-input" type="file" name="storeIcon"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+		    <div class="layui-input-block">
+				<button class="layui-btn" lay-filter="demo1" lay-submit="">立即提交</button>
+				<button class="layui-btn layui-btn-primary" onclick="javascript:history.back(-1);">取消</button>
+		    </div>
+		</div>
+	</form>
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+layui.use(['form','layer'], function(){
+	var form = layui.form
+	,$ = layui.jquery
+	,layer = layui.layer;
+	//监听提交
+	form.on('submit(demo1)', function(data){
+		var isExists=false;
+		$.ajax({
+			type: 'POST',
+			async: false,
+			url: '/store/editVerify',
+			data: {storeName:data.field.storeName,storeId:data.field.storeId},
+			success : function(da){
+				if(da=="true")
+				{
+					var index = layer.open({
+						type:0,
+						content:'店铺名已存在',
+						title:['提示',''],
+						shade: 0,
+				        skin:'layui-layer-molv',
+					    btnAlign: 'c',
+						btn:'确定'
+						,yes: function(index, layero){
+							layer.close(index);
+						}
+					});
+					isExists=true;
+				}
+			}
+		});
+		if(isExists==true)
+		{
+			return false;
+		}
+	});
+	$(function(){
+		$("#class option[value='"+$("#storeClass").val()+"']").attr("selected",true);
+		$("#state option[value='"+$("#storeStates").val()+"']").attr("selected",true);
+	});
+});
+</script>
+</body>
+</html>

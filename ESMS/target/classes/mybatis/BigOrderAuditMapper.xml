@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.operationsManage.BigOrderAuditDao">
+	<!-- 查询大额订单审核list -->
+	<select id="queryBigOrderAuditList"
+		parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		eorder.`ORDER_ID` AS
+		orderId,
+		eorder.`ORDER_NUMBER` AS
+		orderNumber,
+		eorder.`ADDTIME` AS
+		`ADDTIME`,
+		store.`STORE_NAME` AS
+		storeName,
+		certification.`UC_NAMES` AS
+		ucName,
+		users.`PHONE` AS
+		storePhone,
+		certification.`PROVINCE`,
+		certification.`CITY`,
+		certification.`AREA`,
+		u.`PHONE` AS
+		userPhone
+		FROM
+		es_order `eorder`
+		LEFT
+		OUTER JOIN es_goods goods
+		ON
+		eorder.`GOODSID` = goods.`GOODSID`
+		LEFT
+		OUTER JOIN es_store store ON
+		goods.`STORE_ID`=store.`STORE_ID`
+		LEFT
+		OUTER JOIN es_user_certification
+		certification ON
+		certification.`USERS_ID`=store.`USERS_ID`
+		LEFT OUTER
+		JOIN es_users users
+		ON users.`USERS_ID`=store.`USERS_ID`
+		LEFT OUTER JOIN es_users
+		u ON
+		u.`USERS_ID`=eorder.`USERS_ID`
+		WHERE
+		eorder.ORDER_STATE='ORDER_STATE_PAY'
+		<if test="bigState == 1">
+			and eorder.`BIGSTATE`=#{bigState}
+		</if>
+		<if test="bigState != 1">
+			and (eorder.`BIGSTATE`='2' or eorder.`BIGSTATE`='3')
+		</if>
+		<if test="orderNumber!=null and orderNumber!=''">
+			and eorder.`ORDER_NUMBER`=#{orderNumber}
+		</if>
+		<if test="storePhone!=null and storePhone!=''">
+			and users.`PHONE`like concat('%',#{storePhone},'%')
+		</if>
+		<if test="userPhone!=null and userPhone!=''">
+			and u.`PHONE`like concat('%',#{userPhone},'%')
+		</if>
+		GROUP BY eorder.`ORDER_NUMBER`
+		order by eorder.`ADDTIME` asc
+		limit
+		#{page},#{limit}
+	</select>
+	<!-- 查询大额订单审核list的count -->
+	<select id="queryBigOrderAuditListCount"
+		parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		eorder.`ORDER_ID` AS
+		orderId,
+		eorder.`ORDER_NUMBER` AS
+		orderNumber,
+		eorder.`ADDTIME` AS
+		`ADDTIME`,
+		store.`STORE_NAME` AS
+		storeName,
+		certification.`UC_NAMES` AS
+		ucName,
+		users.`PHONE` AS
+		storePhone,
+		certification.`PROVINCE`,
+		certification.`CITY`,
+		certification.`AREA`,
+		u.`PHONE` AS
+		userPhone
+		FROM
+		es_order `eorder`
+		LEFT
+		OUTER JOIN es_goods goods
+		ON
+		eorder.`GOODSID` = goods.`GOODSID`
+		LEFT
+		OUTER JOIN es_store store ON
+		goods.`STORE_ID`=store.`STORE_ID`
+		LEFT
+		OUTER JOIN es_user_certification
+		certification ON
+		certification.`USERS_ID`=store.`USERS_ID`
+		LEFT OUTER
+		JOIN es_users users
+		ON users.`USERS_ID`=store.`USERS_ID`
+		LEFT OUTER JOIN es_users
+		u ON
+		u.`USERS_ID`=eorder.`USERS_ID`
+		WHERE
+		eorder.ORDER_STATE='ORDER_STATE_PAY'
+		<if test="bigState == 1">
+			and eorder.`BIGSTATE`=#{bigState}
+		</if>
+		<if test="bigState != 1">
+			and (eorder.`BIGSTATE`='2' or eorder.`BIGSTATE`='3')
+		</if>
+		<if test="orderNumber!=null and orderNumber!=''">
+			and eorder.`ORDER_NUMBER`=#{orderNumber}
+		</if>
+		<if test="storePhone!=null and storePhone!=''">
+			and users.`PHONE`like concat('%',#{storePhone},'%')
+		</if>
+		<if test="userPhone!=null and userPhone!=''">
+			and u.`PHONE`like concat('%',#{userPhone},'%')
+		</if>
+		GROUP BY eorder.`ORDER_NUMBER`
+	</select>
+	<!-- 查询地区名称 -->
+	<select id="queryCityName" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		select `CITY_NAME` from es_area where CITY_CODE=#{citycode}
+	</select>
+	<!-- 查询订单状态 -->
+	<select id="queryBigState" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		select ORDER_STATE from es_order where ORDER_ID=#{orderId}
+	</select>
+	<!-- 查询大额订单信息 -->
+	<select id="queryBigOrderInfo" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT
+		eorder.`ORDER_ID` AS orderId,
+		eorder.`ORDER_NUMBER` AS
+		orderNumber,
+		eorder.`ADDTIME` AS `ADDTIME`,
+		eorder.`PRICE` AS price,
+		eorder.`NUMBER` AS number,
+		store.`STORE_NAME` AS storeName,
+		certification.`UC_NAMES` AS ucName,
+		users.`PHONE` AS
+		storePhone,
+		certification.`PROVINCE`,
+		certification.`CITY`,
+		certification.`AREA`,
+		u.`PHONE` AS userPhone,
+		zzuc.`UC_NAMES` AS
+		zzUcname,
+		zz.`PHONE` AS
+		zzPhone,
+		eorder.`STATE_PHOTO`
+		FROM
+		es_order
+		`eorder`
+		LEFT OUTER JOIN
+		es_goods
+		goods
+		ON eorder.`GOODSID` =
+		goods.`GOODSID`
+		LEFT OUTER JOIN
+		es_store
+		store
+		ON goods.`STORE_ID` =
+		store.`STORE_ID`
+		LEFT OUTER JOIN
+		es_user_certification certification
+		ON
+		certification.`USERS_ID` =
+		store.`USERS_ID`
+		LEFT OUTER JOIN es_users
+		users
+		ON users.`USERS_ID` =
+		store.`USERS_ID`
+		LEFT OUTER JOIN es_users u
+		ON u.`USERS_ID` =
+		eorder.`USERS_ID`
+		LEFT OUTER JOIN es_users zz ON
+		zz.`AREAID`=certification.`AREA`
+		LEFT OUTER JOIN es_user_certification
+		zzuc ON
+		zzuc.`USERS_ID`=zz.`USERS_ID`
+		WHERE
+		eorder.`BIGSTATE` = '1'
+		AND eorder.ORDER_STATE='ORDER_STATE_PAY'
+		AND
+		eorder.`ORDER_NUMBER`=#{orderNumber}
+	</select>
+	<update id="updateBigOrderState" parameterType="java.util.Map">
+		update es_order
+		set BIGSTATE=#{bigState},STATE_CONTENT=#{content} where
+		ORDER_NUMBER=#{orderNumber} AND ORDER_STATE='ORDER_STATE_PAY'
+	</update>
+</mapper>

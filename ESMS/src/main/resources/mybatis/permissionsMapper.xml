@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.systemManage.PermissionsDao">
+	<!-- 查询菜单权限 -->
+	<select id="queryPermission" parameterType="java.util.Map"
+		resultType="int">
+		SELECT
+		COUNT(*)
+		FROM
+		`es_system_role_user` esru,
+		`es_system_role` esr,
+		`es_permissions_role` epr
+		WHERE esru.ROLE_ID =
+		esr.ROLE_ID
+		AND epr.ROLE_ID = esr.ROLE_ID
+		AND
+		epr.PERMISSIONS_ID=#{permissionsId}
+		AND esru.USERS_ID=#{userId}
+	</select>
+	<!-- 查询该角色是否有该权限 -->
+	<select id="getMenuPermission" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM `es_system_permissions`
+		WHERE
+		PERMISSIONS_CODE
+		!= 'MENU_SHOW'
+		AND MENU_ID=#{menuId}
+	</select>
+	<!-- 查询菜单权限 -->
+	<select id="getPermissionsList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT esp.*,esm.`MENU_NAME` FROM `es_system_permissions`
+		esp LEFT JOIN
+		`es_system_menu` esm ON esp.`MENU_ID`=esm.`MENU_ID`
+		<where>
+			<if test="MENU_ID != null and MENU_ID!=''">
+				esp.`MENU_ID`=#{MENU_ID}
+			</if>
+			<if test="MENU_ID == null or MENU_ID==''">
+				esp.MENU_ID='a12'
+			</if>
+			AND esp.PERMISSIONS_CODE != 'MENU_SHOW'
+		</where>
+		limit
+		#{page},#{limit}
+	</select>
+	<!-- 查询权限count -->
+	<select id="getPermissionsListCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT COUNT(*) FROM `es_system_permissions`
+		esp LEFT JOIN
+		`es_system_menu` esm ON esp.`MENU_ID`=esm.`MENU_ID`
+		<where>
+			<if test="MENU_ID != null and MENU_ID!=''">
+				esp.`MENU_ID`=#{MENU_ID}
+			</if>
+			<if test="MENU_ID == null or MENU_ID==''">
+				esp.MENU_ID='a12'
+			</if>
+			AND esp.PERMISSIONS_CODE != 'MENU_SHOW'
+		</where>
+	</select>
+	<!-- 查询权限是否有子类 -->
+	<select id="isHaveSon" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(*) FROM `es_system_permissions` where
+		`QUERY`=#{PERMISSIONS_ID}
+	</select>
+	<!-- 添加权限 -->
+	<insert id="addpermissions" parameterType="java.util.Map">
+		INSERT INTO
+		`es_system_permissions` (`PERMISSIONS_ID`, `PERMISSIONS_NAME`,
+		`PERMISSIONS_URL`, `MENU_ID`, `PERMISSIONS_CODE`) VALUES (#{uuid},
+		#{PERMISSIONS_NAME}, #{PERMISSIONS_URL}, #{MENU_ID},
+		#{PERMISSIONS_CODE});
+	</insert>
+	<!-- 删除权限 -->
+	<delete id="deletepermissionsById"
+		parameterType="java.lang.String">
+		delete from
+		es_system_permissions where
+		PERMISSIONS_ID=#{PERMISSIONS_ID}
+	</delete>
+	<!-- 修改权限 -->
+	<update id="updatepermissions" parameterType="java.util.Map">
+		UPDATE
+		`es_system_permissions`
+		SET
+		<if test="PERMISSIONS_NAME!=null and PERMISSIONS_NAME!=''">
+			`PERMISSIONS_NAME` = #{PERMISSIONS_NAME}
+		</if>
+		<if test="PERMISSIONS_URL!=null and PERMISSIONS_URL!=''">
+			`PERMISSIONS_URL` = #{PERMISSIONS_URL}
+		</if>
+		WHERE `PERMISSIONS_ID` = #{PERMISSIONS_ID};
+	</update>
+</mapper>

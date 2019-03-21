@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>礼包审核记录</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<!-- 页面头部 -->
+	<div style="padding-bottom: 15px; border-bottom: 2px solid #5FB878;margin-bottom:10px">
+		<h2>
+			<a href="javascript:history.go(-1)">礼包审核</a>>
+			<a href="javascript:void(0)" onclick="location.reload()">审核记录</a>
+			<button id="export" class="layui-btn layui-btn-radius"
+					style="float: right" data-type="exports">导出列表</button>
+		</h2>
+	</div>
+	
+	<div id="search" class="layui-form layui-form-pane">
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">审核状态</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="state">
+					<option value="">请选择</option>
+					<option value="0">未激活</option>
+					<option value="1">申请激活</option>
+					<option value="2">审核通过</option>
+					<option value="3">审核失败</option>
+					<option value="4">已过期</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">时间类型</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="type">
+					<option value="">请选择</option>
+					<option value="0">领取时间</option>
+					<option value="1">下单时间</option>
+					<option value="2">支付时间</option>
+					<option value="3">审核通过时间</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label">时间范围</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="start" type="text" placeholder="起始时间" />
+			</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="end" type="text" placeholder="结束时间" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 120px">是否实名认证</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="isVerify">
+					<option value="">请选择</option>
+					<option value="1">是</option>
+					<option value="0">否</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label">礼包</label>
+			<div class="layui-input-inline">
+				<select id="activity">
+					<option value="">请选择</option>
+					<option th:each="activity:${activity}"
+						th:value="${activity.EEACID}" th:text="${activity.ACTIVITY_NAME}"></option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label">礼包类型</label>
+			<div class="layui-input-inline">
+				<select id="activityType">
+					<option value="">请选择</option>
+					<option value="1">体验专区</option>
+					<option value="2">购买专区</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label">选择地区</label>
+			<div class="layui-input-inline">
+				<select name="province" id="province" lay-filter="changeProvince"
+					lay-verify="required">
+					<option value="0">请选择省</option>
+					<option th:each="province:${province}"
+						th:value="${province.CITY_CODE}" th:text="${province.CITY_NAME}"></option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select name="city" id="city" lay-filter="changeCity"
+					lay-verify="required">
+					<option value="0">请选择市</option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select name="area" id="area" lay-verify="required">
+					<option value="0">请选择区</option>
+				</select>
+			</div>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+	</div>
+	
+	<table id="record" lay-filter="operation"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+layui.use(['table','jquery','layer','form','laydate'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var layer = layui.layer;
+	var form = layui.form;
+	var laydate = layui.laydate;
+	laydate.render({
+		elem: '#start'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#end'
+		,type: 'datetime'
+	});
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#record'
+		,url: '/experience/getVerifyRecord'
+		,page: true
+		,cols:[[
+			{field:'userPhone',title:'买家手机号'}
+			,{field:'certificationState',title:'是否实名认证',templet:'#verify'}
+			,{field:'area',title:'地区'}
+			,{field:'ACTIVITY_NAME',title:'礼包名'}
+			,{field:'MONEY',title:'礼包金额'}
+			,{field:'REMARK',title:'礼包类型',templet:'#types'}
+			,{field:'LINK_MAN',title:'收货人'}
+			,{field:'PHONE',title:'收货电话'}
+			,{field:'ADDR',title:'收货地址'}
+			,{field:'ADDTIME',title:'领取时间'}
+			,{field:'ORDER_TIME',title:'下单时间'}
+			,{field:'PAY_TIME',title:'支付时间'}
+			,{field:'PASS_TIME',title:'审核通过时间'}
+			,{field:'STATE',title:'审核状态',toolbar: '#states'}
+		]]
+	});
+	<!-- 监听搜索按钮 -->
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	var state = $("#state");
+	var type = $("#type");
+	var start = $("#start");
+	var end = $("#end");
+	var isVerify = $("#isVerify");
+	var province = $("#province");
+	var city = $("#city");
+	var area = $("#area");
+	var activity = $("#activity");
+	var activityType = $("#activityType");
+	var $ = layui.$, active = {
+		reload: function() {
+			table.reload('record', {
+				where: {
+					state: state.val(),
+					type: type.val(),
+					start : start.val(),
+					end : end.val(),
+					isVerify : isVerify.val()
+					,province:province.val()
+					,city:city.val()
+					,area:area.val()
+					,activity:activity.val()
+					,activityType:activityType.val()
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		,exports: function(){
+			layer.confirm('确定?', {icon: 3, title:'提示'}, function(index){
+				window.location.href="/experience/exportVerifyRecord?state="+state.val()+"&type="
+					+type.val()+"&start="+start.val()+"&end="+end.val()+"&isVerify="+isVerify.val()+
+					"&activity="+activity.val()+"&province="+province.val()+"&city="+city.val()+
+					"&area="+area.val()+"&activityType="+activityType.val();
+				layer.close(index);
+			});
+		}
+	};
+	//监听省份选择
+	form.on('select(changeProvince)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var city = eval(da);
+			$("#city").empty();
+			$("#area").empty();
+			$("#city").append("<option value='0'>请选择市</option>");
+			$("#area").append("<option value='0'>请选择区</option>");
+			for (var i = 0; i < city.length; i++) {
+				$("#city").append(
+						"<option value='"+city[i].CITY_CODE+"'>"
+								+ city[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	//监听城市选择
+	form.on('select(changeCity)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var area = eval(da);
+			$("#area").empty();
+			$("#area").append("<option value='0'>请选择县/区</option>");
+			for (var i = 0; i < area.length; i++) {
+				$("#area").append(
+						"<option value='"+area[i].CITY_CODE+"'>"
+								+ area[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+});
+/*]]>*/
+</script>
+<script type="text/html" id="states">
+	{{# if(d.STATE=='0'){ }}
+		<span>未激活</span>
+	{{# }else if(d.STATE=='1'){ }}
+		<span>申请激活</span>
+	{{# }else if(d.STATE=='2'){ }}
+		<span>审核通过</span>
+	{{# }else if(d.STATE=='3'){ }}
+		<span>审核失败</span>
+	{{# }else if(d.STATE=='4'){ }}
+		<span>已过期</span>
+	{{# } }}
+</script>
+<script type="text/html" id="verify">
+	{{# if(d.certificationState=='USER_AUTHENTICATION_PASS'){ }}
+		是
+	{{# }else{ }}
+		否
+	{{# } }}
+</script>
+<script type="text/html" id="types">
+	{{# if(d.REMARK=='1'){ }}
+		体验专区
+	{{# }else if(d.REMARK=='2'){ }}
+		购买专区
+	{{# } }}
+</script>
+</body>
+</html>

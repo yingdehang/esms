@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.operationsManage.WithdrawalsDao">
+	<!-- 提现申请数据 -->
+	<select id="getWithdrawals" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		ewr.`WITHDRAWAL_RECORD_ID`,
+		ewr.`WITHDRAWAL_TYPE`,
+		ewr.`ALIPAY`,
+		ewr.`BANK`,
+		ewr.`BANKNAME`,
+		ewr.`WITHDRAWAL_NAME`,
+		eu.`PHONE`,
+		ewr.`MONEY`,
+		ewr.`MONEY_TYPE`,
+		ewr.ORIGINAL_AMOUNT,
+		ewr.`TO_APPLY_FOR_TIME`,
+		eu.`USERS_ID`
+		FROM 
+		es_withdrawal_record ewr
+		,es_users eu
+		WHERE 
+		WITHDRAWAL_STATE='EXTRACT_STATE_NOT_AUDIT'
+		AND ewr.`USERS_ID`=eu.`USERS_ID`
+		<if test="userName!=null and userName!=''">
+			and ewr.WITHDRAWAL_NAME LIKE #{userName}
+		</if>
+		<if test="phone!=null and phone!=''">
+			and eu.PHONE=#{phone}
+		</if>
+		<if test="start!=null and start!='' and end!=null and end!=''">
+			AND ewr.`TO_APPLY_FOR_TIME` BETWEEN #{start} AND #{end}
+		</if>
+		ORDER BY ewr.`TO_APPLY_FOR_TIME` ASC
+	</select>
+	<!-- 提现申请数据分页 -->
+	<select id="getWithdrawalsPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		ewr.`WITHDRAWAL_RECORD_ID`,
+		ewr.`WITHDRAWAL_TYPE`,
+		ewr.`ALIPAY`,
+		ewr.`BANK`,
+		ewr.`BANKNAME`,
+		ewr.`WITHDRAWAL_NAME`,
+		eu.`PHONE`,
+		ewr.`MONEY`,
+		ewr.`MONEY_TYPE`,
+		ewr.ORIGINAL_AMOUNT,
+		ewr.`TO_APPLY_FOR_TIME`,
+		eu.`USERS_ID`
+		FROM 
+		es_withdrawal_record ewr
+		,es_users eu
+		WHERE 
+		WITHDRAWAL_STATE='EXTRACT_STATE_NOT_AUDIT'
+		AND ewr.`USERS_ID`=eu.`USERS_ID`
+		<if test="userName!=null and userName!=''">
+			and ewr.WITHDRAWAL_NAME LIKE #{userName}
+		</if>
+		<if test="phone!=null and phone!=''">
+			and eu.PHONE=#{phone}
+		</if>
+		<if test="start!=null and start!='' and end!=null and end!=''">
+			AND ewr.`TO_APPLY_FOR_TIME` BETWEEN #{start} AND #{end}
+		</if>
+		ORDER BY ewr.`TO_APPLY_FOR_TIME` ASC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 提现申请明细数据 -->
+	<select id="getWithdrawalsRecord" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		ewr.`WITHDRAWAL_RECORD_ID`,
+		ewr.`WITHDRAWAL_TYPE`,
+		ewr.`ALIPAY`,
+		ewr.`BANK`,
+		ewr.`BANKNAME`,
+		ewr.`WITHDRAWAL_NAME`,
+		eu.`PHONE`,
+		ewr.`MONEY`,
+		ewr.`MONEY_TYPE`,
+		ewr.ORIGINAL_AMOUNT,
+		ewr.`TO_APPLY_FOR_TIME`,
+		ed.`DESCRIBES` AS WITHDRAWAL_STATE
+		FROM 
+		es_withdrawal_record ewr,es_users eu,es_dictionary ed
+		WHERE 
+		(WITHDRAWAL_STATE='EXTRACT_STATE_PASS' OR WITHDRAWAL_STATE='EXTRACT_STATE_NO')
+		AND ewr.`USERS_ID`=eu.`USERS_ID`
+		AND ewr.`WITHDRAWAL_STATE`=ed.`DICTIONARY_VALUE`
+		<if test="userName!=null and userName!=''">
+			and ewr.WITHDRAWAL_NAME LIKE #{userName}
+		</if>
+		<if test="phone!=null and phone!=''">
+			and eu.PHONE=#{phone}
+		</if>
+		<if test="start!=null and start!='' and end!=null and end!=''">
+			AND ewr.`TO_APPLY_FOR_TIME` BETWEEN #{start} AND #{end}
+		</if>
+		ORDER BY ewr.`TO_APPLY_FOR_TIME` DESC
+	</select>
+	<!-- 提现申请明细数据分页 -->
+	<select id="getWithdrawalsRecordPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		ewr.`WITHDRAWAL_RECORD_ID`,
+		ewr.`WITHDRAWAL_TYPE`,
+		ewr.`ALIPAY`,
+		ewr.`BANK`,
+		ewr.`BANKNAME`,
+		ewr.`WITHDRAWAL_NAME`,
+		eu.`PHONE`,
+		ewr.`MONEY`,
+		ewr.`MONEY_TYPE`,
+		ewr.ORIGINAL_AMOUNT,
+		ewr.`TO_APPLY_FOR_TIME`,
+		ed.`DESCRIBES` AS WITHDRAWAL_STATE
+		FROM 
+		es_withdrawal_record ewr,es_users eu,es_dictionary ed
+		WHERE 
+		(WITHDRAWAL_STATE='EXTRACT_STATE_PASS' OR WITHDRAWAL_STATE='EXTRACT_STATE_NO')
+		AND ewr.`USERS_ID`=eu.`USERS_ID`
+		AND ewr.`WITHDRAWAL_STATE`=ed.`DICTIONARY_VALUE`
+		<if test="userName!=null and userName!=''">
+			and ewr.WITHDRAWAL_NAME LIKE #{userName}
+		</if>
+		<if test="phone!=null and phone!=''">
+			and eu.PHONE=#{phone}
+		</if>
+		<if test="start!=null and start!='' and end!=null and end!=''">
+			AND ewr.`TO_APPLY_FOR_TIME` BETWEEN #{start} AND #{end}
+		</if>
+		ORDER BY ewr.`TO_APPLY_FOR_TIME` DESC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 审核状态 -->
+	<select id="getWithdrawalsStates" resultType="java.util.Map">
+		SELECT * FROM es_dictionary WHERE PID='40' AND DICTIONARY_VALUE!='EXTRACT_STATE_NOT_AUDIT'
+	</select>
+	<!-- 提现审核通过 -->
+	<update id="verifyPass" parameterType="java.lang.String">
+		UPDATE es_withdrawal_record SET WITHDRAWAL_STATE='EXTRACT_STATE_PASS',SUCCESSFUL_TIME=NOW()
+		WHERE 
+		WITHDRAWAL_RECORD_ID=#{withdrawalsId}
+	</update>
+	<!-- 提现审核失败-->
+	<update id="verifyNo" parameterType="java.util.Map">
+		UPDATE es_withdrawal_record SET WITHDRAWAL_STATE='EXTRACT_STATE_NO',FEEDBACK=#{content},BACK_TIME=NOW(),BACK_MONEY=#{money} WHERE WITHDRAWAL_RECORD_ID=#{withdrawalsId}
+	</update>
+	<!-- 用户表添加金额 -->
+	<update id="addUserMoney" parameterType="java.util.Map">
+		update es_users 
+		set 
+		<if test="moneyType eq 1">
+			MONEYS=MONEYS+#{money} 
+		</if>
+		<if test="moneyType eq 0">
+			POCKETMONEY=POCKETMONEY+#{money}
+		</if>
+		where USERS_ID=#{userId}
+	</update>
+	<!-- 添加余额流水 -->
+	<insert id="addMoneyWater" parameterType="java.util.Map">
+		INSERT INTO es_money_water VALUES(#{moneyWaterId},#{userId},#{money},NOW(),#{type},#{name})
+	</insert>
+	<!-- 添加零花钱流水 -->
+	<insert id="addPocketMoneyWater" parameterType="java.util.Map">
+		INSERT INTO es_pocket_money VALUES(#{pocketMoneyWaterId},#{userId},#{money},NOW(),#{type},#{name})
+	</insert>
+	<!-- 添加收益流水 -->
+	<insert id="addRunningWater" parameterType="java.util.Map">
+		INSERT INTO es_running_water VALUES(#{runningWaterId},#{userId},#{waterType},#{money},NOW(),#{name},#{moneyType})
+	</insert>
+	<!-- 得到用户的旗舰店 -->
+	<select id="getUserQJStore" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_store es,es_store_certification esc WHERE es.`STORE_ID`=esc.`STORE_ID` AND es.`USERS_ID`=#{userId} AND esc.`TYPES`='STORE_XS_XS' AND esc.`STORE_TYPE`='STORE_DJ_QJ' AND AUDIT_STATE='STORE_AUTHENTICATION_PASS'
+	</select>
+	<!-- 判断用的银行卡信息是否存在 -->
+	<select id="getUserBank" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT(BANKNUMBER) FROM es_binding_bank WHERE USERS_ID=#{userId} AND BANKNUMBER=#{bank}
+	</select>
+	<!-- 添加一条用户银行卡信息 -->
+	<insert id="addUserBank">
+		INSERT INTO es_binding_bank VALUES(#{id},#{userId},#{bankName},#{bank},NOW())
+	</insert>
+	<!-- 得到用户保存的所有银行信息 -->
+	<select id="getBanks" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_binding_bank WHERE USERS_ID=#{userId} ORDER BY `ADDTIME` ASC
+	</select>
+	<!-- 删除这条银行卡信息 -->
+	<delete id="deleteBank" parameterType="java.lang.String">
+		DELETE FROM es_binding_bank WHERE EBID=#{bankId}
+	</delete>
+</mapper>

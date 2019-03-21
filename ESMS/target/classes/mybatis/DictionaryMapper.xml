@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.systemManage.DictionaryDao">
+	<!-- 获取字典管理list -->
+	<select id="getDictionaryList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT * FROM `es_dictionary`
+		<where>
+			<if test="PID != null and PID!=''">
+				PID=#{PID}
+			</if>
+			<if test="PID == null or PID==''">
+				PID='0'
+			</if>
+			<if test="DESCRIBES != null and DESCRIBES !=''">
+				AND
+				DESCRIBES
+				LIKE CONCAT('%',#{DESCRIBES},'%')
+			</if>
+		</where>
+		limit #{page},#{limit};
+	</select>
+	<!-- 获取字典管理count -->
+	<select id="getDictionaryListCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT count(*) FROM `es_dictionary`
+		<where>
+			<if test="PID != null and PID!=''">
+				PID=#{PID}
+			</if>
+			<if test="PID == null or PID==''">
+				PID='0'
+			</if>
+			<if test="DESCRIBES != null and DESCRIBES !=''">
+				AND
+				DESCRIBES
+				LIKE CONCAT('%',#{DESCRIBES},'%')
+			</if>
+		</where>
+	</select>
+	<!-- 查询字典父类pid，用于返回 -->
+	<select id="queryDictionaryParentId" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT PID FROM es_dictionary WHERE DICTIONARY_ID=#{PID}
+	</select>
+	<!-- 查询字典该类是否有子类 -->
+	<select id="isHaveSon" parameterType="java.lang.String"
+		resultType="int">
+		SELECT count(*) FROM es_dictionary WHERE
+		PID=#{DICTIONARY_ID}
+	</select>
+	<!-- 删除该列字典 -->
+	<delete id="deleteDictionaryById" parameterType="java.lang.String">
+		delete from
+		es_dictionary where DICTIONARY_ID=#{dICTIONARY_ID}
+	</delete>
+	<!-- 添加字典 -->
+	<insert id="addDictionary" parameterType="java.util.Map">
+		INSERT INTO
+		`es`.`es_dictionary` (`DICTIONARY_ID`,
+		`DICTIONARY_TYPE`,
+		`DICTIONARY_VALUE`, `PID`, `CREATE_TIME`,
+		`DESCRIBES`) VALUES
+		(#{uuid},
+		#{DICTIONARY_TYPE}, #{DICTIONARY_VALUE}, #{PID}, now(), #{DESCRIBES})
+	</insert>
+	<!-- 修改字典 -->
+	<update id="updateDictionary" parameterType="java.util.Map">
+		UPDATE
+		`es`.`es_dictionary` SET `DICTIONARY_TYPE` = #{DICTIONARY_TYPE} ,
+		`DICTIONARY_VALUE` = #{DICTIONARY_VALUE} , `DESCRIBES` = #{DESCRIBES}
+		WHERE
+		`DICTIONARY_ID` = #{DICTIONARY_ID}
+	</update>
+</mapper>

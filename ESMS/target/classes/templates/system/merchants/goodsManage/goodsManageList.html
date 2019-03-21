@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>线上店铺商品管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<style type="text/css">
+td .layui-table-cell {
+	height: 100px;
+	line-height: 100px;
+	padding: 0 15px;
+	position: relative;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	box-sizing: border-box;
+}
+
+.caozuoanniubox {
+	height: 100px;
+	text-align: center;
+	line-height: 60px;
+}
+
+.caozuoanniu {
+	height: 30px;
+	text-align: center;
+}
+
+.huifubox {
+	text-align: center;
+	height: 100px;
+	line-height: 30px;
+}
+</style>
+</head>
+<body>
+	<div>
+		<!-- 商品管理顶部 -->
+		<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+			<div
+				style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+				<label><a href="/onLineStore/toOnLineStoreList">线上店铺管理</a>
+					>>商品管理</label>
+			</div>
+			<div style="float:left;margin-left:30%;line-height: 32px; font-size: 16px;">
+				<span th:text="${storeName}"></span>
+			</div>
+			<div style="float: right; line-height: 32px; padding-right: 10px;">
+				<a th:if="${addXsGoods}"
+					th:href="@{/goodsManage/toAddgoodsHtml(storeId=${storeId})}"
+					class="layui-btn layui-btn-primary layui-btn-xs">添加商品</a>
+				<button th:if="${exportXsGoods}"
+					class="layui-btn layui-btn-primary layui-btn-xs"
+					data-type="batchExport">导出列表</button>
+				<button th:if="${exportXsGoods}"
+					class="layui-btn layui-btn-primary layui-btn-xs"
+					data-type="batchExportAll">导出店铺所有商品列表</button>
+				<button class="layui-btn layui-btn-primary layui-btn-xs">查看帮助</button>
+			</div>
+		</div>
+		<!-- 选项卡 -->
+		<div class="statebox">
+			<div class="layui-tab layui-tab-brief" lay-filter="goodsState">
+				<ul class="layui-tab-title">
+					<li th:if="${goodsState} eq 'GOODS_STATE_UP'" class="layui-this">已上架商品</li>
+					<li th:unless="${goodsState} eq 'GOODS_STATE_UP'">已上架商品</li>
+					<li>已下架商品</li>
+					<li th:if="${goodsState} eq 'GOODS_STATE_DSH'" class="layui-this">待审核商品</li>
+					<li th:unless="${goodsState} eq 'GOODS_STATE_DSH'">待审核商品</li>
+					<li>未通过审核</li>
+					<li>强制下架商品</li>
+				</ul>
+			</div>
+		</div>
+		<!-- 收索栏 -->
+		<div class="layui-form layui-form-pane demoTable">
+			<div class="layui-inline">
+				<label class="layui-form-label">商品名称</label>
+				<div class="layui-input-inline">
+					<input id="goodsName" class="layui-input" type="text"
+						placeholder="请输入商品名称查询" autocomplete="off" />
+				</div>
+			</div>
+			<button class="layui-btn" data-type="relocad">查询</button>
+			<div style="float: right; padding-right: 10px;">
+				<div class="layui-btn-group">
+					<button th:if="${xsgoodsUpAndDown}" id="batchShelves"
+						style="display: none;" class="layui-btn" data-type="batchShelves">批量上架</button>
+					<button th:if="${xsgoodsUpAndDown}" id="batchDown"
+						class="layui-btn" data-type="batchDown">批量下架</button>
+					<button th:if="${deleteXsGoods}" id="batchDelete" class="layui-btn"
+						data-type="batchDelete">批量删除</button>
+				</div>
+			</div>
+		</div>
+		<!-- 商品信息 -->
+		<div class="tablebox">
+			<table class="layui-table" id="goodslist" lay-filter="operating"></table>
+			<script id="goodsInfo" type="text/html">
+			<div style="height:80px;width:100%;text-align:left;">
+				<div style="float:left;height:80px;width:20%;">
+					<img src="{{d.GOODS_ICON}}" width="100%" heigth="100%"/>
+				</div>
+				<div style="float:left;height:80px;width:72%;margin-left:20px;"><p>{{d.GOODS_NAME}}</p></div>
+			</div>
+		</script>
+			<script id="xsGoodsState" type="text/html">
+			{{#	if(d.GOODS_STATE == 'GOODS_STATE_UP') {}}
+				<div class="caozuoanniubox"><div class="caozuoanniu">已上架</div>
+				<div th:if="${xsgoodsUpAndDown}" class="caozuoanniu"><a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="xiajia">下架</a></div></div>
+			{{#} else if (d.GOODS_STATE == 'GOODS_STATE_DOWN') {}}
+				<div class="caozuoanniubox"><div class="caozuoanniu">已下架</div>
+				<div th:if="${xsgoodsUpAndDown}" class="caozuoanniu"><a class="layui-btn layui-btn-xs" lay-event="shangjia">上架</a></div></div>
+			{{#} else if (d.GOODS_STATE == 'GOODS_STATE_DSH') {}}
+				待审核
+			{{#} else if (d.GOODS_STATE == 'GOODS_STATE_PASS') {}}
+				审核通过
+			{{#} else if (d.GOODS_STATE == 'GOODS_STATE_FAIL') {}}
+				<div class="huifubox">未通过<br/>({{d.CONTENT}})</div>
+			{{#} else if (d.GOODS_STATE == 'GOODS_STATE_QZ_DOWN') {}}
+				<div class="huifubox">强制下架<br/>({{d.CONTENT}})</div>
+			{{#}}}
+		</script>
+			<script id="toolbar" type="text/html">
+				{{#if(d.GOODS_STATE=='GOODS_STATE_UP'){}}
+					<div><a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">详情信息</a></div>
+				{{#}else if(d.GOODS_STATE=='GOODS_STATE_DOWN'){}}
+					<div class="caozuoanniubox">
+						<div class="caozuoanniu"><a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">详情信息</a></div>
+  						<div th:if="${deleteXsGoods}" class="caozuoanniu"><a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a></div>
+					</div>
+				{{#}else if(d.GOODS_STATE=='GOODS_STATE_DSH'){}}
+					<div class="caozuoanniubox">
+						<div th:if="${updateXsGoods}" class="caozuoanniu"><a class="layui-btn layui-btn-xs" lay-event="edit">重新编辑</a></div>
+						<div th:if="${deleteXsGoods}" class="caozuoanniu"><a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a></div>
+					</div>
+				{{#}else if(d.GOODS_STATE=='GOODS_STATE_PASS'){}}
+					审核通过
+				{{#}else if(d.GOODS_STATE=='GOODS_STATE_FAIL'){}}
+					<div class="caozuoanniubox">
+						<div th:if="${updateXsGoods}" class="caozuoanniu"><a class="layui-btn layui-btn-xs" lay-event="edit">重新编辑</a></div>
+						<div th:if="${deleteXsGoods}" class="caozuoanniu"><a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a></div>
+					</div>
+				{{#}else if(d.GOODS_STATE=='GOODS_STATE_QZ_DOWN'){}}
+					<a th:if="${deleteXsGoods}" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+				{{#}}}
+			</script>
+		</div>
+		<input type="hidden" id="storeId" th:value="${storeId}" /> <input
+			type="hidden" id="goodsState" th:value="${goodsState}" />
+	</div>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/merchantsJsFile/goodsManage.js}"></script>
+</html>

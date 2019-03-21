@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.systemManage.Roledao">
+	<!-- 获取角色管理list -->
+	<select id="getRoleList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select * from `es_system_role`
+		<if test="ROLE_NAME != null and ROLE_NAME!=''">
+			WHERE ROLE_NAME LIKE CONCAT('%',#{ROLE_NAME},'%')
+		</if>
+		ORDER BY CREATE_TIME ASC
+		LIMIT #{page},#{limit}
+	</select>
+	<!-- 查询角色管理list的count -->
+	<select id="getRoleListCount" parameterType="java.util.Map"
+		resultType="int">
+		select count(*) from `es_system_role`
+		<if test="ROLE_NAME != null and ROLE_NAME!=''">
+			WHERE ROLE_NAME LIKE CONCAT('%',#{ROLE_NAME},'%')
+		</if>
+	</select>
+	<!-- 删除角色 -->
+	<delete id="deleteRoleById" parameterType="java.lang.String">
+		delete from
+		`es_system_role` where ROLE_ID=#{ROLE_ID}
+	</delete>
+	<!-- 删除已删除角色的权限 -->
+	<delete id="deleteRolePermissionById" parameterType="java.lang.String">
+		delete from
+		`es_permissions_role` where ROLE_ID=#{ROLE_ID}
+	</delete>
+	<!-- 添加角色 -->
+	<insert id="addrole" parameterType="java.util.Map">
+		INSERT INTO
+		`es_system_role`
+		(`ROLE_ID`, `ROLE_NAME`, `CREATE_TIME`) VALUES
+		(#{uuid}, #{ROLE_NAME},
+		now());
+	</insert>
+	<!-- 修改角色 -->
+	<update id="updateRole" parameterType="java.util.Map">
+		UPDATE
+		`es_system_role` SET
+		`ROLE_NAME` = #{ROLE_NAME} WHERE `ROLE_ID` =
+		#{ROLE_ID};
+	</update>
+	<!-- 获取角色菜单权限list，查看角色是否有该菜单权限 -->
+	<select id="getmenupermissionList" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT
+		esp.`PERMISSIONS_ID`,esp.`PERMISSIONS_NAME`,esm.`MENU_NAME`,esm.`MENU_ID`
+		FROM
+		`es_system_permissions` esp LEFT JOIN `es_system_menu` esm ON
+		esp.`MENU_ID`=esm.`MENU_ID` WHERE esm.`PID`=#{pid} AND
+		esp.`PERMISSIONS_CODE`='MENU_SHOW'
+	</select>
+	<!-- 查询角色菜单是否有该权限 -->
+	<select id="isHavePermissions" parameterType="java.util.Map"
+		resultType="int">
+		select count(*) from es_permissions_role where
+		PERMISSIONS_ID=#{permissionsId} and ROLE_ID=#{roleId}
+	</select>
+	<!-- 获取菜单权限 -->
+	<select id="getrolemenupermissions" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT
+		`PERMISSIONS_ID`,
+		`PERMISSIONS_NAME`
+		FROM
+		`es_system_permissions`
+		WHERE `MENU_ID` = #{menuId} AND
+		`PERMISSIONS_CODE`
+		!= 'MENU_SHOW'
+	</select>
+	<!-- 添加角色权限 -->
+	<insert id="addRolePermissions" parameterType="java.util.Map">
+		INSERT INTO
+		`es_permissions_role` (`PERMISSIONS_ROLE_ID`,
+		`PERMISSIONS_ID`,
+		`ROLE_ID`) VALUES (#{uuid}, #{permissionsId}, #{roleId})
+	</insert>
+	<!-- 删除角色权限 -->
+	<delete id="deleteRolePermissions" parameterType="java.util.Map">
+		delete from
+		es_permissions_role where PERMISSIONS_ID=#{permissionsId} and
+		ROLE_ID=#{roleId}
+	</delete>
+</mapper>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.userManage.ReceiveAddressDao">
+	<!-- 表格获取收货地址数据 -->
+	<select id="getReceiveAddressList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		u.PHONE AS userPhone,
+		a.CONSIGNEE,
+		a.PHONE,
+		a.ADDR,
+		a.ADD_TIME AS TIME,
+		d.DESCRIBES AS IS_DEFAULT
+		FROM 
+		es_shipping_address a,
+		es_users u,
+		es_dictionary d 
+		WHERE 
+		a.USERS_ID=u.USERS_ID  
+		AND a.IS_DEFAULT=d.DICTIONARY_VALUE  
+		<if test="phoneNumber != null">
+			AND u.PHONE=#{phoneNumber}
+		</if>
+	</select>
+	<!-- 表格获取收货地址数据并分页 -->
+	<select id="getReceiveAddressListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		u.PHONE AS userPhone,
+		a.CONSIGNEE,
+		a.PHONE,
+		a.ADDR,
+		a.ADD_TIME AS TIME,
+		d.DESCRIBES AS IS_DEFAULT
+		FROM 
+		es_shipping_address a,
+		es_users u,
+		es_dictionary d 
+		WHERE 
+		a.USERS_ID=u.USERS_ID  
+		AND a.IS_DEFAULT=d.DICTIONARY_VALUE  
+		<if test="phoneNumber != null">
+			AND u.PHONE=#{phoneNumber}
+		</if>
+		LIMIT #{which},#{limit}
+	</select>
+</mapper>

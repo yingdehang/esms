@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>象本商城后台管理系统</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body style="paddind: 20px;">
+	<form class="layui-form" action="">
+		<input type="hidden" id="userId" th:value="${userId}" />
+		<table class="layui-hide" id="test"></table>
+		<script id="isHave" type="text/html">
+		{{#if(d.isHave>0){}}
+			<input name="open" value="{{d.ROLE_ID}}" type="checkbox" checked="" lay-skin="switch" lay-filter="switchTest" lay-text="ON|OFF"/>
+		{{#}else{}}
+      		<input name="open" value="{{d.ROLE_ID}}" type="checkbox" lay-skin="switch" lay-filter="switchTest" lay-text="ON|OFF"/>
+	    {{#}}}
+	</script>
+	</form>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script>
+	layui.use([ 'table', 'form' ], function() {
+		var table = layui.table, form = layui.form, $ = layui.jquery;
+		table.render({
+			elem : '#test',
+			url : '/systemUser/assignRolelist/',
+			cellMinWidth : 80,
+			cols : [ [ {
+				field : 'ROLE_NAME',
+				title : '角色名称'
+			}, {
+				title : '是否分配角色',
+				toolbar : '#isHave'
+			} ] ],
+			where : {
+				userId : $("#userId").val()
+			}
+		});
+		//监听指定开关
+		form.on('switch(switchTest)', function(data) {
+			var is = this.checked;
+			userId = $("#userId").val();
+			if (is) {
+				$.post("/systemUser/addUserRole", {
+					roleId : data.value,
+					userId : userId
+				}, function(d) {
+					if (d > 0) {
+						layer.msg("分配角色成功");
+					} else {
+						layer.msg("分配角色失败");
+					}
+				});
+			} else {
+				$.post("/systemUser/deleteUserRole", {
+					roleId : data.value,
+					userId : userId
+				}, function(d) {
+					if (d > 0) {
+						layer.msg("取消用户角色成功");
+					} else {
+						layer.msg("操作失败");
+					}
+				});
+			}
+		});
+	});
+</script>
+</html>

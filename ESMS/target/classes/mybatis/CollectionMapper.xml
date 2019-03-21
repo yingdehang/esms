@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.userManage.CollectionDao">
+	<!-- 获取未分页的收藏数据List -->
+	<select id="getCollectionList" resultType="java.util.Map">
+		 SELECT c.COLLECTION_ID,u.PHONE,d.DESCRIBES AS COLLECTION_TYPE,c.ID,c.COLLECTION_TIME FROM es_collection c,es_users u,es_dictionary d WHERE c.USERS_ID=u.USERS_ID AND c.COLLECTION_TYPE=d.DICTIONARY_VALUE
+	</select>
+	<!-- 根据Id查询商品名 -->
+	<select id="getGoodsName" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT GOODS_NAME FROM es_goods WHERE GOODSID=#{id}
+	</select>
+	<!-- 根据Id查询店铺名 -->
+	<select id="getStoreName" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT STORE_NAME FROM es_store WHERE STORE_ID=#{id}
+	</select>
+	<!-- 获取收藏数据并分页 -->
+	<select id="getCollectionListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT c.COLLECTION_ID,u.PHONE,d.DESCRIBES AS COLLECTION_TYPE,c.ID,c.COLLECTION_TIME FROM es_collection c,es_users u,es_dictionary d WHERE c.USERS_ID=u.USERS_ID AND c.COLLECTION_TYPE=d.DICTIONARY_VALUE LIMIT #{which},#{limit}
+	</select>
+	<!-- 查询收藏 -->
+	<select id="searchCollection" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT c.COLLECTION_ID,u.PHONE,d.DESCRIBES AS COLLECTION_TYPE,c.ID,c.COLLECTION_TIME FROM es_collection c,es_users u,es_dictionary d WHERE c.USERS_ID=u.USERS_ID AND c.COLLECTION_TYPE=d.DICTIONARY_VALUE AND u.PHONE=#{phoneNumber}
+	</select>
+	<!-- 查询收藏并分页 -->
+	<select id="searchCollectionPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT c.COLLECTION_ID,u.PHONE,d.DESCRIBES AS COLLECTION_TYPE,c.ID,c.COLLECTION_TIME FROM es_collection c,es_users u,es_dictionary d WHERE c.USERS_ID=u.USERS_ID AND c.COLLECTION_TYPE=d.DICTIONARY_VALUE AND u.PHONE=#{phoneNumber} LIMIT #{which},#{limit}
+	</select>
+</mapper>

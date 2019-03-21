@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.operationsManage.ExperienceDao">
+	<!-- 未分页的活动列表 -->
+	<select id="getActivitis" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  *
+		FROM
+		  es_experience_activity
+		<if test="type!=null and type!=''">
+			WHERE IS_PREFECTURE = #{type}
+		</if>
+		ORDER BY IS_SORT DESC
+	</select>
+	<!-- 分页的活动列表 -->
+	<select id="getActivitisPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  *
+		FROM
+		  es_experience_activity
+		<if test="type!=null and type!=''">
+			WHERE IS_PREFECTURE = #{type}
+		</if>
+		ORDER BY IS_SORT DESC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 开启/关闭活动 -->
+	<update id="turn" parameterType="java.util.Map">
+		update
+		  es_experience_activity
+		set
+		  IS_UP = #{value}
+		WHERE EEACID = #{id}
+	</update>
+	<!-- 修改活动排序 -->
+	<update id="changeSort" parameterType="java.util.Map">
+		UPDATE
+		  es_experience_activity
+		SET
+		<if test="sort==''">
+			IS_SORT = 0
+		</if>
+		<if test="sort!=''">
+			IS_SORT = #{sort}
+		</if>
+		WHERE EEACID = #{id}
+	</update>
+	<!-- 添加活动 -->
+	<insert id="addActivity" parameterType="java.util.Map">
+		INSERT INTO es_experience_activity (EEACID,ACTIVITY_NAME,MONEY,`ADDTIME`,IS_UP,IS_SORT,PHOTO_URL,VALID_TIME,INTEGRAL,IS_PREFECTURE) VALUES(#{id},#{name},#{money},NOW(),#{number},0,#{url},#{time},#{integral},#{type})
+	</insert>
+	<!-- 通过Id得到某个活动信息 -->
+	<select id="getActivity" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_experience_activity WHERE EEACID=#{id}
+	</select>
+	<!-- 修改活动 -->
+	<update id="modifyActivity" parameterType="java.util.Map">
+		UPDATE
+		  es_experience_activity
+		SET
+		  ACTIVITY_NAME = #{name},
+		  MONEY = #{money},
+		  IS_UP = #{number},
+		  VALID_TIME = #{time},
+		  INTEGRAL = #{integral}
+		  <if test="url!=null and url!=''">
+		  	,PHOTO_URL=#{url}
+		  </if>
+		WHERE EEACID = #{id}
+	</update>
+	<!-- 查询活动的商品 -->
+	<select id="getActivityGoods" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from es_experience_goods where EEACID=#{id} ORDER BY `ADDTIME` DESC 
+	</select>
+	<!-- 查询活动的商品分页 -->
+	<select id="getActivityGoodsPage" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from es_experience_goods where EEACID=#{id} ORDER BY `ADDTIME` DESC LIMIT #{which},#{limit}
+	</select>
+	<!-- 添加活动商品 -->
+	<insert id="addActivityGoods" parameterType="java.util.Map">
+		INSERT INTO es_experience_goods VALUES(#{goodsId},#{aId},#{name},#{number},#{money},NOW(),#{url})
+	</insert>
+	<!-- 通过Id得到某个商品信息 -->
+	<select id="getActivityGoodsById" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_experience_goods WHERE EEGID=#{id}
+	</select>
+	<!-- 修改商品 -->
+	<update id="modifyActivityGoods" parameterType="java.util.Map">
+		UPDATE
+		  es_experience_goods
+		SET
+		  GOODS_NAME = #{name},
+		  PRICE = #{money},
+		  NUMBER = #{number}
+		  <if test="url!=null and url!=''">
+		  	,GOODS_PHOTO=#{url}
+		  </if>
+		WHERE EEGID = #{id}
+	</update>
+	<!-- 删除数据库的商品数据 -->
+	<delete id="deleteGoods" parameterType="java.lang.String">
+		delete from es_experience_goods where EEGID=#{id}
+	</delete>
+	<!-- 查询待审核的激活申请 -->
+	<select id="getVerify" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  au.*,
+		  ac.ACTIVITY_NAME,
+		  ac.MONEY,
+		  ac.VALID_TIME,
+		  ac.INTEGRAL,
+		  eu.`PHONE` AS userPhone,
+		  eu.USERS_ID
+		FROM
+		  es_experience_audit au,
+		  es_experience_activity ac,
+		  es_experience_account acc,
+		  es_users eu
+		WHERE au.STATE = '1'
+		  AND au.EEACID = ac.EEACID
+		  AND au.EEAID=acc.EEAID
+		  AND acc.USERS_ID=eu.`USERS_ID`
+		ORDER BY PAY_TIME ASC
+	</select>
+	<!-- 查询待审核的激活申请分页 -->
+	<select id="getVerifyPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  au.*,
+		  ac.ACTIVITY_NAME,
+		  ac.MONEY,
+		  ac.VALID_TIME,
+		  ac.INTEGRAL,
+		  eu.`PHONE` AS userPhone,
+		  eu.USERS_ID
+		FROM
+		  es_experience_audit au,
+		  es_experience_activity ac,
+		  es_experience_account acc,
+		  es_users eu
+		WHERE au.STATE = '1'
+		  AND au.EEACID = ac.EEACID
+		  AND au.EEAID=acc.EEAID
+		  AND acc.USERS_ID=eu.`USERS_ID`
+		ORDER BY PAY_TIME ASC
+		LIMIT #{which}, #{limit}
+	</select>
+	<!-- 改变审核状态 -->
+	<update id="experienceVerify" parameterType="java.util.Map">
+		update
+		  es_experience_audit
+		set
+		  <if test="verifyState eq 1">
+			  STATE = '2',
+			  PASS_TIME = NOW()
+		  </if>
+		  <if test="verifyState eq 0">
+			  STATE = '3',
+			  CONTENT = #{content}
+		  </if>
+		WHERE EEAUID = #{auId}
+	</update>
+	<!-- 查询体验账户的信息 -->
+	<select id="getAccountById" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_experience_account WHERE EEAID=#{accId}
+	</select>
+	<!-- 查询体验账户零花钱 -->
+	<select id="getAccountPocketMoney" parameterType="java.lang.String" resultType="double">
+		SELECT POCKETMONEY FROM es_experience_account WHERE EEAID=#{accId}
+	</select>
+	<!-- 查询体验账户消费券 -->
+	<select id="getAccountConsumptionVolume" parameterType="java.lang.String" resultType="double">
+		SELECT CONSUMPTION_VOLUME FROM es_experience_account WHERE EEAID=#{accId}
+	</select>
+	<!-- 查询体验账户象币 -->
+	<select id="getAccountIntegral" parameterType="java.lang.String" resultType="double">
+		SELECT INTEGRAL FROM es_experience_account WHERE EEAID=#{accId}
+	</select>
+	<!-- 通过用户Id查询体验账号 -->
+	<select id="getAccountByUserId" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_experience_account WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 为邀请人创建体验账号 -->
+	<insert id="createAccount" parameterType="java.util.Map">
+		INSERT INTO es_experience_account VALUES(#{acId},#{invitationId},0,0,0,NOW(),0.0005,0,0,0)
+	</insert>
+	<!-- 加速 -->
+	<update id="addSpeed" parameterType="java.lang.String">
+		UPDATE es_experience_account SET SPEED=SPEED+0.0005 WHERE EEAID=#{acId}
+	</update>
+	<!-- 体验专区审核表数据 -->
+	<select id="getRecord" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  au.*,
+		  ac.ACTIVITY_NAME,
+		  ac.MONEY,
+		  ac.VALID_TIME,
+		  ac.INTEGRAL,
+		  eu.`PHONE` AS userPhone,
+		  eu.USERS_ID,
+		  ea1.`CITY_NAME` AS PROVINCE,
+		  ea2.`CITY_NAME` AS CITY,
+		  ea3.`CITY_NAME` AS `AREA`,
+		  euc.`STATE` AS certificationState
+		FROM
+		  es_experience_audit au
+		  LEFT OUTER JOIN es_experience_activity ac
+		    ON au.EEACID = ac.EEACID
+		  LEFT OUTER JOIN es_experience_account acc
+		    ON au.EEAID = acc.EEAID
+		  LEFT OUTER JOIN es_users eu
+		    ON acc.USERS_ID = eu.`USERS_ID`
+		  LEFT OUTER JOIN es_user_certification euc
+		    ON eu.`USERS_ID` = euc.`USERS_ID`
+		  LEFT OUTER JOIN es_area ea1
+		    ON euc.`PROVINCE` = ea1.`CITY_CODE`
+		  LEFT OUTER JOIN es_area ea2
+		    ON euc.`CITY` = ea2.`CITY_CODE`
+		  LEFT OUTER JOIN es_area ea3
+		    ON euc.`AREA` = ea3.`CITY_CODE`
+		  <where>
+		  <if test="state!=null and state!=''">
+		  	 AND au.STATE = #{state}
+		  </if>
+		  <if test="type!=null and type!='' and start!=null and start!='' and end!=null and end!=''">
+		  	<if test="type eq 0">
+		  	  AND au.ADDTIME BETWEEN #{start} AND #{end}
+		  	</if>
+		  	<if test="type eq 1">
+		  	  AND au.ORDER_TIME BETWEEN #{start} AND #{end}
+		  	</if>
+		  	<if test="type eq 2">
+		  	  AND au.PAY_TIME BETWEEN #{start} AND #{end}
+		  	</if>
+		  	<if test="type eq 3">
+		  	  AND au.PASS_TIME BETWEEN #{start} AND #{end}
+		  	</if>
+		  </if>
+		  <if test="isVerify!=null and isVerify!=''">
+			<if test="isVerify eq 1">
+				and euc.STATE='USER_AUTHENTICATION_PASS'
+			</if>
+			<if test="isVerify eq 0">
+				and euc.STATE!='USER_AUTHENTICATION_PASS'
+			</if>
+		  </if>
+		  <if test="province!=null and province!=0">
+		  	AND euc.`PROVINCE`=#{province}
+		  </if>
+		  <if test="city!=null and city!=0">
+		  	AND euc.`CITY`=#{city}
+		  </if>
+		  <if test="area!=null and area!=0">
+		 	AND euc.`AREA`=#{area}
+		  </if>
+		  <if test="activity!=null and activity!=''">
+		 	AND au.`EEACID`=#{activity}
+		  </if>
+		  <if test="activityType!=null and activityType!=''">
+		  	AND au.`REMARK`=#{activityType}
+		  </if>
+		  </where>
+		ORDER BY au.`ADDTIME` DESC
+	</select>
+	<!-- 体验专区审核表数据分页 -->
+	<select id="getRecordPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  au.*,
+		  ac.ACTIVITY_NAME,
+		  ac.MONEY,
+		  ac.VALID_TIME,
+		  ac.INTEGRAL,
+		  eu.`PHONE` AS userPhone,
+		  eu.USERS_ID,
+		  ea1.`CITY_NAME` AS PROVINCE,
+		  ea2.`CITY_NAME` AS CITY,
+		  ea3.`CITY_NAME` AS `AREA`,
+		  euc.`STATE` AS certificationState
+		FROM
+		  es_experience_audit au
+		  LEFT OUTER JOIN es_experience_activity ac
+		    ON au.EEACID = ac.EEACID
+		  LEFT OUTER JOIN es_experience_account acc
+		    ON au.EEAID = acc.EEAID
+		  LEFT OUTER JOIN es_users eu
+		    ON acc.USERS_ID = eu.`USERS_ID`
+		  LEFT OUTER JOIN es_user_certification euc
+		    ON eu.`USERS_ID` = euc.`USERS_ID`
+		  LEFT OUTER JOIN es_area ea1
+		    ON euc.`PROVINCE` = ea1.`CITY_CODE`
+		  LEFT OUTER JOIN es_area ea2
+		    ON euc.`CITY` = ea2.`CITY_CODE`
+		  LEFT OUTER JOIN es_area ea3
+		    ON euc.`AREA` = ea3.`CITY_CODE`
+		  <where>
+		  <if test="state!=null and state!=''">
+		  	AND au.STATE = #{state}
+		  </if>
+		  <if test="type!=null and type!='' and start!=null and start!='' and end!=null and end!=''">
+		  	<if test="type eq 0">
+		  	  AND au.ADDTIME BETWEEN #{start} AND #{end}
+		  	</if>
+		  	<if test="type eq 1">
+		  	  AND au.ORDER_TIME BETWEEN #{start} AND #{end}
+		  	</if>
+		  	<if test="type eq 2">
+		  	  AND au.PAY_TIME BETWEEN #{start} AND #{end}
+		  	</if>
+		  	<if test="type eq 3">
+		  	  AND au.PASS_TIME BETWEEN #{start} AND #{end}
+		  	</if>
+		  </if>
+		  <if test="isVerify!=null and isVerify!=''">
+			<if test="isVerify eq 1">
+				and euc.STATE='USER_AUTHENTICATION_PASS'
+			</if>
+			<if test="isVerify eq 0">
+				and euc.STATE!='USER_AUTHENTICATION_PASS'
+			</if>
+		  </if>
+		  <if test="province!=null and province!=0">
+		  	AND euc.`PROVINCE`=#{province}
+		  </if>
+		  <if test="city!=null and city!=0">
+		  	AND euc.`CITY`=#{city}
+		  </if>
+		  <if test="area!=null and area!=0">
+		 	AND euc.`AREA`=#{area}
+		  </if>
+		  <if test="activity!=null and activity!=''">
+		 	AND au.`EEACID`=#{activity}
+		  </if>
+		  <if test="activityType!=null and activityType!=''">
+		  	AND au.`REMARK`=#{activityType}
+		  </if>
+		  </where>
+		ORDER BY au.`ADDTIME` DESC
+		LIMIT #{which}, #{limit}
+	</select>
+	<!-- 查出体验专区所有已领取未购买的礼包 -->
+	<select id="getNoActivateActivity" resultType="java.util.Map">
+		select
+		  au.*,
+		  ac.`VALID_TIME`,
+		  acc.`CONSUMPTION_VOLUME`,
+		  acc.`INTEGRAL`,
+		  acc.`POCKETMONEY`,
+		  acc.`SPEED`,
+		  eu.`USERS_ID`,
+		  eu.`PHONE` AS userPhone,
+		  eu.PUSH_ID
+		from
+		  es_experience_audit au,
+		  es_experience_activity ac,
+		  es_experience_account acc,
+		  es_users eu
+		where au.STATE = '0'
+		  and au.REMARK= '1'
+		  and au.`EEACID` = ac.`EEACID`
+		  and au.`EEAID`=acc.`EEAID`
+		  and acc.`USERS_ID`=eu.`USERS_ID`
+	</select>
+	<!-- 查出体验专区所有已领取未购买和待审核的礼包 -->
+	<select id="getNoActivateActivity2" resultType="java.util.Map">
+		select
+		  au.*,
+		  ac.`VALID_TIME`,
+		  acc.`CONSUMPTION_VOLUME`,
+		  acc.`INTEGRAL`,
+		  acc.`POCKETMONEY`,
+		  acc.`SPEED`,
+		  eu.`USERS_ID`,
+		  eu.`PHONE` AS userPhone,
+		  eu.PUSH_ID
+		from
+		  es_experience_audit au,
+		  es_experience_activity ac,
+		  es_experience_account acc,
+		  es_users eu
+		where (au.STATE = '0' OR au.STATE = '1')
+		  and au.REMARK= '1'
+		  and au.`EEACID` = ac.`EEACID`
+		  and au.`EEAID`=acc.`EEAID`
+		  and acc.`USERS_ID`=eu.`USERS_ID`
+	</select>
+	<!-- 将礼包状态改为已过期 -->
+	<update id="setActivityOverdue" parameterType="java.lang.String">
+		UPDATE es_experience_audit SET STATE='4' WHERE EEAUID=#{auId}
+	</update>
+	<!-- 获得体验账号某一天的签到数据 -->
+	<select id="getSign" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM es_experience_sign WHERE EEAID=#{accId} AND SIGN_TIME LIKE CONCAT('%',#{day},'%') AND IS_PREFECTURE=1
+	</select>
+	<!-- 添加签到数据 -->
+	<insert id="addSign" parameterType="java.util.Map">
+		INSERT INTO es_experience_sign VALUES(#{signId},#{accId},#{pocketMoney},#{consumption},#{integral},NOW(),1)
+	</insert>
+	<!-- 改变体验账户的积分零花钱消费券 -->
+	<update id="accountSign" parameterType="java.util.Map">
+		UPDATE es_experience_account SET INTEGRAL=INTEGRAL-#{integral},POCKETMONEY=POCKETMONEY+#{pocketMoney},CONSUMPTION_VOLUME=CONSUMPTION_VOLUME+#{consumption} WHERE EEAID=#{accId}
+	</update>
+	<!-- 得到用户电话 -->
+	<select id="getUserPhone" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT PHONE FROM es_users WHERE  USERS_ID=#{userId}
+	</select>
+	<!-- 清除体验账号积分，零花钱，消费券 -->
+	<select id="clearAccountMoney" parameterType="java.lang.String">
+		UPDATE es_experience_account SET INTEGRAL=0,POCKETMONEY=0,CONSUMPTION_VOLUME=0 WHERE EEAID=#{accId}
+	</select>
+	<!-- 清除体验账号的签到记录 -->
+	<delete id="clearAccountSign" parameterType="java.util.Map">
+		DELETE FROM es_experience_sign WHERE EEAID=#{accId} AND IS_PREFECTURE=#{type}
+	</delete>
+	<!-- 清除象币明细 -->
+	<delete id="clearElephantDetail" parameterType="java.util.Map">
+		DELETE FROM es_elephant WHERE USERID=#{userId} AND ETYPE=#{type}
+	</delete>
+	<!-- 得到体验账号的礼包审核记录 -->
+	<select id="getAudits" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_experience_audit WHERE EEAID=#{accId}
+	</select>
+	<!-- 礼包积分加到体验账户 -->
+	<update id="addExperienceIntegral" parameterType="java.util.Map">
+		UPDATE es_experience_account SET INTEGRAL=INTEGRAL+#{integral} WHERE EEAID=#{accId}
+	</update>
+	<!-- 得到体验账号的礼包审核通过记录 -->
+	<select id="getActivateAudits" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_experience_audit WHERE STATE='2' AND EEAID=#{accId}
+	</select>
+	<!-- 改变礼包数量 -->
+	<update id="changeActivityNumber" parameterType="java.util.Map">
+		UPDATE es_experience_activity SET IS_UP=#{number} WHERE EEACID=#{id}
+	</update>
+	<!-- 增加象币明细 -->
+	<insert id="addElephantDetail" parameterType="java.util.Map">
+		INSERT INTO es_elephant VALUES(#{id},#{type},NOW(),#{value},#{userId},#{operation});
+	</insert>
+	<!-- 购买专区增加积分零花钱和消费券 -->
+	<update id="addBuyMoney" parameterType="java.util.Map">
+		UPDATE es_experience_account SET BUY_INTEGRAL=BUY_INTEGRAL+#{integral},BUY_POCKETMONEY=BUY_POCKETMONEY+#{pocketMoney},BUY_CONSUMPTION_VOLUME=BUY_CONSUMPTION_VOLUME+#{consumption} WHERE EEAID=#{accId}
+	</update>
+	<!-- 添加上线设置 -->
+	<insert id="addSetTime" parameterType="java.util.Map">
+		INSERT INTO es_settime
+		VALUES
+		  (
+		    #{sId},
+		    #{acId},
+		    #{time},
+		    <if test="fixed!=''">
+		    	#{fixed},
+		    </if>
+		    <if test="fixed==''">
+		    	NULL,
+		    </if>
+		    <if test="changed!=''">
+		    	#{changed},
+		    </if>
+		    <if test="changed==''">
+		    	NULL,
+		    </if>
+		    0
+		  )
+	</insert>
+	<!-- 修改礼包数量定时器 -->
+	<update id="updateSetTime" parameterType="java.util.Map">
+		UPDATE
+		  es_settime
+		SET
+		  <if test="fixed!=''">
+			  `FIXED` = #{fixed},
+			  `CHANGED` = NULL,
+		  </if>
+		  <if test="changed!=''">
+		  	  `FIXED` = NULL,
+			  `CHANGED` = #{changed},
+		  </if>
+		  `TIME` = #{time}
+		WHERE ID = #{id}
+	</update>
+	<!-- 删除上线设置 -->
+	<delete id="deleteSetTime" parameterType="java.lang.String">
+		DELETE FROM es_settime WHERE ID=#{id}
+	</delete>
+	<!-- 获取用户已经加速的礼包数量 -->
+	<select id="isSpeed" parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(EEAUID) FROM es_experience_audit WHERE STATE='2' AND IS_SPEED=1 AND EEAID=#{accId}
+	</select>
+	<select id="getSumPrice" parameterType="java.lang.String" resultType="java.lang.Double">
+		SELECT SUM(ac.MONEY) FROM es_experience_audit au,es_experience_activity ac WHERE au.EEACID=ac.EEACID AND au.STATE='2' AND (IS_SPEED=0 OR IS_SPEED IS NULL) AND EEAID=#{accId}
+	</select>
+	<!-- 修改此礼包IS_SPEED为1 -->
+	<update id="changeActivityIsSpeed" parameterType="java.lang.String">
+		UPDATE es_experience_audit SET IS_SPEED=1 WHERE EEAUID=#{auId}
+	</update>
+	<!-- 向短信记录表存短信记录 -->
+	<insert id="addMsgRecord" parameterType="java.util.Map">
+		INSERT INTO es_msg VALUES(#{id},#{phone},#{content},NOW())
+	</insert>
+	<!-- 未分页的定时器数据 -->
+	<select id="getSetTimes" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  es.*,
+		  ac.`EEACID`,
+		  ac.`ACTIVITY_NAME`
+		FROM
+		  es_settime es,
+		  es_experience_activity ac
+		WHERE es.RELATIONID = #{acId}
+		AND es.`RELATIONID`=ac.`EEACID`
+		ORDER BY `TIME` ASC
+	</select>
+	<!-- 分页的定时器数据 -->
+	<select id="getSetTimesPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  es.*,
+		  ac.`EEACID`,
+		  ac.`ACTIVITY_NAME`
+		FROM
+		  es_settime es,
+		  es_experience_activity ac
+		WHERE es.RELATIONID = #{acId}
+		AND es.`RELATIONID`=ac.`EEACID`
+		ORDER BY `TIME` ASC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 得到礼包的上线设置数据 -->
+	<select id="getSetTime" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_settime WHERE ID=#{id}
+	</select>
+	<!-- 停止定时器 -->
+	<update id="stopSetTime" parameterType="java.lang.String">
+		UPDATE
+		  es_settime
+		SET
+		  `STOP`=1
+		WHERE ID = #{id}
+	</update>
+	<!-- 对礼包数量进行增减 -->
+	<update id="addActivityNumber" parameterType="java.util.Map">
+		UPDATE es_experience_activity SET IS_UP=IS_UP+#{changed} WHERE EEACID=#{acId}
+	</update>
+	<!-- 得到礼包的数量 -->
+	<select id="getActivityNumber" parameterType="java.lang.String" resultType="int">
+		SELECT IS_UP FROM es_experience_activity WHERE EEACID=#{acId}
+	</select>
+	<!-- 得到所有的定时任务 -->
+	<select id="getAllSetTimes" resultType="java.util.Map">
+		SELECT * FROM es_settime
+	</select>
+	<!-- 查询此Id审核记录,判断是否重复审核 -->
+	<select id="getAuditById" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_experience_audit WHERE EEAUID=#{auId}
+	</select>
+</mapper>

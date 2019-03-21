@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>版本管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<div class="layui-form layui-form-pane" id="addVersion" style="display: none;margin-left:40px;margin-top:20px;margin-right:40px">
+	<div class="layui-form-item">
+		<label class="layui-form-label" style="width:140px">android版本编号</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" id="androidNumber" autocomplete="off"/>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label" style="width:140px">android版本编码</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" id="androidCode" autocomplete="off"/>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label" style="width:140px">下载地址</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" id="url" autocomplete="off"/>
+		</div>
+	</div>
+	<div class="layui-form-item layui-form-text">
+		<label class="layui-form-label">版本描述</label>
+		<div class="layui-input-block">
+			<textarea id="describes" class="layui-textarea" maxlength="2000"></textarea>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label" style="width:140px">是否强制更新</label>
+		<div class="layui-input-inline">
+			<select id="update">
+				<option value="">请选择</option>
+				<option value="1">是</option>
+				<option value="0">否</option>
+			</select>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label" style="width:140px">ios版本编号</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" id="iosNumber" autocomplete="off"/>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label" style="width:140px">ios版本编码</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" id="iosCode" autocomplete="off"/>
+		</div>
+	</div>
+</div>
+<body>
+	<div style="padding-bottom: 10px; border-bottom: 2px solid #5FB878;margin-bottom:10px">
+		<h2>
+			<a href="javascript:void(0)" onclick="location.reload()">版本管理</a>
+		</h2>
+	</div>
+	<button class="layui-btn" data-type="add">添加</button>
+
+	<table id="versionList" lay-filter="operation"></table>
+
+	<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+layui.use(['table','jquery','form'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#versionList'
+		,url: '/version/getVersionList'
+		,page: true
+		,cols:[[
+			{fixed: 'left',title:'编号',toolbar: '#number'}
+			,{field:'ANDROID_SERIAL_NUMBER',title:'android-版本编号',edit:'modifyAndroidNumber'}
+			,{field:'ANDROID_CODE',title:'android-版本编码',edit:'modifyAndroidCode'}
+			,{field:'URL',title:'下载地址',edit:'modifyUrl',width:260}
+			,{field:'ADDTIME',title:'添加时间'}
+			,{field:'VERSION_DESCRIBED',title:'版本描述',edit:'modifyDescribes'}
+			,{field:'IS_UPDATE',title:'是否强制更新(1是/0否)',edit:'modifyUpdate'}
+			,{field:'IOS_SERIAL_NUMBER',title:'ios-版本编号',edit:'modifyIosNumber'}
+			,{field:'IOS_CODE',title:'ios-版本编码',edit:'modifyIosCode'}
+		]]
+	});
+	<!-- 监听添加按钮 -->
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索时执行重载-->
+	var $ = layui.$, active = {
+		<!-- 添加版本-->
+		add:function(){
+			var index = layer.open({
+				type:1,
+				content:$('#addVersion'),
+				title:['添加版本',''],
+				area:['420px','600px'],
+				shade: 0,
+		        maxmin: true,
+			    btnAlign: 'c',
+				btn:['确定','取消']
+				,yes: function(index, layero){
+					var androidNumber = $("#androidNumber").val();
+					var androidCode = $("#androidCode").val();
+					var url = $("#url").val();
+					var describes = $("#describes").val();
+					var update = $("#update").val();
+					var iosNumber = $("#iosNumber").val();
+					var iosCode = $("#iosCode").val();
+					if(androidNumber==""){
+						layer.msg("请填写android版本编号");
+					}else if(androidCode==""){
+						layer.msg("请填写android版本编码");
+					}else if(isNaN(androidCode)){
+						layer.msg("android版本编码为数字");
+					}else if(url==""){
+						layer.msg("请填写下载地址");
+					}else if(describes==""){
+						layer.msg("请填写版本描述");
+					}else if(update==""){
+						layer.msg("请选择是否强制更新");
+					}else if(iosNumber==""){
+						layer.msg("请填写ios版本编号");
+					}else if(iosCode==""){
+						layer.msg("请填写ios版本编码");
+					}else if(isNaN(iosCode)){
+						layer.msg("ios版本编码为数字");
+					}else{
+						$.ajax({   
+							type : "POST",
+							async:false,
+							url : "/version/addVersion",   
+							data : {   
+								androidNumber:androidNumber,androidCode:androidCode,
+								url:url,describes:describes,update:update,iosNumber:iosNumber,
+								iosCode:iosCode
+							},  
+							success : function(da) {  
+							}   
+						});
+						layer.close(index);
+						table.reload('versionList', {
+						});
+					}
+				}
+			});
+		}
+	};
+	<!-- 监听单元格修改 -->
+	table.on('edit(operation)',function(obj){
+		var value = obj.value //得到修改后的值
+	    ,data = obj.data //得到所在行所有键值
+	    ,field = obj.field; //得到字段
+	   if(field=="ANDROID_SERIAL_NUMBER"){
+		   if(value==""){
+			   layer.msg("不能为空值");
+			   table.reload('versionList', {
+			   });
+		   }else{
+			   layer.confirm('确定修改?', {icon: 3, title:'提示'}, function(index){
+				   $.ajax({   
+						type : "POST",
+						async:false,
+						url : "/version/modify",   
+						data : {   
+							versionId:data.EVMID,androidNumber:value
+						},  
+						success : function(da) {  
+						}   
+					});
+					layer.close(index);
+				},function(){
+					table.reload('versionList', {
+					   });
+				});
+		   }
+	   }else if(field=="ANDROID_CODE"){
+		   if(value==""){
+			   layer.msg("不能为空值");
+			   table.reload('versionList', {
+			   });
+		   }else if(isNaN(value)){
+			   layer.msg("请输入数字");
+			   table.reload('versionList', {
+			   });
+		   }else{
+			   layer.confirm('确定修改?', {icon: 3, title:'提示'}, function(index){
+				   $.ajax({   
+						type : "POST",
+						async:false,
+						url : "/version/modify",   
+						data : {   
+							versionId:data.EVMID,androidCode:value
+						},  
+						success : function(da) {  
+						}   
+					});
+					layer.close(index);
+				},function(){
+					table.reload('versionList', {
+					   });
+				});
+		   }
+	   }else if(field=="URL"){
+		   if(value==""){
+			   layer.msg("不能为空值");
+			   table.reload('versionList', {
+			   });
+		   }else{
+			   layer.confirm('确定修改?', {icon: 3, title:'提示'}, function(index){
+				   $.ajax({   
+						type : "POST",
+						async:false,
+						url : "/version/modify",   
+						data : {   
+							versionId:data.EVMID,url:value
+						},  
+						success : function(da) {  
+						}   
+					});
+					layer.close(index);
+				},function(){
+					table.reload('versionList', {
+					   });
+				});
+		   }
+	   }else if(field=="VERSION_DESCRIBED"){
+		   if(value==""){
+			   layer.msg("不能为空值");
+			   table.reload('versionList', {
+			   });
+		   }else{
+			   layer.confirm('确定修改?', {icon: 3, title:'提示'}, function(index){
+				   $.ajax({   
+						type : "POST",
+						async:false,
+						url : "/version/modify",   
+						data : {   
+							versionId:data.EVMID,describes:value
+						},  
+						success : function(da) {  
+						}   
+					});
+					layer.close(index);
+				},function(){
+					table.reload('versionList', {
+					   });
+				});
+		   }
+	   }else if(field=="IS_UPDATE"){
+		   if(value==""){
+			   layer.msg("不能为空值");
+			   table.reload('versionList', {
+			   });
+		   }else if(value!="1"&&value!="0"){
+			   layer.msg("请输入0或1");
+			   table.reload('versionList', {
+			   });
+		   }else{
+			   layer.confirm('确定修改?', {icon: 3, title:'提示'}, function(index){
+				   $.ajax({   
+						type : "POST",
+						async:false,
+						url : "/version/modify",   
+						data : {   
+							versionId:data.EVMID,update:value
+						},  
+						success : function(da) {  
+						}   
+					});
+					layer.close(index);
+				},function(){
+					table.reload('versionList', {
+					   });
+				});
+		   }
+	   }else if(field=="IOS_SERIAL_NUMBER"){
+		   if(value==""){
+			   layer.msg("不能为空值");
+			   table.reload('versionList', {
+			   });
+		   }else{
+			   layer.confirm('确定修改?', {icon: 3, title:'提示'}, function(index){
+				   $.ajax({   
+						type : "POST",
+						async:false,
+						url : "/version/modify",   
+						data : {   
+							versionId:data.EVMID,iosNumber:value
+						},  
+						success : function(da) {  
+						}   
+					});
+					layer.close(index);
+				},function(){
+					table.reload('versionList', {
+					   });
+				});
+		   }
+	   }else if(field=="IOS_CODE"){
+		   if(value==""){
+			   layer.msg("不能为空值");
+			   table.reload('versionList', {
+			   });
+		   }else if(isNaN(value)){
+			   layer.msg("请输入数字");
+			   table.reload('versionList', {
+			   });
+		   }else{
+			   layer.confirm('确定修改?', {icon: 3, title:'提示'}, function(index){
+				   $.ajax({   
+						type : "POST",
+						async:false,
+						url : "/version/modify",   
+						data : {   
+							versionId:data.EVMID,iosCode:value
+						},  
+						success : function(da) {  
+						}   
+					});
+					layer.close(index);
+				},function(){
+					table.reload('versionList', {
+					   });
+				});
+		   }
+	   }
+	});
+});
+/*]]>*/
+</script>
+<script id="number" type="text/html">
+	{{d.LAY_INDEX}}
+</script>
+</body>
+</html>

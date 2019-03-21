@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>商品详情</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<style type="text/css">
+.biaotou {
+	font-size: xx-small;
+}
+
+.attributeName {
+	width: 280px;
+}
+
+.attributeValue {
+	float: left;
+	margin-right: 20px;
+}
+
+.imgbox {
+	width: 500px;
+	height: 610px;
+}
+</style>
+</head>
+<body onload="showHtml();">
+	<!-- 商品详情 -->
+	<div class="layui-tab layui-tab-card"
+		style="width: 80%; height: 32px; margin: 0 auto;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label><a
+				th:href="@{/goodsManage/toGoodsManageHtml/(storeId=${storeId})}">商品管理</a><i
+				class="layui-icon" style="font-size: 14px;">&#xe65b;</i> 商品详情</label>
+		</div>
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			<a id="updateXsGoods" class="layui-btn layui-btn-xs"
+				th:href="@{/goodsManage/toUpdategoodsHtml(storeId=${storeId},goodsId=${goodsInfo.goods.GOODSID})}">编辑</a>
+		</div>
+	</div>
+	<!-- 商品详情页面 -->
+	<div style="width: 80%; margin: 0 auto;">
+		<table class="layui-table">
+			<tr>
+				<td class="attributeName"><strong>商品状态:</strong></td>
+				<td><span
+					th:if="${goodsInfo.goods.GOODS_STATE} eq 'GOODS_STATE_DOWN'">已下架</span>
+					<span th:if="${goodsInfo.goods.GOODS_STATE} eq 'GOODS_STATE_DSH'">待审核</span>
+					<span th:if="${goodsInfo.goods.GOODS_STATE} eq 'GOODS_STATE_PASS'">审核通过</span>
+					<span th:if="${goodsInfo.goods.GOODS_STATE} eq 'GOODS_STATE_FAIL'">审核失败</span>
+					<span th:if="${goodsInfo.goods.GOODS_STATE} eq 'GOODS_STATE_UP'">已上架</span>
+					<span
+					th:if="${goodsInfo.goods.GOODS_STATE} eq 'GOODS_STATE_QZ_DOWN'">强制下架</span>
+				</td>
+			</tr>
+			<tr>
+				<td class="attributeName"><strong>商品名称:</strong></td>
+				<td><span th:text="${goodsInfo.goods.GOODS_NAME}"></span></td>
+			</tr>
+			<tr>
+				<td class="attributeName"><strong>商品类别:</strong></td>
+				<td><span th:text="${goodsInfo.classification}"></span></td>
+			</tr>
+			<tr>
+				<td class="attributeName"><strong>商品单价:</strong></td>
+				<td><span th:text="${goodsInfo.goods.PRESENT_PRICE}"></span></td>
+			</tr>
+			<tr>
+				<td class="attributeName"><strong>商品库存:</strong></td>
+				<td><span th:text="${goodsInfo.goods.INVENTORY}"></span></td>
+			</tr>
+		</table>
+	</div>
+	<!-- 商品属性 -->
+	<div style="margin: 0 auto; width: 80%; border-top: solid 1px black;">
+		<div class="attributeBox"
+			th:each="attribute:${goodsInfo.goodsAttribute}">
+			<table class="layui-table">
+				<tr>
+					<td class="attributeName"><strong>属性名:</strong></td>
+					<td><strong><span
+							th:text="${attribute.ATTRIBUTE_NAME}"></span></strong></td>
+				</tr>
+				<tr>
+					<td><strong>属性值:</strong></td>
+					<td><div class="attributeValue"
+							th:each="attrValue:${attribute.attributeValues}"
+							th:text="${attrValue.ATTRIBUTE_VALUE}"></div></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<!-- 商品主图 -->
+	<div
+		style="margin: 0 auto; border-top: solid 1px black; width: 80%; height: 650px">
+		<table>
+			<tr>
+				<td class="attributeName"><strong>商品主图:</strong></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td class="imgbox"><img id="showbigimg"
+					th:src="@{${goodsInfo.goods.GOODS_ICON}}"
+					style="width: 500px; height: 500px; border: solid 1px #B1B6BC;" />
+					<div id="smallgoodsimgbox"
+						style="max-width: 498px; height: 110px; margin-top: 4px; border: solid 1px #B1B6BC; overflow-x: scroll; overflow-y: hidden; white-space: nowrap;">
+						<img th:each="goodsImg:${goodsInfo.goodsImg}"
+							th:src="@{${goodsImg.PHOTO_URL}}"
+							style="width: 90px; height: 90px; margin: 5px 3px;"
+							onclick="showImg(this);" />
+					</div></td>
+			</tr>
+		</table>
+	</div>
+	<!-- 商品详情 -->
+	<div style="margin: 0 auto; border-top: solid 1px black; width: 80%;">
+		<table>
+			<tr>
+				<td class="attributeName"><strong>商品详情:</strong></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td></td>
+				<td><input id="xiangqinghtml" type="hidden"
+					th:value="${goodsInfo.goods.DETAILS}" /> <span
+					id="xiangqinghtmlshow"></span></td>
+			</tr>
+		</table>
+	</div>
+	<script th:src="@{/js/jquery-1.4.4.min.js}"></script>
+	<script type="text/javascript">
+		function showImg(t) {
+			document.getElementById("showbigimg").src = t.src;
+		}
+		function showHtml() {
+			var htmltex = document.getElementById("xiangqinghtml").value;
+			document.getElementById("xiangqinghtmlshow").innerHTML = htmltex;
+		}
+		$(function() {
+			$.post("/permissions/queryPermissions", {
+				permissioinCode : "updateXsGoods"
+			}, function(d) {
+				if (d) {
+					$("#updateXsGoods").show();
+				} else {
+					$("#updateXsGoods").hide();
+				}
+			});
+		});
+	</script>
+</body>
+</html>

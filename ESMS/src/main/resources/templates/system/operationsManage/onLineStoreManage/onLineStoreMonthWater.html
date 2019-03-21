@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>线上店铺月流水</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<input type="hidden" id="storeId" th:value="${storeId}"/>
+	<!-- 页面头部 -->
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<div class="layui-fluid">
+			<div class="layui-row">
+				<div class="layui-col-lg4">
+					<h2><a href="javascript:history.back(-1)">线上店铺管理</a>><a href="javascript:void(0)" onclick="location.reload()">线上店铺月流水</a></h2>
+				</div>
+				<div class="layui-col-lg8">
+					<button id="export" class="layui-btn layui-btn-radius" style="float:right" data-type="exports">导出流水</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<table id="monthWater" lay-filter="operation"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+layui.use(['table','jquery','form','laydate'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	var laydate = layui.laydate;
+	
+	var storeId = $("#storeId").val();
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#monthWater'
+		,url: '/onLineStore/getOnLineStoreMonthWater'
+		,page: true
+		,cols:[[
+			{type:'checkbox'}
+			,{field:'time',title:'年、月'}
+			,{field:'STORE_NAME',title:'店铺名称'}
+			,{field:'STORE_TYPE',title:'店铺类型'}
+			,{field:'LEVELS',title:'店铺等级'}
+			,{field:'storeUser',title:'店主信息',width:200}
+			,{field:'area',title:'所在区域',width:200}
+			,{field:'IS',title:'是否自营',templet:'#is'}
+			,{field:'zz',title:'站长信息',width:200}
+			,{field:'MONEY',title:'店铺流水'}
+			,{field:'COMMISSION',title:'佣金'}
+			,{fixed: 'right',align:'center', toolbar: '#toolbar',title:'操作'}
+		]]
+		,where: {
+			storeId:storeId
+		}
+	});
+	<!-- 监听导出流水按钮 -->
+	$('#export').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	var $ = layui.$, active = {
+		//点击导出流水按钮
+		exports: function(){
+			var checkStatus = table.checkStatus('monthWater'), data = checkStatus.data;
+			var len = data.length;
+			if (len > 0) {
+				var monthArray = new Array(len);
+				var storeId = "";
+				for(var i=0;monthArray.length>i;i++)
+				{
+					monthArray[i]=data[i].time;
+					storeId = data[i].STORE_ID;
+				}
+				window.location.href="/onLineStore/exportMonthWater?monthArray="+monthArray+"&storeId="+storeId;
+			} else {
+				layer.msg("请勾选您需要导出的数据");
+			}
+		}
+	};
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'checkWater'){
+			window.location.href="/onLineStore/toDayWater?storeId="+data.STORE_ID+"&month="+data.time;
+		}
+	});
+});
+/*]]>*/
+</script>
+<script type="text/html" id="toolbar">
+	<a class="layui-btn layui-btn-xs" lay-event="checkWater">查看日流水</a>
+</script>
+<!-- 是否自营 -->
+<script type="text/html" id="is">
+	{{# if(d.IS=='1'){ }}
+		自营
+	{{# }else if(d.IS=='0'){ }}
+		非自营
+	{{# } }}
+</script>
+</body>
+</html>

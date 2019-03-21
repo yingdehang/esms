@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.webmaster.WebmasterDao">
+	<!-- 查询站长信息 -->
+	<select id="getWebmasterInfo" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM es_users WHERE USERS_ID=#{userId} AND
+		IS_ZZ='1'
+	</select>
+
+	<!-- 查询该地区用户总数 -->
+	<select id="getuserCount" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM `es_users` eu LEFT JOIN
+		`es_user_certification` euc ON eu.`USERS_ID`=euc.`USERS_ID` WHERE
+		euc.`STATE`='USER_AUTHENTICATION_PASS' AND
+		euc.`AREA`=#{areaId}
+	</select>
+
+	<!-- 查询该地区线上店铺数 -->
+	<select id="getXsStoreCount" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		`es_store` AS store
+		LEFT JOIN
+		`es_store_certification` AS esc
+		ON store.`STORE_ID` = esc.`STORE_ID`
+		LEFT JOIN `es_user_certification` euc ON
+		store.`USERS_ID`=euc.`USERS_ID`
+		WHERE esc.`TYPES`='STORE_XS_XS'
+		AND
+		esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS'
+		AND euc.`AREA`=#{areaId}
+	</select>
+
+	<!-- 查询该地区线下店铺数 -->
+	<select id="getXxStoreCount" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		`es_store` AS store
+		LEFT JOIN
+		`es_store_certification` AS esc
+		ON store.`STORE_ID` = esc.`STORE_ID`
+		WHERE esc.`TYPES`='STORE_XS_XX'
+		AND
+		esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS'
+		AND esc.`AREA` = #{areaId}
+	</select>
+
+	<!-- 七天新增用户数 -->
+	<select id="getnewUserCount" parameterType="java.util.Map"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM `es_users` eu LEFT JOIN
+		`es_user_certification` euc ON
+		eu.`USERS_ID`=euc.`USERS_ID` WHERE
+		euc.`STATE`='USER_AUTHENTICATION_PASS' AND
+		euc.`AREA`=#{areaId}
+		AND
+		eu.`REGISTERED_TIME` BETWEEN #{startTime} AND #{endTime}
+	</select>
+
+	<!-- 七天新增线上店铺数 -->
+	<select id="getnewXsStoreCount" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		`es_store` AS store
+		LEFT JOIN
+		`es_store_certification` AS esc
+		ON store.`STORE_ID` = esc.`STORE_ID`
+		LEFT JOIN `es_user_certification` euc ON
+		store.`USERS_ID`=euc.`USERS_ID`
+		WHERE esc.`TYPES`='STORE_XS_XS'
+		AND
+		esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS'
+		AND euc.`AREA`=#{areaId}
+		AND
+		store.`OPEN_SHOP_TIME`
+		BETWEEN
+		#{startTime} AND
+		#{endTime}
+	</select>
+
+	<!-- 新增线下店铺数 -->
+	<select id="getnewXxStoreCount" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		`es_store` AS store
+		LEFT JOIN
+		`es_store_certification` AS esc
+		ON store.`STORE_ID` = esc.`STORE_ID`
+		WHERE esc.`TYPES`='STORE_XS_XX'
+		AND
+		esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS'
+		AND esc.`AREA` = #{areaId}
+		AND
+		store.`OPEN_SHOP_TIME` BETWEEN
+		#{startTime} AND #{endTime}
+	</select>
+
+	<!-- 查询区域名称 -->
+	<select id="queryAreaName" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM `es_area` WHERE CITY_CODE=#{areaId}
+	</select>
+
+	<!-- 查询站长总收益 -->
+	<select id="queryTotalRevenue" parameterType="java.util.Map"
+		resultType="java.lang.Double">
+		SELECT SUM(EMONY) FROM `es_zz_payments` WHERE ETYPE='1' AND
+		USERS_ID=#{userId}
+		<if test="startTime!=null and endTime!=null">
+			AND ETIME BETWEEN #{startTime} AND #{endTime}
+		</if>
+	</select>
+
+	<!-- 查询上月收益 -->
+	<select id="queryLastmonthEarnings"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT SUM(EMONY) FROM
+		`es_zz_payments` WHERE ETYPE='1' AND
+		USERS_ID=#{userId} AND ETIME
+		BETWEEN #{startTime} AND #{endTime}
+	</select>
+
+	<!-- 查询地区Id -->
+	<select id="getAreaId" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT AREAID FROM `es_users` WHERE USERS_ID=#{userId}
+	</select>
+
+	<!-- 查询店铺收益 -->
+	<select id="queryToreEvenue" parameterType="java.util.Map"
+		resultType="java.lang.Double">
+		SELECT
+		SUM(esw.MONEY)
+		FROM
+		`es_store_water` AS esw
+		LEFT
+		JOIN
+		`es_store_certification` esc
+		ON esw.`STORE_ID` = esc.`STORE_ID`
+		LEFT
+		JOIN `es_store` store ON store.`STORE_ID`=esw.`STORE_ID`
+		LEFT JOIN
+		`es_user_certification` euc ON euc.`USERS_ID`=store.`USERS_ID`
+		WHERE
+		esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS'
+		AND
+		esc.`TYPES`=#{types}
+		<if test="types=='STORE_XS_XX'">
+			AND esc.`AREA`=#{areaId}
+		</if>
+		<if test="types=='STORE_XS_XS'">
+			AND euc.`AREA`=#{areaId}
+		</if>
+		AND esw.ETYPE='1'
+		AND
+		esw.ETIME BETWEEN
+		#{startTime} AND #{endTime}
+	</select>
+
+	<!-- 查询店铺等级分布个数 -->
+	<select id="getShopGradeDistributionData"
+		parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT
+		COUNT(DISTINCT store.`STORE_ID`)
+		FROM
+		`es_store` AS store
+		LEFT JOIN
+		`es_store_certification` AS esc
+		ON store.`STORE_ID` = esc.`STORE_ID`
+		LEFT JOIN `es_store_water` AS esw ON esc.`STORE_ID`=esw.STORE_ID
+		LEFT
+		JOIN
+		`es_user_certification` euc ON euc.`USERS_ID`=store.`USERS_ID`
+		WHERE
+		esc.`TYPES`=#{TYPES}
+		AND
+		esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS'
+		<if test="TYPES=='STORE_XS_XX'">
+			AND esc.`AREA`=#{areaId}
+		</if>
+		<if test="TYPES=='STORE_XS_XS'">
+			AND euc.`AREA`=#{areaId}
+		</if>
+		AND
+		esc.`LEVELS`=#{LEVELS}
+	</select>
+	<!-- 查询会员等级分布 -->
+	<select id="membershipistributionData"
+		parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		`es_users`
+		AS eu
+		LEFT JOIN
+		`es_user_certification` AS euc
+		ON eu.USERS_ID =
+		euc.USERS_ID
+		WHERE
+		euc.STATE='USER_AUTHENTICATION_PASS'
+		AND
+		euc.AREA=#{areaId} AND
+		eu.MEMBERSHIP_GRADE=#{MEMBERSHIP_GRADE}
+	</select>
+	<!-- 查询店铺总数 -->
+	<select id="getStoreCount" parameterType="java.util.Map"
+		resultType="java.lang.Integer">
+		SELECT
+		COUNT(*)
+		FROM
+		`es_store` AS store
+		LEFT JOIN
+		`es_store_certification` AS esc
+		ON store.`STORE_ID` = esc.`STORE_ID`
+		LEFT JOIN
+		`es_user_certification` euc ON
+		euc.`USERS_ID`=store.`USERS_ID`
+		WHERE
+		esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS'
+		<if test="null==storeType or storeType==''">
+			and ((esc.`TYPES`='STORE_XS_XX' AND esc.`AREA`=#{areaId})
+			or
+			(esc.`TYPES`='STORE_XS_XS' and euc.`AREA` =#{areaId}))
+		</if>
+		<if test="storeType!=null and storeType!=''">
+			<if test="storeType=='STORE_XS_XX'">
+				AND esc.`AREA` =#{areaId} AND esc.`TYPES`='STORE_XS_XX'
+			</if>
+			<if test="storeType=='STORE_XS_XS'">
+				AND euc.`AREA` =#{areaId}
+				AND esc.`TYPES`='STORE_XS_XS'
+			</if>
+			<if test="storeType=='STORE_DJ_QJ'">
+				AND euc.`AREA` =#{areaId}
+				AND
+				esc.`STORE_TYPE`='STORE_DJ_QJ'
+			</if>
+			<if test="storeType=='STORE_DJ_ZM'">
+				AND euc.`AREA` =#{areaId}
+				AND
+				esc.`STORE_TYPE`='STORE_DJ_ZM'
+			</if>
+		</if>
+		AND
+		store.`OPEN_SHOP_TIME` BETWEEN
+		#{startTime} AND #{endTime}
+	</select>
+
+	<!-- 查询站长账户收支明细总条数 -->
+	<select id="queryPaymentListCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT COUNT(*) FROM `es_zz_payments` WHERE
+		USERS_ID=#{userId} AND
+		ETYPE=#{ETYPE} AND ETIME
+		<if test="endTime!='now()'">
+			BETWEEN #{startTime} AND
+			#{endTime}
+		</if>
+		<if test="endTime=='now()'">
+			BETWEEN #{startTime} AND
+			now()
+		</if>
+	</select>
+
+	<!-- 查询站长账户收支明细 -->
+	<select id="queryPaymentList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT * FROM `es_zz_payments` WHERE
+		USERS_ID=#{userId}
+		AND
+		ETYPE=#{ETYPE}
+		AND ETIME
+		<if test="endTime!='now()'">
+			BETWEEN #{startTime} AND
+			#{endTime}
+		</if>
+		<if test="endTime=='now()'">
+			BETWEEN #{startTime} AND
+			now()
+		</if>
+		order by ETIME desc
+		limit #{page},#{limit}
+	</select>
+	<!-- 获取导出收支list -->
+	<select id="getPaymentList" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM `es_zz_payments` WHERE EZPID=#{ezpids}
+	</select>
+	<!-- 会员充值记录 -->
+	<select id="getmembershipRechargeAmountData"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT SUM(emw.EMONEY) FROM
+		`es_money_water` AS emw 
+		LEFT JOIN `es_users` AS eu ON emw.USERS_ID=eu.USERS_ID
+		LEFT JOIN `es_user_certification` AS uc
+		ON emw.USERS_ID = uc.USERS_ID
+		WHERE emw.ETYPE='1'
+		AND ENAME IN ('微信充值','支付宝充值')
+		AND eu.MEMBERSHIP_GRADE=#{MEMBERSHIP_GRADE}
+		AND uc.`AREA`=#{areaId}
+	</select>
+</mapper>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>订单查询</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<style type="text/css">
+.layui-table-cell {
+	height: auto;
+	line-height: auto;
+	padding: 0 15px;
+	position: relative;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	box-sizing: border-box
+}
+</style>
+</head>
+<body>
+	<div class="layui-fluid">
+		<div class="layui-row">
+			<!-- 标题栏 -->
+			<div class="layui-col-lg12"
+				style="background-color: white; padding-bottom: 10px; border-bottom: 2px solid #5FB878">
+				<div class="layui-col-lg3">
+					<h2>
+						<a href="javascript:void(0)" onclick="location.reload()">订单查询</a>
+					</h2>
+				</div>
+				<div class="layui-col-lg9">
+					<button id="export" class="layui-btn layui-btn-radius"
+						style="float: right" data-type="exports">导出订单</button>
+				</div>
+			</div>
+			<!-- 搜索栏 -->
+			<div class="layui-col-lg12">
+				<form class="layui-form layui-form-pane" action="java:void(0)"
+					style="margin-top: 21px">
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">收货人姓名</label>
+						<div class="layui-input-inline">
+							<input id="contact" class="layui-input" type="text"
+								autocomplete="off" />
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">订单编号</label>
+						<div class="layui-input-inline">
+							<input id="orderNumber" class="layui-input" type="text"
+								autocomplete="off" />
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">运单号</label>
+						<div class="layui-input-inline">
+							<input id="the_awb" class="layui-input" type="text"
+								autocomplete="off" />
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">买家手机号</label>
+						<div class="layui-input-inline">
+							<input id="phone" class="layui-input" type="text"
+								autocomplete="off" />
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label" style="width: 150px">支付时间区间</label>
+						<div class="layui-input-inline">
+							<input id="time" class="layui-input" type="text"
+								autocomplete="off" />
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label" style="width: 150px">发货时间区间</label>
+						<div class="layui-input-inline">
+							<input id="fhTime" class="layui-input" type="text"
+								autocomplete="off" />
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label" style="width: 150px">收货时间区间</label>
+						<div class="layui-input-inline">
+							<input id="shTime" class="layui-input" type="text"
+								autocomplete="off" />
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label" style="width: 90px">交易类型</label>
+						<div class="layui-input-inline" style="width: 100px">
+							<select id="payType">
+								<option value="">请选择</option>
+								<option value="0">零花钱</option>
+								<option value="1">余额</option>
+								<option value="2">消费券</option>
+							</select>
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">订单状态</label>
+						<div class="layui-input-inline">
+							<select id="orderState">
+								<option value="">请选择</option>
+								<option th:each="orderState:${orderState}"
+									th:value="${orderState.DICTIONARY_VALUE}"
+									th:text="${orderState.DESCRIBES}"></option>
+							</select>
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">商家区域</label>
+						<div class="layui-input-inline">
+							<select name="province" id="province" lay-filter="changeProvince">
+								<option value="0">请选择省</option>
+								<option th:each="province:${province}"
+									th:value="${province.CITY_CODE}"
+									th:text="${province.CITY_NAME}"></option>
+							</select>
+						</div>
+						<div class="layui-input-inline">
+							<select name="city" id="city" lay-filter="changeCity">
+								<option value="0">请选择市</option>
+							</select>
+						</div>
+						<div class="layui-input-inline">
+							<select name="area" id="area">
+								<option value="0">请选择区</option>
+							</select>
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">商品名字</label>
+						<div class="layui-input-inline">
+							<select id="goodsId" lay-search="">
+								<option value="">直接选择或搜索选择</option>
+								<option th:each="goods:${goods}" th:value="${goods.GOODSID}"
+									th:text="${goods.GOODS_NAME}"></option>
+							</select>
+						</div>
+					</div>
+
+					<div class="layui-form-item layui-inline">
+						<div class="layui-input-inline">
+							<button id="search" class="layui-btn" data-type="search">查询</button>
+						</div>
+					</div>
+				</form>
+			</div>
+			<table id="test" lay-filter="test"></table>
+			<div id="laypage"></div>
+		</div>
+	</div>
+
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script>
+/*<![CDATA[*/
+var page = 1;
+var limit = 10;
+layui.use(['element','form','table','laydate','laypage'], function(){
+	var element = layui.element,form = layui.form,$ = layui.jquery,table = layui.table,laydate = layui.laydate,laypage = layui.laypage;
+	laydate.render({
+		elem: '#time'
+		,type: 'datetime'
+	    ,range: true
+	});
+	laydate.render({
+		elem: '#fhTime'
+		,type: 'datetime'
+	    ,range: true
+	});
+	laydate.render({
+		elem: '#shTime'
+		,type: 'datetime'
+	    ,range: true
+	});
+	
+	$(function(){
+		page = localStorage.getItem("osPage");
+		limit = localStorage.getItem("osLimit");
+	});
+	
+	var contact = $("#contact");
+	var orderNumber = $("#orderNumber");
+	var the_awb = $("#the_awb");
+	var phone = $("#phone");
+	var time = $("#time");
+	var fhTime = $("#fhTime");
+	var shTime = $("#shTime");
+	var payType = $("#payType");
+	var orderState = $("#orderState");
+	var province = $("#province");
+	var city = $("#city");
+	var area = $("#area");
+	var goodsId = $("#goodsId");
+	table.render({
+		elem: '#test'
+		,url:'/order/getAllOrders'
+		,cols: [[
+			{toolbar: '#order'}
+	    ]]
+	    ,page: false
+	    ,where:{
+	    	contact: localStorage.getItem("osContact")
+			,orderNumber: localStorage.getItem("osOrderNumber")
+			,the_awb: localStorage.getItem("osThe_awb")
+			,phone: localStorage.getItem("osPhone")
+			,time: localStorage.getItem("osTime")
+			,fhTime: localStorage.getItem("osFhTime")
+			,shTime: localStorage.getItem("osShTime")
+			,payType: localStorage.getItem("osPayType")
+			,orderState: localStorage.getItem("osOrderState")
+			,goodsId: localStorage.getItem("osGoodsId")
+			,province: localStorage.getItem("osProvince")
+			,city: localStorage.getItem("osCity")
+			,area: localStorage.getItem("osArea")
+			,page: localStorage.getItem("osPage")
+			,limit: localStorage.getItem("osLimit")
+		}
+		,done :function(res,curr,count){
+			laypage.render({  
+	            elem:'laypage'  
+	            ,count:count  
+	            ,curr:page  
+	            ,limit:limit  
+	            ,layout: ['prev', 'page', 'next', 'skip','count','limit']  
+	            ,jump:function (obj,first) {  
+	                if(!first){  
+	                   page = obj.curr;  
+	                   limit = obj.limit;  
+	                   table.reload('test', {
+	           			where: {
+	           				page: page
+	           				,limit: limit
+	           			}
+	           		   }); 
+	                }  
+	            }  
+	        })
+		}
+	});
+	
+	//页面加载时执行
+	$(function(){
+		$('#contact').val(localStorage.getItem("osContact"));
+		$('#orderNumber').val(localStorage.getItem("osOrderNumber"));
+		$('#the_awb').val(localStorage.getItem("osThe_awb"));
+		$('#phone').val(localStorage.getItem("osPhone"));
+		$('#time').val(localStorage.getItem("osTime"));
+		$('#fhTime').val(localStorage.getItem("osFhTime"));
+		$('#shTime').val(localStorage.getItem("osShTime"));
+		$("#payType").find("option[value='"+localStorage.getItem("osPayType")+"']").attr("selected",true);
+		$("#orderState").find("option[value='"+localStorage.getItem("osOrderState")+"']").attr("selected",true);
+		$("#goodsId").find("option[value='"+localStorage.getItem("osGoodsId")+"']").attr("selected",true);
+		$("#province").find("option[value='"+localStorage.getItem("osProvince")+"']").attr("selected",true);
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/storeVerify/getSubordinateArea",   
+			data : {   
+				pId:localStorage.getItem("osProvince")
+			},  
+			success : function(da) {//返回数据根据结果进行相应的处理   
+				var city = eval(da);
+				$("#city").empty();
+				$("#area").empty();
+				$("#city").append("<option value='0'>请选择市</option>");
+				$("#area").append("<option value='0'>请选择区</option>");
+				for (var i = 0; i < city.length; i++) {
+					$("#city").append(
+							"<option value='"+city[i].CITY_CODE+"'>"
+									+ city[i].CITY_NAME
+									+ "</option>");
+				}
+				form.render('select');
+			}   
+		});
+		$("#city").find("option[value='"+localStorage.getItem("osCity")+"']").attr("selected",true);
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/storeVerify/getSubordinateArea",   
+			data : {   
+				pId:localStorage.getItem("osCity")
+			},  
+			success : function(da) {//返回数据根据结果进行相应的处理   
+				var area = eval(da);
+				$("#area").empty();
+				$("#area").append("<option value='0'>请选择县/区</option>");
+				for (var i = 0; i < area.length; i++) {
+					$("#area").append(
+							"<option value='"+area[i].CITY_CODE+"'>"
+									+ area[i].CITY_NAME
+									+ "</option>");
+				}
+				form.render('select');
+			}   
+		});
+		$("#area").find("option[value='"+localStorage.getItem("osArea")+"']").attr("selected",true);
+		form.render('select');
+		localStorage.clear();
+	});
+	
+	//监听省份选择
+	form.on('select(changeProvince)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var city = eval(da);
+			$("#city").empty();
+			$("#area").empty();
+			$("#city").append("<option value='0'>请选择市</option>");
+			$("#area").append("<option value='0'>请选择区</option>");
+			for (var i = 0; i < city.length; i++) {
+				$("#city").append(
+						"<option value='"+city[i].CITY_CODE+"'>"
+								+ city[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	//监听城市选择
+	form.on('select(changeCity)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var area = eval(da);
+			$("#area").empty();
+			$("#area").append("<option value='0'>请选择县/区</option>");
+			for (var i = 0; i < area.length; i++) {
+				$("#area").append(
+						"<option value='"+area[i].CITY_CODE+"'>"
+								+ area[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	<!-- 监听搜索 -->
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	
+	<!-- 搜索 -->
+	var active = {
+		search: function(){
+			//执行重载
+			page=1;
+			table.reload('test', {
+				where: {
+		        	contact:contact.val(),
+		        	orderNumber:orderNumber.val(),
+		        	the_awb:the_awb.val(),
+		        	phone:phone.val(),
+		        	time:time.val(),
+		        	fhTime:fhTime.val(),
+		        	shTime:shTime.val(),
+		        	payType:payType.val(),
+		        	orderState:orderState.val(),
+		        	province:province.val(),
+					city:city.val(),
+					area:area.val(),
+					goodsId:goodsId.val(),
+					page:page,
+					limit:limit
+				}
+			});
+		}
+		,exports: function(){
+			layer.confirm('确定导出订单数据吗?', {icon: 3, title:'提示'}, function(index){
+				window.location.href="/order/exportOrderSearch?contact="+contact.val()+"&orderNumber="
+					+orderNumber.val()+"&the_awb="+the_awb.val()+"&phone="+phone.val()+"&time="+time.val()+
+					"&payType="+payType.val()+"&orderState="+orderState.val()+"&province="+province.val()+
+					"&city="+city.val()+"&area="+area.val()+"&goodsId="+goodsId.val()+"&shTime="+shTime.val()+
+					"&fhTime="+fhTime.val();
+				layer.close(index);
+			});
+		}
+	};
+});
+function arbitration(obj){
+	layui.use(['element','form','table','laydate'], function(){
+		var element = layui.element,form = layui.form,$ = layui.jquery,table = layui.table,laydate = layui.laydate;
+		
+		var contact = $("#contact");
+		var orderNumber = $("#orderNumber");
+		var the_awb = $("#the_awb");
+		var phone = $("#phone");
+		var time = $("#time");
+		var fhTime = $("#fhTime");
+		var shTime = $("#shTime");
+		var payType = $("#payType");
+		var orderState = $("#orderState");
+		var province = $("#province");
+		var city = $("#city");
+		var area = $("#area");
+		var goodsId = $("#goodsId");
+		localStorage.setItem("osContact",contact.val());
+		localStorage.setItem("osOrderNumber",orderNumber.val());
+		localStorage.setItem("osThe_awb",the_awb.val());
+		localStorage.setItem("osPhone",phone.val());
+		localStorage.setItem("osTime",time.val());
+		localStorage.setItem("osFhTime",fhTime.val());
+		localStorage.setItem("osShTime",shTime.val());
+		localStorage.setItem("osPayType",payType.val());
+		localStorage.setItem("osOrderState",orderState.val());
+		localStorage.setItem("osGoodsId",goodsId.val());
+		localStorage.setItem("osProvince",province.val());
+		localStorage.setItem("osCity",city.val());
+		localStorage.setItem("osArea",area.val());
+		localStorage.setItem("osPage",page);
+		localStorage.setItem("osLimit",limit);
+		window.location.href="/order/toArbitration?orderNumber="+obj.id+"&storeId="+obj.name;
+	});	
+}
+function details(obj){
+	layui.use(['element','form','table','laydate'], function(){
+		var element = layui.element,form = layui.form,$ = layui.jquery,table = layui.table,laydate = layui.laydate;
+		
+		var contact = $("#contact");
+		var orderNumber = $("#orderNumber");
+		var the_awb = $("#the_awb");
+		var phone = $("#phone");
+		var time = $("#time");
+		var fhTime = $("#fhTime");
+		var shTime = $("#shTime");
+		var payType = $("#payType");
+		var orderState = $("#orderState");
+		var province = $("#province");
+		var city = $("#city");
+		var area = $("#area");
+		var goodsId = $("#goodsId");
+		localStorage.setItem("osContact",contact.val());
+		localStorage.setItem("osOrderNumber",orderNumber.val());
+		localStorage.setItem("osThe_awb",the_awb.val());
+		localStorage.setItem("osPhone",phone.val());
+		localStorage.setItem("osTime",time.val());
+		localStorage.setItem("osFhTime",fhTime.val());
+		localStorage.setItem("osShTime",shTime.val());
+		localStorage.setItem("osPayType",payType.val());
+		localStorage.setItem("osOrderState",orderState.val());
+		localStorage.setItem("osGoodsId",goodsId.val());
+		localStorage.setItem("osProvince",province.val());
+		localStorage.setItem("osCity",city.val());
+		localStorage.setItem("osArea",area.val());
+		localStorage.setItem("osPage",page);
+		localStorage.setItem("osLimit",limit);
+		window.location.href="/order/toOrderDetails2?orderNumber="+obj.id+"&storeId="+obj.name;
+	});	
+}
+function logistics(obj){
+	layui.use(['element','form','table','laydate'], function(){
+		var element = layui.element,form = layui.form,$ = layui.jquery,table = layui.table,laydate = layui.laydate;
+		
+		var contact = $("#contact");
+		var orderNumber = $("#orderNumber");
+		var the_awb = $("#the_awb");
+		var phone = $("#phone");
+		var time = $("#time");
+		var fhTime = $("#fhTime");
+		var shTime = $("#shTime");
+		var payType = $("#payType");
+		var orderState = $("#orderState");
+		var province = $("#province");
+		var city = $("#city");
+		var area = $("#area");
+		var goodsId = $("#goodsId");
+		localStorage.setItem("osContact",contact.val());
+		localStorage.setItem("osOrderNumber",orderNumber.val());
+		localStorage.setItem("osThe_awb",the_awb.val());
+		localStorage.setItem("osPhone",phone.val());
+		localStorage.setItem("osTime",time.val());
+		localStorage.setItem("osFhTime",fhTime.val());
+		localStorage.setItem("osShTime",shTime.val());
+		localStorage.setItem("osPayType",payType.val());
+		localStorage.setItem("osOrderState",orderState.val());
+		localStorage.setItem("osGoodsId",goodsId.val());
+		localStorage.setItem("osProvince",province.val());
+		localStorage.setItem("osCity",city.val());
+		localStorage.setItem("osArea",area.val());
+		localStorage.setItem("osPage",page);
+		localStorage.setItem("osLimit",limit);
+		window.location.href="/order/toOrderLogistics?orderId="+obj.id+"&storeId="+obj.name;
+	});	
+}
+/*]]>*/
+</script>
+<script id="order" type="text/html">
+	<!-- 订单编号 -->
+	<div class="layui-col-lg12" style="height:30px;border-bottom:1px solid #E6E6E6">
+		<div class="layui-col-lg2" style="height:30px">
+			<span>订单编号：{{d.ORDER_NUMBER}}</span>
+		</div>
+		<div class="layui-col-lg2 layui-col-lg-offset2" style="height:30px">
+			<span>支付时间：{{d.PAY_TIME}}</span>
+		</div>
+		<div class="layui-col-lg2" style="height:30px">
+			<span>发货时间：{{d.DELIVERY_TIME}}</span>
+		</div>
+		<div class="layui-col-lg2" style="height:30px">
+			<span>收货时间：{{d.SHTIME}}</span>
+		</div>
+		<div class="layui-col-lg2" style="height:30px">
+			<a id="{{d.ORDER_NUMBER}}" name="{{d.STORE_ID}}" onclick="details(this)" href="javascript:void(0)" style="float:right;margin-right:20px">订单详情</a>
+		</div>
+	</div>
+	<div class="layui-col-lg12" style="height:30px;border-bottom:1px solid #E6E6E6">
+		<div class="layui-col-lg6">
+			<div class="layui-col-lg8" align="center">商品信息</div>
+			<div class="layui-col-lg2" align="center">单价</div>
+			<div class="layui-col-lg2" align="center">数量</div>
+		</div>
+		<div class="layui-col-lg6">
+			<div class="layui-col-lg3" align="center">买家</div>
+			<div class="layui-col-lg3" align="center">商家区域</div>
+			<div class="layui-col-lg2" align="center">订单状态</div>
+			<div class="layui-col-lg2" align="center">交易类型</div>
+			<div class="layui-col-lg2" align="center">实收款</div>
+		</div>
+	</div>
+	<!-- 订单主体 -->
+	<div class="layui-col-lg12" style="height:{{d.goods.length*170}}px;border-bottom:1px solid #E6E6E6">
+		<!-- 商品信息 -->
+		<div class="layui-col-lg6" style="border-right:1px solid #E6E6E6">
+			{{#  layui.each(d.goods, function(index, item){ }}
+				<div class="layui-col-lg12" style="height:170px;{{# if(index!=d.goods.length-1){ }}border-bottom:1px solid #E6E6E6{{# } }}">
+					<!-- 商品图片 -->
+					<div class="layui-col-lg2">
+						<img src="{{item.ICON}}" style="height:150px;margin-top:10px;margin-left:10px;"/>
+					</div>
+					<!-- 商品名字 -->
+					<div class="layui-col-lg6" style="height:100%;border-right:1px solid #E6E6E6;padding-top:20px">
+						<div class="layui-col-lg12" style="white-space:normal;word-wrap:normal">
+							<span>商品名字：{{item.GOODS_NAME}}</span>
+						</div>
+						<div class="layui-col-lg12" style="white-space:normal;word-wrap:normal">
+							<span>属性：{{item.ATTRIBUTE}}</span>
+						</div>
+					</div>
+					<!-- 商品价格 -->
+					<div class="layui-col-lg2" style="height:100%;border-right:1px solid #E6E6E6;padding-top:65px" align="center">
+						<span>￥{{item.PRICE}}</span>
+					</div>
+					<!-- 商品数量 -->
+					<div class="layui-col-lg2" style="height:100%;padding-top:65px" align="center">
+						<span>{{item.NUMBER}}</span>
+					</div>
+				</div>
+			{{#  }); }}
+		</div>
+		<!-- 收货人/地址  -->
+		<div class="layui-col-lg6" style="height:100%;">
+			<div class="layui-col-lg3" style="height:100%;border-right:1px solid #E6E6E6;padding-top:{{d.goods.length*85-25}}px" align="center">
+				<p>{{d.NICKNAME}}</p>
+				<p>{{d.PHONE}}</p>
+			</div>
+			<div class="layui-col-lg3" style="height:100%;border-right:1px solid #E6E6E6;padding-top:{{d.goods.length*85-25}}px" align="center">
+				<p>{{d.province}}{{d.city}}{{d.a}}</p>
+			</div>
+			<div class="layui-col-lg2" style="height:100%;border-right:1px solid #E6E6E6;padding-top:{{d.goods.length*85-25}}px" align="center">
+				<P>{{d.DESCRIBES}}</P>
+				{{# if(d.ORDER_STATE=='ORDER_STATE_NO_GOODS'){ }}
+					<a class="layui-btn" id="{{d.ORDER_ID}}" name="{{d.STORE_ID}}" onclick="logistics(this)" href="javascript:void(0)">查看物流</a>
+				{{# } }}
+			</div>
+			<div class="layui-col-lg2" style="height:100%;border-right:1px solid #E6E6E6;padding-top:{{d.goods.length*85-20}}px" align="center">
+				{{# if(d.PAY_TYPE=='0'){ }}
+					<p>零花钱</p>
+				{{# } }}
+				{{# if(d.PAY_TYPE=='1'){ }}
+					<p>余额</p>
+				{{# } }}
+				{{# if(d.PAY_TYPE=='2'){ }}
+					<p>消费券</p>
+				{{# } }}
+				{{# if(d.PAY_TYPE==''){ }}
+					<p>未支付</p>
+				{{# } }}
+			</div>
+			<div class="layui-col-lg2" style="height:100%;border-right:1px solid #E6E6E6;padding-top:{{d.goods.length*85-20}}px" align="center">
+				<p>￥{{d.sumPrice}}</p>
+			</div>
+		</div>
+	</div>
+	<!-- 订单底部 -->
+	<div class="layui-col-lg12" style="height:43px">
+		<div class="layui-col-lg1 layui-col-lg-offset11" style="height:100%">
+		{{# if(d.ORDER_STATE=='ORDER_STATE_NO_EVALUATION'||d.ORDER_STATE=='ORDER_STATE_COMPLETE'){ }}
+			<a id="{{d.ORDER_NUMBER}}" name="{{d.STORE_ID}}"  th:if="${arbitration}" class="layui-btn" onclick="arbitration(this)" style="float:right;margin-right:10px;margin-top:5px" href="javascript:void(0)">仲裁</a>
+		{{# } }}
+		</div>
+	</div>
+</script>
+</html>

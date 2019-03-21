@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.systemManage.SystemUserDao">
+	<!-- 获取系统用户list -->
+	<select id="getSystemUserList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT * FROM es_users
+		<where>
+			<if test="IS_SYSTEM==null or IS_SYSTEM==''">
+				(IS_SYSTEM = 'USER_LEVEL_SYSTEM'
+				OR
+				IS_SYSTEM !=
+				'USER_LEVEL_SYSTEM')
+			</if>
+			<if test="IS_SYSTEM!=null and IS_SYSTEM!=''">
+				IS_SYSTEM = #{IS_SYSTEM}
+			</if>
+			<if test="NICKNAME!=null and NICKNAME != ''">
+				AND NICKNAME LIKE CONCAT('%',#{NICKNAME},'%')
+			</if>
+			<if test="PHONE!=null and PHONE !=''">
+				AND PHONE LIKE CONCAT('%',#{PHONE},'%')
+			</if>
+		</where>
+		ORDER BY REGISTERED_TIME
+		LIMIT #{page},#{limit}
+	</select>
+	<!-- 获取系统用户list的count -->
+	<select id="getSystemUserListCount"
+		parameterType="java.util.Map" resultType="int">
+		SELECT count(*) FROM es_users
+		<where>
+			<if test="IS_SYSTEM==null or IS_SYSTEM==''">
+				(IS_SYSTEM = 'USER_LEVEL_SYSTEM'
+				OR
+				IS_SYSTEM !=
+				'USER_LEVEL_SYSTEM')
+			</if>
+			<if test="IS_SYSTEM!=null and IS_SYSTEM!=''">
+				IS_SYSTEM = #{IS_SYSTEM}
+			</if>
+			<if test="NICKNAME!=null and NICKNAME != ''">
+				AND NICKNAME LIKE CONCAT('%',#{NICKNAME},'%')
+			</if>
+			<if test="PHONE!=null and PHONE !=''">
+				AND PHONE LIKE CONCAT('%',#{PHONE},'%')
+			</if>
+		</where>
+	</select>
+	<!-- 修改系统用户 -->
+	<update id="updateSystemUser" parameterType="java.util.Map">
+		update es_users set
+		NICKNAME=#{NICKNAME},PASSWORD=#{PASSWORD} WHERE USERS_ID=#{USERS_ID}
+	</update>
+	<!-- 删除系统用户 -->
+	<delete id="deleteSystemUser" parameterType="java.lang.String">
+		delete from es_users
+		where USERS_ID=#{USERS_ID}
+	</delete>
+	<!-- 获取角色list -->
+	<select id="getRoleList" resultType="java.util.Map">
+		select * from
+		`es_system_role`
+	</select>
+	<!-- 获取地区list -->
+	<select id="getAreaList" parameterType="java.lang.Integer"
+		resultType="java.util.Map">
+		SELECT * FROM `es_area` WHERE PID=#{pid}
+	</select>
+	<!-- 添加系统用户 -->
+	<insert id="addSystemUser" parameterType="java.util.Map">
+		INSERT INTO
+		`es_users`
+		(`USERS_ID`, `NICKNAME`, `PHONE`, `PASSWORD`,
+		`SEX`,
+		`INVITATION`,
+		`REGISTERED_TIME`, `MONEYS`,
+		`POCKETMONEY`,
+		`CONSUMPTION_VOLUME`,
+		`INTEGRAL`, `STATE`, `IDENTITYS`,
+		`SHARE_NUMBER`, `SHARE_SUM_REWARD`,
+		`MEMBERSHIP_GRADE`, `PUSH_ID`,
+		`IS_SYSTEM`) VALUES
+		(#{uuid},
+		#{NICKNAME}, #{PHONE}, #{PASSWORD},
+		#{SEX}, '',
+		now(), '0',
+		'0', '0',
+		'0', 'USER_STATE_NORMAL',
+		'USER_IDENTITY_USER', '0', '0', '',
+		'',
+		'USER_LEVEL_SYSTEM')
+	</insert>
+	<!-- 添加系统用户权限 -->
+	<insert id="addSystemUserRole" parameterType="java.util.Map">
+		INSERT INTO
+		`es_system_role_user` (`ROLE_USER_ID`, `ROLE_ID`, `USERS_ID`)
+		VALUES
+		(#{uuid}, #{roleId}, #{userId})
+	</insert>
+	<!-- 修改系统用户是否可以登录后台管理系统 -->
+	<update id="updateUserState" parameterType="java.util.Map">
+		update es_users set
+		IS_SYSTEM=#{STATE} WHERE USERS_ID=#{USERS_ID}
+	</update>
+	<!-- 获取角色list -->
+	<select id="getAssignRoleList" resultType="java.util.Map">
+		select * from
+		`es_system_role`
+	</select>
+	<!-- 查询系统用户是否有该角色 -->
+	<select id="isHave" parameterType="java.util.Map"
+		resultType="java.lang.Integer">
+		select count(*) from `es_system_role_user` where
+		USERS_ID=#{userId}
+		and ROLE_ID =#{roleId}
+	</select>
+	<!-- 删除系统用户角色 -->
+	<delete id="deleteUserRole" parameterType="java.util.Map">
+		delete from
+		es_system_role_user where USERS_ID=#{userId}
+		and ROLE_ID
+		=#{roleId}
+	</delete>
+	<!-- 通过地区code查询地区名 -->
+	<select id="getCityName" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT CITY_NAME FROM `es_area` WHERE
+		CITY_CODE=#{CITY_CODE}
+	</select>
+	<!-- 添加系统用户，验证是否可注册成为系统用户 -->
+	<select id="ishavephone" parameterType="java.lang.String"
+		resultType="int">
+		SELECT count(*) FROM es_users WHERE PHONE=#{PHONE} AND
+		IS_SYSTEM='USER_LEVEL_SYSTEM'
+	</select>
+
+	<!-- 修改头像 -->
+	<update id="updateUserHead" parameterType="java.util.Map">
+		UPDATE `es_users`
+		SET
+		`HEAD` = #{userHead} WHERE
+		`USERS_ID` = #{userId};
+	</update>
+	<!-- 查询用户手机号是否存在 -->
+	<select id="PhoneIsHave" parameterType="java.lang.String"
+		resultType="int">
+		SELECT count(*) FROM es_users WHERE PHONE=#{PHONE}
+	</select>
+	<!-- 查询用户id -->
+	<select id="queryUserId" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		select USERS_ID from es_users WHERE PHONE=#{PHONE}
+	</select>
+	<!-- 将用户修改为系统用户 -->
+	<update id="updateUserIsSystem" parameterType="java.lang.String">
+		UPDATE `es_users`
+		SET
+		`IS_SYSTEM` = 'USER_LEVEL_SYSTEM' WHERE
+		`USERS_ID` = #{userId};
+	</update>
+</mapper>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>评论管理</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div id="add" style="margin-left:50px;display:none;margin-right:50px">
+		<div class="layui-form layui-form-pane" style="margin-top:20px">
+			<div class="layui-form-item layui-inline">
+				<label class="layui-form-label">店铺</label>
+				<div class="layui-input-inline">
+					<select id="store" lay-search="" lay-filter="changeStore">
+						<option value="">直接选择或搜索选择</option>
+						<option th:each="store:${store}" th:value="${store.STORE_ID}" th:text="${store.STORE_NAME}"></option>
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item layui-inline">
+				<label class="layui-form-label">商品</label>
+				<div class="layui-input-inline">
+					<select id="goods" lay-search="" lay-filter="changeGoods">
+						<option value="">直接选择或搜索选择</option>
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item layui-inline">
+				<label class="layui-form-label">规格</label>
+				<div class="layui-input-inline">
+					<select id="attribute" lay-search="">
+						<option value="">直接选择或搜索选择</option>
+					</select>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">用户</label>
+				<div class="layui-input-inline">
+					<input class="layui-input" id="user" disabled="disabled"/>
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">评论内容</label>
+				<div class="layui-input-block">
+					<textarea id="content" class="layui-textarea" placeholder="请输入内容"></textarea>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<h2><a href="javascript:void(0)" onclick="location.reload()">评论管理</a></h2>
+	</div>
+	<div class="search" style="margin-top:10px">
+		<div class="layui-inline">
+			<input class="layui-input" id="phoneNumber" autocomplete="off" placeholder="请输入账号（电话号码）"/>
+		</div>
+		<div class="layui-inline">
+			<input class="layui-input" id="goodsName" autocomplete="off" placeholder="请输入商品名"/>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+		<button class="layui-btn" data-type="add">添加评论</button>
+	</div>
+	
+	<table id="commentsList" lay-filter="operation"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+layui.use(['table','jquery','form','layer'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	var layer = layui.layer;
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#commentsList'
+		,url: '/comments/getCommentsList'
+		,page: true
+		,cols:[[
+			{field:'GOODS_NAME',title:'商品名称'}
+			,{field:'PHONE',title:'用户账号'}
+			,{field:'CONTENT',title:'评论内容'}
+			,{field:'TIME',title:'评论时间'}
+			,{field:'GOODS_ATTRIBUTE',title:'规格信息'}
+			,{fixed: 'right',align:'center', toolbar: '#toolbar',title:'操作'}
+		]]
+	});
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'delete'){//删除
+			var index = layer.open({
+				type: 0
+		        ,title: '确认'
+		        ,shade: 0
+		        ,maxmin: true
+		        ,content: '真的要删除吗？'
+		        ,skin:'layui-layer-molv'
+		        ,btnAlign: 'c'
+		        ,btn: ['删除', '取消']
+		        ,yes: function(){
+		        	$.post("/comments/delete",{commentsId:data.COMMENTS_ID},function(da){
+						table.reload('commentsList', {//删除后重载
+						});
+						layer.msg("已删除");
+					});
+		        	layer.close(index);
+		        }
+		        ,btn2: function(){
+					layer.close();
+		        }
+				,zIndex: layer.zIndex
+		        ,success: function(layero){
+					layer.setTop(layero);
+		        }
+			});
+		}
+	});
+	<!-- 监听按钮 -->
+	$('.search .layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索时执行重载-->
+	var $ = layui.$, active = {
+		reload: function(){
+			var phoneNumber = $('#phoneNumber');
+			var goodsName = $('#goodsName');
+			//执行重载
+			table.reload('commentsList', {
+				where: {
+					phoneNumber: phoneNumber.val()
+					,goodsName:goodsName.val()
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+		,add: function(){
+			var store = $("#store");
+			var goods = $("#goods");
+			var attribute = $("#attribute");
+			var user = $("#user");
+			var content = $("#content");
+			var index1 = layer.open({
+				type: 1
+				,id:'m1'
+		        ,title: '新增评论'
+		        ,area: ['700px', '700px']
+		        ,shade: 0
+		        ,maxmin: true
+		        ,content: $("#add")
+		        ,skin:'layui-layer-molv'
+		        ,btnAlign: 'c'
+		        ,btn: ['确定', '取消']
+		        ,yes: function(){
+		        	if(store.val()==""){
+		        		layer.msg("请选择店铺");
+		        	}else if(goods.val()==""){
+		        		layer.msg("请选择商品");
+		        	}else if(attribute.val()==""&&attribute[0].childNodes.length>1){
+		        		layer.msg("请选择商品规格");
+		        	}else if(user.val()==""){
+		        		layer.msg("用户不能为空");
+		        	}else if(content.val()==""){
+		        		layer.msg("请填写评论");
+		        	}else{
+		        		$.ajax({   
+	        				type : "POST",
+	        				async:false,
+	        				url : "/comments/addComment",   
+	        				data : {   
+	        					goodsId:goods.val(),attribute:attribute.val(),userId:user.attr("name"),content:content.val()
+	        				},  
+	        				success : function(da) {  
+	        					$("#store").find("option[value='']").attr("selected",true);
+	        					$("#goods").empty();
+	        					$("#attribute").empty();
+	        					$("#goods").append("<option value=''>直接选择或搜索选择</option>");
+	        					$("#attribute").append("<option value=''>直接选择或搜索选择</option>");
+	        					user.val("");
+	        					content.val("");
+	        					form.render('select');
+	        					layer.close(index1);
+								table.reload('commentsList', {
+								});
+	        				}   
+	        			});
+		        	}
+		        }
+		        ,btn2: function(){
+		        	$("#store").find("option[value='']").attr("selected",true);
+		        	$("#goods").empty();
+					$("#attribute").empty();
+					$("#goods").append("<option value=''>直接选择或搜索选择</option>");
+					$("#attribute").append("<option value=''>直接选择或搜索选择</option>");
+					user.val("");
+					content.val("");
+					form.render('select');
+					layer.close();
+		        }
+		        ,cancel: function(index, layero){ 
+		        	$("#store").find("option[value='']").attr("selected",true);
+		        	$("#goods").empty();
+					$("#attribute").empty();
+					$("#goods").append("<option value=''>直接选择或搜索选择</option>");
+					$("#attribute").append("<option value=''>直接选择或搜索选择</option>");
+					user.val("");
+					content.val("");
+					form.render('select');
+		        	layer.close(index)
+		        	return false; 
+		        }  
+			});
+		}
+	};
+	//监听店铺选择
+	form.on('select(changeStore)',function(data){
+		$.post("/comments/getStoreGoods",{storeId:data.value},function(da){
+			var goods = eval(da);
+			$("#goods").empty();
+			$("#attribute").empty();
+			$("#goods").append("<option value=''>直接选择或搜索选择</option>");
+			$("#attribute").append("<option value=''>直接选择或搜索选择</option>");
+			for (var i = 0; i < goods.length; i++) {
+				$("#goods").append(
+						"<option value='"+goods[i].GOODSID+"'>"
+								+ goods[i].GOODS_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	//监听商品选择
+	form.on('select(changeGoods)',function(data){
+		$.post("/comments/getGoodsAttribute",{goodsId:data.value},function(da){
+			var attribute = eval(da);
+			$("#attribute").empty();
+			$("#attribute").append("<option value=''>直接选择或搜索选择</option>");
+			for (var i = 0; i < attribute.length; i++) {
+				$("#attribute").append(
+						"<option value='"+attribute[i].ATTRIBUTE_NAME+" "+attribute[i].ATTRIBUTE_VALUE+"'>"
+								+ attribute[i].ATTRIBUTE_NAME+" "+attribute[i].ATTRIBUTE_VALUE
+								+ "</option>");
+			}
+			form.render('select');
+		});
+		//随机抽取用户
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/comments/getRandomUser",   
+			data : {   
+				goodsId:data.value
+			},  
+			success : function(da) {  
+				if(null!=da&&""!=da){
+					var user = eval(da);
+					$("#user").val(user.PHONE);
+					$("#user").attr("name",user.USERS_ID);
+				}else{
+					layer.msg("无可选择的用户");
+				}
+			}   
+		});
+	});
+});
+/*]]>*/
+</script>
+<script type="text/html" id="toolbar">
+	<a class="layui-btn layui-btn-xs" lay-event="delete">删除</a>
+</script>
+</body>
+</html>

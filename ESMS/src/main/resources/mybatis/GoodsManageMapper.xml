@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.merchants.GoodsManageDao">
+	<!-- 查询商品list -->
+	<select id="getgoodsList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT * FROM `es_goods` AS eg WHERE STORE_ID=#{storeId}
+		<if test="GOODS_STATE!=null and GOODS_STATE!=''">
+			AND eg.GOODS_STATE =#{GOODS_STATE}
+		</if>
+		<if test="GOODS_NAME!=null and GOODS_NAME!=''">
+			AND eg.GOODS_NAME LIKE CONCAT('%',#{GOODS_NAME},'%')
+		</if>
+		ORDER BY eg.`STORE_SORT` DESC
+		<if test="sort!=null and sort==1">
+			,eg.`PURCHASE_QUANTITY` DESC
+		</if>
+		,eg.`ADD_TIME` DESC
+		limit #{page},#{limit}
+	</select>
+
+	<!-- 查询商品list的count -->
+	<select id="getgoodsListCount" resultType="int">
+		SELECT count(*) FROM `es_goods` AS eg WHERE STORE_ID=#{storeId}
+		<if test="GOODS_STATE!=null and GOODS_STATE!=''">
+			AND eg.GOODS_STATE =#{GOODS_STATE}
+		</if>
+		<if test="GOODS_NAME!=null and GOODS_NAME!=''">
+			AND eg.GOODS_NAME LIKE CONCAT('%',#{GOODS_NAME},'%')
+		</if>
+	</select>
+
+	<!-- 修改商品状态 -->
+	<update id="updateGoodsState" parameterType="java.util.Map">
+		UPDATE
+		`es_goods` SET
+		`GOODS_STATE` = #{GOODS_STATE}
+		<if test="GOODS_STATE eq 'GOODS_STATE_UP'">
+			,TOP_SHELVES_TIME=now()
+		</if>
+		<if test="GOODS_STATE eq 'GOODS_STATE_DOWN'">
+			,DOWN_SHELVES_TIME=now()
+		</if>
+		WHERE `GOODSID` = #{GOODSID}
+	</update>
+
+	<!-- 删除商品 -->
+	<delete id="DeleteGoodsById" parameterType="java.lang.String">
+		delete from es_goods
+		where GOODSID=#{GOODSID}
+	</delete>
+
+	<!-- 修改商品库存 -->
+	<update id="updateGoodsInventory" parameterType="java.util.Map">
+		UPDATE
+		`es_goods` SET `INVENTORY` = #{INVENTORY} WHERE `GOODSID` =
+		#{GOODSID};
+	</update>
+
+	<!-- 修改商品价格 -->
+	<update id="updateGoodsPRICE" parameterType="java.util.Map">
+		UPDATE
+		`es_goods` SET
+		`PRESENT_PRICE` = #{PRESENT_PRICE}
+		WHERE `GOODSID` = #{GOODSID};
+	</update>
+
+	<!-- 查询商品表 -->
+	<select id="queryGoodsInfo" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT eg.*,ec.`CLASS_NAME`,ec.`PID` FROM `es_goods` eg
+		LEFT JOIN
+		`es_classification` ec ON
+		eg.`CLASSIFICATION_ID`=ec.`CLASSIFICATION_ID` WHERE
+		eg.`GOODSID`=#{goodsId}
+	</select>
+
+	<!-- 查询商品图片 -->
+	<select id="queryGoodsImg" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM `es_photo` WHERE
+		PHOTO_TYPE='PHOTO_TYPE_GOODS' AND
+		PID=#{GOODSID}
+	</select>
+	<!-- 查询商品分类 -->
+	<select id="getGoodsClassification"
+		parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM
+		`es_classification` WHERE
+		CLASSIFICATION_ID=#{pid}
+	</select>
+	<!-- 查询商品属性list -->
+	<select id="getGoodsAttribute" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT ATTRIBUTE_NAME FROM `es_goods_attribute` WHERE
+		GOODSID=#{goodsId} GROUP
+		BY ATTRIBUTE_NAME ORDER BY
+		ATTRIBUTE_NAME,ATTRIBUTE_VALUE ASC
+	</select>
+	<!-- 获取商品属性的值 -->
+	<select id="getAttributeValue" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT * FROM es_goods_attribute WHERE GOODSID=#{goodsId}
+		AND
+		ATTRIBUTE_NAME=#{attributeName}
+		ORDER BY
+		ATTRIBUTE_NAME,ATTRIBUTE_VALUE ASC
+	</select>
+	<!-- 修改商品排序 -->
+	<update id="updateGoodsSort" parameterType="java.util.Map">
+		UPDATE
+		`es_goods` SET
+		`STORE_SORT` = #{STORE_SORT} WHERE `GOODSID` =
+		#{GOODSID};
+	</update>
+	<!-- 查询商品分类 -->
+	<select id="getClassifications" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM `es_classification` WHERE PID=#{pid}
+	</select>
+	<!-- 查询商品所有属性值 -->
+	<select id="getGoodsAllAttribute"
+		parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM
+		es_goods_attribute WHERE GOODSID=#{goodsId}
+		ORDER BY
+		ATTRIBUTE_NAME,ATTRIBUTE_VALUE ASC
+	</select>
+	<!-- 添加商品属性 -->
+	<insert id="addAttribute" parameterType="java.util.Map">
+		INSERT INTO
+		`es_goods_attribute` (`ATTRIBUTE_ID`, `GOODSID`,
+		`ATTRIBUTE_NAME`,
+		`ATTRIBUTE_VALUE`, `CREATE_TIME`) VALUES (#{uuid},
+		#{goodsId},#{attributeName}, #{attributeValue}, now())
+	</insert>
+	<!-- 删除商品属性 -->
+	<delete id="deleteAttribute" parameterType="java.lang.String">
+		DELETE FROM
+		`es_goods_attribute` WHERE `ATTRIBUTE_ID` = #{attributeId}
+	</delete>
+	<!-- 通过商品id删除商品属性 -->
+	<delete id="deleteAttributeByGoodsId"
+		parameterType="java.lang.String">
+		DELETE FROM
+		`es_goods_attribute` WHERE `GOODSID` =
+		#{goodsId}
+	</delete>
+	<!-- 删除商品图片 -->
+	<delete id="deletePhoto" parameterType="java.lang.String">
+		DELETE FROM
+		`es_photo`
+		WHERE `PHOTO_ID` = #{GOODSID};
+	</delete>
+	<!-- 查询店家店铺id -->
+	<select id="getUserSTOREID" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT STORE_ID FROM
+		`es_store` WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 添加商品 -->
+	<insert id="addgoods" parameterType="java.util.Map">
+		INSERT INTO `es_goods`
+		(`GOODSID`, `STORE_ID`, `CLASSIFICATION_ID`,
+		`GOODS_NAME`,
+		`PRESENT_PRICE`, `DETAILS`, `INVENTORY`,
+		`ADD_TIME`,`GOODS_STATE`,`GOODS_ICON`)
+		VALUES (#{testgoodsId},
+		#{storeId}, #{CLASSIFICATION_ID}, #{GOODS_NAME},
+		#{PRESENT_PRICE},
+		#{DETAILS}, #{INVENTORY}, #{ADD_TIME},'GOODS_STATE_DSH',#{GOODS_ICON})
+	</insert>
+	<!-- 添加商品图片 -->
+	<insert id="addgoodsPhoto" parameterType="java.util.Map">
+		INSERT INTO
+		`es_photo`
+		(`PHOTO_ID`, `PHOTO_NAME`, `PHOTO_URL`, `ADD_TIME`,
+		`PID`,`PHOTO_TYPE`) VALUES (#{uuid}, #{PHOTO_NAME},
+		#{PHOTO_URL},
+		now(),#{goodsId},'PHOTO_TYPE_GOODS')
+	</insert>
+	<!-- 删除商品图片 -->
+	<delete id="deletephoto" parameterType="java.lang.String">
+		DELETE FROM
+		`es_photo`
+		WHERE `PHOTO_ID` = #{PHOTO_ID}
+	</delete>
+	<!-- 删除店家删除的旧图片 -->
+	<delete id="deleteupdatePhoto" parameterType="java.util.Map">
+		DELETE FROM
+		`es_photo` WHERE PID=#{goodsId} AND PHOTO_URL=#{photoUrl} AND
+		PHOTO_TYPE='PHOTO_TYPE_GOODS'
+	</delete>
+	<!-- 查询出店铺所有商品id -->
+	<select id="getgoodsIdList" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT GOODSID FROM `es_goods` WHERE STORE_ID=#{storeId}
+	</select>
+	<!-- 查询店铺信息 -->
+	<select id="getStoreClassifications"
+		parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM `es_store`
+		WHERE STORE_ID=#{storeId}
+	</select>
+	<!-- 查询店铺一级分类 -->
+	<select id="getOneClassifications" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		*
+		FROM
+		es_classification
+		WHERE CLASSIFICATION_ID IN
+		(SELECT
+		PID
+		FROM
+		`es_classification`
+		WHERE CLASSIFICATION_ID IN
+		<foreach collection="classifications" item="classificat"
+			open="(" separator="," close=")">
+			#{classificat}
+		</foreach>
+		)
+	</select>
+	<!-- 查询二级分类 -->
+	<select id="getTwoClassifications" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		*
+		FROM
+		`es_classification`
+		WHERE CLASSIFICATION_ID IN
+		<foreach collection="classifications" item="classificat"
+			open="(" separator="," close=")">
+			#{classificat}
+		</foreach>
+		AND PID=#{pid}
+	</select>
+	<!-- 查询店铺信息 -->
+	<select id="queryStoreById" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		select * from es_store where STORE_ID=#{storeId}
+	</select>
+	<!-- 修改商品销量 -->
+	<update id="updategoodsXiaoliang" parameterType="java.util.Map">
+		update es_goods
+		set
+		PURCHASE_QUANTITY=#{newXiaoliang} where GOODSID=#{GOODSID}
+	</update>
+	<!-- 修改店鋪月销量 -->
+	<update id="updateStoreXiaoliang" parameterType="java.util.Map">
+		UPDATE es_store
+		set MONTH_SALES=#{storeSales} where STORE_ID=#{storeId}
+	</update>
+	<!-- 修改商品信息 -->
+	<update id="updategoods" parameterType="java.util.Map">
+		UPDATE `es_goods`
+		SET
+		`CLASSIFICATION_ID` = #{CLASSIFICATION_ID} ,
+		`GOODS_NAME` =
+		#{GOODS_NAME} , `PRESENT_PRICE` =
+		#{PRESENT_PRICE},`INVENTORY`=#{INVENTORY},`GOODS_ICON`=#{GOODS_ICON}
+		,`DETAILS`=#{DETAILS},`GOODS_STATE`='GOODS_STATE_DSH'
+		WHERE
+		`GOODSID` =
+		#{goodsId};
+	</update>
+</mapper>

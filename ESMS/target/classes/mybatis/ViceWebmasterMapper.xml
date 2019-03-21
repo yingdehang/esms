@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.webmaster.ViceWebmasterDao">
+	<!-- 查询副站长列表 -->
+	<select id="queryvicemasterlist" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT u.*,uc.`STATE` AS isCertification FROM es_users u
+		LEFT JOIN
+		es_user_certification uc ON u.`USERS_ID`=uc.`USERS_ID`
+		<where>
+			u.IS_FZZ=1
+			<if test="phone != null and phone !=''">
+				AND u.`PHONE`like concat('%',#{phone},'%')
+			</if>
+		</where>
+		ORDER BY u.`IS_F_TIME` DESC
+		limit #{page},#{limit}
+	</select>
+	<!-- 查询副站长总数 -->
+	<select id="queryvicemasterlistCount"
+		parameterType="java.util.Map" resultType="int">
+		SELECT count(*) FROM es_users u
+		LEFT JOIN
+		es_user_certification uc ON
+		u.`USERS_ID`=uc.`USERS_ID`
+		<where>
+			u.IS_FZZ=1
+			<if test="phone != null and phone !=''">
+				AND u.`PHONE`=#{phone}
+			</if>
+		</where>
+	</select>
+	<!-- 验证是否是注册用户 -->
+	<select id="isregisterUser" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM es_users WHERE PHONE=#{masterPhone}
+	</select>
+	<!-- 验证推荐者手机号是否有效 -->
+	<select id="presenterPhone" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT DISTINCT
+		u.*
+		FROM
+		es_users u
+		LEFT JOIN es_store s
+		ON
+		u.`USERS_ID`
+		=
+		s.`USERS_ID`
+		LEFT JOIN es_store_certification sc
+		ON
+		s.`STORE_ID` =
+		sc.`STORE_ID`
+		WHERE u.`PHONE` = #{upPhone}
+		AND (
+		sc.`TYPES` =
+		'STORE_XS_XS'
+		OR
+		u.`IS_ZZ` = '1'
+		OR
+		u.`IS_FZZ` = '1'
+		);
+	</select>
+	<!-- 设置副站长 -->
+	<update id="updateUserIsFzz" parameterType="java.util.Map">
+		UPDATE es_users SET
+		IS_FZZ='1',IS_F_TIME=NOW(),IS_FZZ_UP=#{upPhone} WHERE
+		PHONE=#{masterPhone}
+	</update>
+	<!-- 查询该推荐者已经推荐了多少人 -->
+	<select id="presenterNumber" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(*) FROM `es_users` WHERE IS_FZZ='1' AND
+		IS_FZZ_UP=#{upPhone}
+	</select>
+	<!-- 添加收益流水 -->
+	<insert id="insertRunningWater" parameterType="java.util.Map">
+		INSERT
+		es_running_water
+		VALUES(#{uuid},#{userId},'1',#{money},NOW(),'推荐奖励','0');
+	</insert>
+	<!-- 添加零花钱收支 -->
+	<insert id="insertPocketMoney" parameterType="java.util.Map">
+		INSERT
+		es_pocket_money VALUES(#{uuid},#{userId},#{money},NOW(),'1','推荐奖励');
+	</insert>
+	<!-- 添加推荐者零花钱 -->
+	<update id="addPersenterPocketMoney"
+		parameterType="java.util.Map">
+		UPDATE es_users SET POCKETMONEY=POCKETMONEY + #{money}
+		WHERE
+		USERS_ID=#{userId}
+	</update>
+	<!-- 撤销副站长 -->
+	<update id="cancelViceMaster" parameterType="java.lang.String">
+		UPDATE es_users SET
+		IS_FZZ='0' WHERE
+		USERS_ID=#{userId}
+	</update>
+</mapper>

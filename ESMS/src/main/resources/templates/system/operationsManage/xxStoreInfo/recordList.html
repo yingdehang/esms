@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>线下店铺内容审核</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div style="padding-bottom: 10px; border-bottom: 2px solid #5FB878">
+		<h2>
+			<a href="javascript:history.back(-1)">线下店铺审核列表</a>>线下店铺内容审核记录
+		</h2>
+	</div>
+	<div id="search" class="layui-form layui-form-pane">
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 120px">店家手机号</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="phone" />
+			</div>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+	</div>
+	<table class="layui-table"
+		lay-data="{page: true,url:'/xxstore/getrecordlistlist',id:'xxstorelist'}"
+		lay-filter="operation">
+		<thead>
+			<tr>
+				<th
+					lay-data="{toolbar:'#indexnumber',width:100, sort: true, align: 'center'}">编号</th>
+				<th lay-data="{field:'STORE_NAME', width:100, align: 'center'}">店铺名</th>
+				<th lay-data="{field:'UC_NAMES',sort: true, align: 'center'}">店主姓名</th>
+				<th lay-data="{field:'PHONE', align: 'center'}">店主手机号</th>
+				<th lay-data="{toolbar:'#ADDRESS', sort: true, align: 'center'}">区域</th>
+				<th lay-data="{field:'ADDTIME',sort: true, align: 'center'}">添加时间</th>
+				<th lay-data="{align: 'center',maxWidth: 500,toolbar:'#toolbar'}">审核状态</th>
+			</tr>
+		</thead>
+	</table>
+	<script type="text/html" id="toolbar">
+		{{# if(d.INFO_STATE=='3'){}}
+			审核失败（{{d.CONTENT}}）
+		{{#}else if(d.INFO_STATE=='4'){}}
+			审核通过
+		{{#}}}
+	</script>
+	<script type="text/html" id="indexnumber">
+		{{d.LAY_INDEX}}
+	</script>
+	<script type="text/html" id="ADDRESS">
+		{{d.PROVINCE}}{{d.CITY}}{{d.AREA}}
+	</script>
+	<script th:src="@{/layui/layui.js}"></script>
+	<script type="text/javascript">
+		layui.use(['table','element'], function() {
+			var table = layui.table;
+			var $ = layui.jquery;
+			<!-- 监听搜索按钮 -->
+			$('#search .layui-btn').on('click', function(){
+				var type = $(this).data('type');
+				active[type] ? active[type].call(this) : '';
+			});
+			<!-- 搜索 -->
+			var active = {
+				<!-- 搜索时执行重载-->
+				reload: function(){
+					var phone = $("#phone").val();
+					//执行重载
+					table.reload('xxstorelist', {
+						where: {
+							phone:phone
+						}
+					});
+				}
+			};
+		});
+	</script>
+</body>
+</html>

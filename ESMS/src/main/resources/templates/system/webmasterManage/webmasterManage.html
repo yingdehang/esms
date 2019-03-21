@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>站长管理页面</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<style type="text/css">
+#province1, #city1, #area1 {
+	width: 98%;
+	height: 100%;
+}
+
+#userphone, #zzyqr {
+	width: 95%;
+	height: 100%;
+}
+
+.addtablewebmaster {
+	text-align: center;
+}
+
+.addtablewebmaster td {
+	text-align: left;
+	padding: 10px;
+	width: 210px;
+	height: 32px;
+	line-height: 32px;
+}
+</style>
+</head>
+<body class="layui-layout-body">
+	<!-- 站长管理页面顶部 -->
+	<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label>站长管理</label>
+		</div>
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			<button th:if="${addWebmaster}" class="layui-btn layui-btn-primary layui-btn-xs"
+				data-type="addWebmaster">添加站长</button>
+			<button class="layui-btn layui-btn-primary layui-btn-xs"
+				data-type="settlementRecords">结算记录</button>
+		</div>
+	</div>
+	<!-- 收索栏 -->
+	<div class="layui-form layui-form-pane demoTable">
+		<div class="layui-form-item">
+			<label class="layui-form-label">区域</label>
+			<div class="layui-input-inline">
+				<select id="province" lay-search="" lay-filter="province">
+					<option value="">请选择省</option>
+					<option th:each="province:${provincelist}"
+						th:value="${province.CITY_CODE}" th:text="${province.CITY_NAME}">省</option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select id="city" lay-filter="city">
+					<option value="">请选择市</option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select id="area">
+					<option value="">请选择县/区</option>
+				</select>
+			</div>
+			<div class="layui-inline">
+				<label class="layui-form-label">手机号</label>
+				<div class="layui-input-inline">
+					<input class="layui-input" id="phone" type="text" />
+				</div>
+			</div>
+			<div class="layui-inline">
+				<label class="layui-form-label">用户姓名</label>
+				<div class="layui-input-inline">
+					<input class="layui-input" id="userName" type="text" />
+				</div>
+			</div>
+			<button class="layui-btn" data-type="relocad">查询</button>
+		</div>
+	</div>
+	<!-- 站长list信息 -->
+	<div class="tablebox">
+		<table class="layui-table" id="webmasterlist" lay-filter="operating"></table>
+	</div>
+	<script type="text/html" id="indexnumber">
+		{{d.LAY_INDEX}}
+	</script>
+	<script type="text/html" id="zhanzhangxinxi">
+		<div class="layui-inline">
+			{{d.UC_NAMES}}<span>，电话:</span>{{d.PHONE}}
+		</div>		
+	</script>
+	<script type="text/html" id="toolbar">
+  		<a th:if="${cancelWebmaster}" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">撤销站长</a>
+  		<a th:if="${webmasterSettlement}" class="layui-btn layui-btn-xs" lay-event="edit">站长结算</a>
+		<a th:if="${seeWebmasterWater}" class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">查看流水</a>
+	</script>
+	<div class="layui-form layui-form-pane" id="jesbox"
+		style="display: none; padding: 15px 15px 0px 15px">
+		<div class="layui-form-item">
+			<label class="layui-form-label">结算金额</label>
+			<div class="layui-input-block">
+				<input id="jinge" class="layui-input" type="number"
+					placeholder="请输入结算金额" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-form-text">
+			<label class="layui-form-label">备注信息</label>
+			<div class="layui-input-block">
+				<textarea id="cname" class="layui-textarea" placeholder="请输入备注信息"></textarea>
+			</div>
+		</div>
+	</div>
+	<div id="addwebmasterbox" style="display: none; padding: 15px 15px 0px 15px">
+		<table class="addtablewebmaster">
+			<tr>
+				<td style="width: 180px;">选择站长区域：</td>
+				<td><select id="province1" onchange="queryAreaList1(this);">
+						<option value="">请选择省</option>
+						<option th:each="province:${provincelist}"
+							th:value="${province.CITY_CODE}" th:text="${province.CITY_NAME}">省</option>
+				</select></td>
+				<td><select id="city1" onchange="queryAreaList2(this);">
+						<option value="">请选择市</option>
+				</select></td>
+				<td><select id="area1" onchange="queryAreaList3(this)">
+						<option value="">请选择县/区</option>
+				</select></td>
+			</tr>
+			<tr>
+				<td style="width: 180px;">用户手机号：</td>
+				<td colspan="3"><input type="number" id="userphone"
+					placeholder="请输入已注册并通过实名认证的用户手机号" onblur="iszhuceyonghu(this);" /><span
+					id="onephone">*</span></td>
+			</tr>
+			<tr>
+				<td style="width: 180px;">邀请人手机号：</td>
+				<td colspan="3"><input type="number" id="zzyqr"
+					placeholder="请输入邀请人,填写自己手机号等同于无邀请人，非必填"
+					onblur="yonghuishave(this);" /><span id="twophone">*</span></td>
+			</tr>
+		</table>
+		<div style="width: 100%; text-align: left;">
+			<span id="addwebmastertishi"></span> <span id="zzyqrtishi"></span>
+		</div>
+	</div>
+</body>
+<script th:src="@{/js/jquery-1.4.4.min.js}"></script>
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/webmasterJsFile/webmasterManage.js}"></script>
+</html>

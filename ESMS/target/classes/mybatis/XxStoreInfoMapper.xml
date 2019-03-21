@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.operationsManage.XxStoreInfoDao">
+	<!-- 查询线下店铺内容审核list -->
+	<select id="getXxStoreInfolist" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		info.*,
+		store.`STORE_NAME`,
+		certification.`UC_NAMES`,
+		users.`PHONE`,
+		certi.`PROVINCE`,
+		certi.`CITY`,
+		certi.`AREA`
+		FROM
+		`es_store_xx_info` info
+		INNER JOIN es_store store
+		ON info.`STORE_ID` =
+		store.`STORE_ID`
+		INNER JOIN es_store_certification certi
+		ON
+		certi.`STORE_ID` = store.`STORE_ID`
+		INNER JOIN es_users users
+		ON
+		store.`USERS_ID` = users.`USERS_ID`
+		INNER JOIN es_user_certification
+		certification
+		ON certification.`USERS_ID` = users.`USERS_ID`
+		WHERE
+		<if test="type == 2">
+			info.`INFO_STATE`='2'
+		</if>
+		<if test="type != 2">
+			info.`INFO_STATE`!='2'
+		</if>
+		<if test="null!=phone and phone!=''">
+			AND users.`PHONE` like concat('%',#{phone},'%')
+		</if>
+		ORDER BY
+		info.`ADDTIME` ASC
+		limit #{page},#{limit}
+	</select>
+	<!-- 查询线下店铺内容审核list的country -->
+	<select id="getXxStoreInfolistcount"
+		parameterType="java.util.Map" resultType="int">
+		SELECT
+		count(*)
+		FROM
+		`es_store_xx_info` info
+		INNER JOIN
+		es_store store
+		ON
+		info.`STORE_ID` =
+		store.`STORE_ID`
+		INNER JOIN
+		es_store_certification
+		certi
+		ON
+		certi.`STORE_ID` = store.`STORE_ID`
+		INNER JOIN es_users users
+		ON
+		store.`USERS_ID` = users.`USERS_ID`
+		INNER
+		JOIN es_user_certification
+		certification
+		ON certification.`USERS_ID` =
+		users.`USERS_ID`
+		WHERE
+		<if test="type == 2">
+			info.`INFO_STATE`='2'
+		</if>
+		<if test="type != 2">
+			info.`INFO_STATE`!='2'
+		</if>
+		<if test="null!=phone and phone!=''">
+			AND users.`PHONE` like concat('%',#{phone},'%')
+		</if>
+	</select>
+	<!-- 查询地区名称 -->
+	<select id="queryCityName" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		select `CITY_NAME` from es_area where CITY_CODE=#{citycode}
+	</select>
+	<!-- 查询线下店铺内容详情 -->
+	<select id="getXxStoreInfoById" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT
+		info.*,
+		store.`STORE_NAME`,
+		certification.`UC_NAMES`,
+		users.`PHONE`,
+		certi.`PROVINCE`,
+		certi.`CITY`,
+		certi.`AREA`
+		FROM
+		`es_store_xx_info` info
+		INNER JOIN es_store store
+		ON info.`STORE_ID` =
+		store.`STORE_ID`
+		INNER JOIN es_store_certification certi
+		ON
+		certi.`STORE_ID` = store.`STORE_ID`
+		INNER JOIN es_users users
+		ON
+		store.`USERS_ID` = users.`USERS_ID`
+		INNER JOIN es_user_certification
+		certification
+		ON certification.`USERS_ID` = users.`USERS_ID`
+		WHERE
+		info.`INFO_STATE`='2'
+		and info.`ESXID`=#{ESXID}
+	</select>
+	<update id="updateStoreInfoState" parameterType="java.util.Map">
+		UPDATE
+		`es_store_xx_info` SET `INFO_STATE` = #{infoState},
+		`CONTENT`=#{content}
+		WHERE `ESXID` = #{ESXID};
+	</update>
+</mapper>

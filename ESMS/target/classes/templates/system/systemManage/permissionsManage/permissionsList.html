@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>权限管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div style="width: 100%; height: 32px;">
+		<div class="layui-form layui-form-pane" th:if="${query.isHave} gt '0'"
+			style="float: left;">
+			<div class="layui-inline">
+				<label class="layui-form-label">请选择菜单<input type="hidden"
+					id="menuPermissionsUrl" th:value="${query.PERMISSIONS_URL}" /></label>
+				<div class="layui-input-inline">
+					<select id="MENU_ID" lay-search="" lay-filter="menuPermissions">
+						<option id="deleteOption" value="a12" selected="selected">菜单管理</option>
+						<optgroup th:each="list:${menuList}" th:label="*{list.MENU_NAME}"
+							label="主菜单">
+							<option th:each="li:${list.sonMenuList}" th:value="*{li.MENU_ID}"
+								th:text="*{li.MENU_NAME}">子菜单</option>
+						</optgroup>
+					</select>
+				</div>
+			</div>
+		</div>
+		<div style="float: right;">
+			<div class="site-demo-button" th:if="${add.isHave} gt '0'"
+				id="addMenu" style="margin-bottom: 0; float: left;">
+				<button class="layui-btn" data-method="addPERMISSIONS"
+					data-type="auto">添加</button>
+				<input type="hidden" th:unless="null eq ${add.PERMISSIONS_URL}"
+					id="addPERMISSIONS_URL" th:value="${add.PERMISSIONS_URL}" />
+			</div>
+		</div>
+	</div>
+	<table class="layui-table" lay-filter="demo"
+		lay-data="{url:'/permissions/getpermissionsList',page:true,id:'permissionList'}">
+		<thead>
+			<tr>
+				<th lay-data="{fixed: 'left', toolbar: '#numberindex'}">编号</th>
+				<th
+					lay-data="{field:'PERMISSIONS_NAME', event: 'setPERMISSIONS_NAME'}">权限名称</th>
+				<th
+					lay-data="{field:'PERMISSIONS_URL', event: 'setPERMISSIONS_URL', style:'cursor: pointer;'}">权限URL</th>
+				<th lay-data="{field:'PERMISSIONS_CODE'}">权限编码</th>
+				<th lay-data="{field:'MENU_NAME'}">所属菜单名称</th>
+				<th lay-data="{fixed: 'right', align:'center', toolbar: '#barDemo'}">操作</th>
+			</tr>
+		</thead>
+	</table>
+	<div class="layui-form layui-form-pane" id="addbox"
+		th:if="${add.isHave} gt '0'"
+		style="width: 300px; margin: 20px auto; text-align: center; display: none;">
+		<div class="layui-form-item">
+			<label class="layui-form-label">权限名称</label>
+			<div class="layui-input-block">
+				<input id="PERMISSIONS_NAME" class="layui-input" type="text"
+					placeholder="请输入权限名称" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">权限URL</label>
+			<div class="layui-input-block">
+				<input id="PERMISSIONS_URL" class="layui-input" type="text"
+					placeholder="请输入权限URL" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">权限CODE</label>
+			<div class="layui-input-block">
+				<input id="PERMISSIONS_CODE" class="layui-input" type="text"
+					placeholder="权限CODE" autocomplete="off" />
+			</div>
+		</div>
+	</div>
+	<script id="numberindex" type="text/html">
+			{{d.LAY_INDEX}}
+	</script>
+	<script id="barDemo" type="text/html">
+			<a th:if="${delete.isHave} gt '0'" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+	</script>
+	<input type="hidden" id="updateUrl" th:if="${update.isHave} gt '0'"
+		th:value="${update.PERMISSIONS_URL}" />
+	<input type="hidden" id="deleteUrl" th:if="${delete.isHave} gt '0'"
+		th:value="${delete.PERMISSIONS_URL}" />
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/systemManageJsFile/permissionsManage.js}"></script>
+</html>

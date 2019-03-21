@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.operationsManage.StoreDao">
+	<!-- 未分页的店铺数据 -->
+	<select id="getStoreList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		s.STORE_ID
+		,s.STORE_NAME
+		,u.`PHONE`
+		,sc.CLASSIFICATION_NAME
+		,s.SERVICE_PHONE
+		,s.OPEN_SHOP_TIME AS `TIME`
+		,s.SUM_BROWSE_NUMBER
+		,s.SUM_BUY_NUMBER
+		,s.MONTH_SALES
+		,d1.DESCRIBES AS STATE
+		,d2.DESCRIBES AS AUDIT_STATE 
+		FROM 
+		es_store s
+		LEFT OUTER JOIN es_users u ON s.USERS_ID=u.`USERS_ID` 
+		LEFT OUTER JOIN es_store_classification sc ON s.STORE_CLASSIFICATION_ID=sc.STORE_CLASSIFICATION_ID 
+		LEFT OUTER JOIN es_dictionary d1 ON s.STATE=d1.DICTIONARY_VALUE 
+		LEFT OUTER JOIN es_store_certification sce ON s.STORE_ID=sce.STORE_ID 
+		LEFT OUTER JOIN es_dictionary d2 ON sce.AUDIT_STATE=d2.DICTIONARY_VALUE
+		<where>
+			<if test="storeName != null and storeName != ''">
+				AND s.STORE_NAME LIKE concat('%',#{storeName},'%')
+			</if>
+			<if test="phoneNumber != null and phoneNumber != ''">
+				AND u.PHONE=#{phoneNumber}
+			</if>
+			<if test="storeStates != null and storeStates != ''">
+				AND d1.DICTIONARY_VALUE=#{storeStates}
+			</if>
+		</where>
+	</select>
+	<!-- 已分页的店铺数据 -->
+	<select id="getStoreListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		s.STORE_ID
+		,s.STORE_NAME
+		,u.`PHONE`
+		,sc.CLASSIFICATION_NAME
+		,s.SERVICE_PHONE
+		,s.OPEN_SHOP_TIME AS `TIME`
+		,s.SUM_BROWSE_NUMBER
+		,s.SUM_BUY_NUMBER
+		,s.MONTH_SALES
+		,d1.DESCRIBES AS STATE
+		,d2.DESCRIBES AS AUDIT_STATE 
+		FROM 
+		es_store s
+		LEFT OUTER JOIN es_users u ON s.USERS_ID=u.`USERS_ID` 
+		LEFT OUTER JOIN es_store_classification sc ON s.STORE_CLASSIFICATION_ID=sc.STORE_CLASSIFICATION_ID 
+		LEFT OUTER JOIN es_dictionary d1 ON s.STATE=d1.DICTIONARY_VALUE 
+		LEFT OUTER JOIN es_store_certification sce ON s.STORE_ID=sce.STORE_ID 
+		LEFT OUTER JOIN es_dictionary d2 ON sce.AUDIT_STATE=d2.DICTIONARY_VALUE
+		<where>
+			<if test="storeName != null and storeName != ''">
+				AND s.STORE_NAME LIKE concat('%',#{storeName},'%')
+			</if>
+			<if test="phoneNumber != null and phoneNumber != ''">
+				AND u.PHONE=#{phoneNumber}
+			</if>
+			<if test="storeStates != null and storeStates != ''">
+				AND d1.DICTIONARY_VALUE=#{storeStates}
+			</if>
+		</where>
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 获取店铺状态列表 -->
+	<select id="getStoreStatesList" resultType="java.util.Map">
+		SELECT * FROM es_dictionary WHERE PID='27'
+	</select>
+	<!-- 获取店铺分类 -->
+	<select id="getStoreClassList" resultType="java.util.Map">
+		select * from es_store_classification
+	</select>
+	<!-- 判断店铺是否重名 -->
+	<select id="getStoreByName" parameterType="java.util.Map" resultType="java.util.Map">
+		select * from es_store where STORE_NAME=#{storeName}
+		<if test="storeId!=null">
+			AND STORE_Id!=#{storeId}
+		</if>
+	</select>
+	<!-- 保存店铺基本信息 -->
+	<insert id="addStore" parameterType="java.util.Map">
+		INSERT INTO es_store 
+		(STORE_ID
+		,STORE_CLASSIFICATION_ID
+		,STORE_NAME
+		,SERVICE_PHONE
+		,OPEN_SHOP_TIME
+		,SUM_BROWSE_NUMBER
+		,SUM_BUY_NUMBER
+		,STATE
+		,MONTH_SALES) 
+		VALUES
+		(#{storeId},#{storeClass},#{storeName},#{servicePhone},NOW(),0,0,#{storeStates},0)
+	</insert>
+	<!-- 保存图片信息 -->
+	<insert id="addPhoto" parameterType="java.util.Map">
+		INSERT INTO es_photo 
+		(PHOTO_ID
+		,PHOTO_NAME
+		,PHOTO_URL
+		,ADD_TIME
+		,PHOTO_TYPE) 
+		VALUES 
+		(#{iconId},#{fileName},#{path},NOW(),'PHOTO_TYPE_STORE_DOOR_HEAD')
+	</insert>
+	<!-- 将图片Id保存到店铺表里面 -->
+	<update id="addIconId" parameterType="java.util.Map">
+		UPDATE es_store SET STORE_ICON=#{iconId} WHERE STORE_ID=#{storeId}	
+	</update>
+	<!-- 获取某个店铺的信息 -->
+	<select id="getStoreInfo" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_store s LEFT OUTER JOIN es_photo p ON s.STORE_ICON=p.PHOTO_ID WHERE s.STORE_ID=#{storeId}
+	</select>
+	<!-- 修改店铺基本信息 -->
+	<update id="editStore" parameterType="java.util.Map">
+		UPDATE es_store SET STORE_NAME=#{storeName},SERVICE_PHONE=#{servicePhone},STORE_CLASSIFICATION_ID=#{storeClass},STATE=#{storeStates} WHERE STORE_ID=#{storeId}
+	</update>
+	<!-- 删除原来表中的图片信息 -->
+	<delete id="deletIcon" parameterType="java.lang.String">
+		delete from es_photo where PHOTO_ID=#{iId}
+	</delete>
+	<!-- 修改店铺的图标Id -->
+	<update id="updateIconId" parameterType="java.util.Map">
+		update es_store set STORE_ICON=#{iconId} where STORE_ID=#{storeId}
+	</update>
+</mapper>

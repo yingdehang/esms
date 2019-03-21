@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>商品分类管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body class="layui-layout-body">
+	<!-- 商品分类管理顶部 -->
+	<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label><span id="oneClass">一级分类</span><span id="twoClass">
+					>>二级分类</span><span id="threeClass"> >>三级分类</span></label>
+		</div>
+	</div>
+	<div style="width: 100%; height: 32px;">
+		<div class="demoTable" th:if="${query.isHave} gt '0'"
+			style="float: left;">
+			搜索字段：
+			<div class="layui-inline">
+				<input name="classificationName" class="layui-input"
+					placeholder="请输入分类类名" id="classificationName" autocomplete="off" />
+			</div>
+			<button class="layui-btn" data-type="reload">搜索</button>
+		</div>
+		<div style="float: right;">
+			<div class="site-demo-button" th:if="${add.isHave} gt '0'"
+				id="addclassification" style="margin-bottom: 0; float: left;">
+				<button class="layui-btn" data-method="addclassification"
+					data-type="auto">添加</button>
+				<input type="hidden" th:unless="null eq ${add.PERMISSIONS_URL}"
+					id="addPERMISSIONS_URL" th:value="${add.PERMISSIONS_URL}" />
+			</div>
+			<div class="demoTable" id="queryparent"
+				style="display: none; float: left; margin-left: 10px;">
+				<input type="hidden" id="addclassificationPid" value="0" />
+				<button class="layui-btn" data-type="reParentMenu">返回父菜单</button>
+			</div>
+		</div>
+	</div>
+	<table class="layui-table" id="classificationlist"
+		lay-filter="demoEvent"></table>
+	<script id="indexunmber" type="text/html">
+			{{d.LAY_INDEX}}
+	</script>
+	<script id="banner" type="text/html">
+		<img src="{{d.ICON_BANNER}}" title="分类banner,点击可以修改分类banner" width="40px" height="40px" />
+	</script>
+	<script id="chaozuo" type="text/html">
+		{{# if(d.isHaveSon>0){ }}
+			<a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="queryson">查看下级</a>
+		{{# }else{ }}
+			<a th:if="${add.isHave} gt '0'" class='layui-btn layui-btn-xs' lay-event="addsonclassification">添加子类</a>
+			<a th:if="${delete.isHave} gt '0'" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		{{# }}}
+	</script>
+	<input type="hidden" id="updateUrl" th:if="${update.isHave} gt '0'"
+		th:value="${update.PERMISSIONS_URL}" />
+	<input type="hidden" id="deleteUrl" th:if="${delete.isHave} gt '0'"
+		th:value="${delete.PERMISSIONS_URL}" />
+	<div class="layui-form layui-form-pane" id="addbox"
+		th:if="${add.isHave} gt '0'"
+		style="width: 300px; margin: 20px auto; text-align: center; display: none;">
+		<div class="layui-form-item" id="updatehide">
+			<label class="layui-form-label">商品类型</label>
+			<div class="layui-input-block">
+				<input id="CLASSIFICATION_NAME" class="layui-input" type="text"
+					placeholder="请输入分类名称" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item" id="istwo">
+			<label class="layui-form-label">BANNER</label>
+			<div class="layui-inline">
+				<button class="layui-btn" id="test1" type="button">选择图标</button>
+			</div>
+			<div class="layui-inline"
+				style="width: 40px; heigth: 40px; line-height: 100%;">
+				<i class="layui-icon" id="showuploadBanner"
+					style="font-size: 30px; line-height: 100%;">&#xe64a;</i>
+			</div>
+			<input type="hidden" id="ICON_BANNER" />
+		</div>
+	</div>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/systemManageJsFile/classificationManage.js}"></script>
+</html>

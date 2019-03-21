@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>站长管理页面</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<!-- 账户数据顶部 -->
+	<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label><a href="/webmasterManage/toWebmasterManageHtml">站长管理</a>
+				>>结算记录</label>
+		</div>
+	</div>
+	<!-- 收索栏 -->
+	<div class="layui-form layui-form-pane demoTable">
+		<div class="layui-form-item">
+			<label class="layui-form-label">区域</label>
+			<div class="layui-input-inline">
+				<select id="province" lay-filter="province">
+					<option value="">请选择省</option>
+					<option th:each="province:${provincelist}"
+						th:value="${province.CITY_CODE}" th:text="${province.CITY_NAME}">省</option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select id="city" lay-filter="city">
+					<option value="">请选择市</option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select id="area" lay-filter="area">
+					<option value="">请选择县/区</option>
+				</select>
+			</div>
+			<div class="layui-inline">
+				<label class="layui-form-label">手机号</label>
+				<div class="layui-input-inline">
+					<input class="layui-input" id="phone" type="text" />
+				</div>
+			</div>
+			<div class="layui-inline">
+				<label class="layui-form-label">用户姓名</label>
+				<div class="layui-input-inline">
+					<input class="layui-input" id="phone" type="text" />
+				</div>
+			</div>
+			<div class="layui-inline">
+				<label class="layui-form-label">结算时间</label>
+				<div class="layui-input-inline">
+					<input class="layui-input" id="startTime" type="text"
+						placeholder="yyyy-MM-dd HH:mm:ss" />
+				</div>
+				<div class="layui-form-mid">-</div>
+				<div class="layui-input-inline">
+					<input class="layui-input" id="endTime" type="text"
+						placeholder="yyyy-MM-dd HH:mm:ss" />
+				</div>
+			</div>
+			<button class="layui-btn" data-type="relocad">查询</button>
+		</div>
+	</div>
+	<!-- 账户信息 -->
+	<div class="tablebox">
+		<table class="layui-table" id="webmasterlist" lay-filter="operating"></table>
+	</div>
+	<script type="text/html" id="indexnumber">
+		{{d.LAY_INDEX}}
+	</script>
+	<script type="text/html" id="zhanzhangxinxi">
+		<div class="layui-inline">
+			{{d.UC_NAMES}}<span>，电话:</span>{{d.PHONE}}
+		</div>		
+	</script>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/webmasterJsFile/settlementRecord.js}"></script>
+</html>

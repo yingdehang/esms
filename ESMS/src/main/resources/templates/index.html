@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>象本商城后台管理系统</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body class="layui-layout-body">
+	<div class="layui-layout layui-layout-admin">
+		<div class="layui-header">
+			<div class="layui-logo">象本商城后台管理系统</div>
+			<!-- 头部区域（可配合layui已有的水平导航） -->
+			<!-- <ul class="layui-nav layui-layout-left">
+				<li class="layui-nav-item"><a href="">控制台</a></li>
+				<li class="layui-nav-item"><a href="">商品管理</a></li>
+				<li class="layui-nav-item"><a href="">用户</a></li>
+				<li class="layui-nav-item"><a href="javascript:;">其它系统</a>
+					<dl class="layui-nav-child">
+						<dd>
+							<a href="">邮件管理</a>
+						</dd>
+						<dd>
+							<a href="">消息管理</a>
+						</dd>
+						<dd>
+							<a href="">授权管理</a>
+						</dd>
+					</dl></li>
+			</ul> -->
+			<ul class="layui-nav layui-layout-right">
+				<li class="layui-nav-item"><a href="javascript:;"> <img
+						id="userhead" th:src="${userInfo.HEAD}" class="layui-nav-img" />
+						<span th:text="${userInfo.NICKNAME}">用户名</span>
+				</a>
+					<dl class="layui-nav-child">
+						<dd>
+							<a href="javascript:updateHeadBox();">更改头像</a>
+						</dd>
+						<!-- <dd>
+							<a href="">修改密码</a>
+						</dd> -->
+					</dl></li>
+				<li class="layui-nav-item"><a
+					th:href="@{/login/outlogin(PHONE=${userInfo.PHONE})}">退了</a></li>
+			</ul>
+		</div>
+		<div class="layui-side layui-bg-black">
+			<div class="layui-side-scroll">
+				<!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+				<ul class="layui-nav layui-nav-tree" lay-filter="test">
+					<li class="layui-nav-item" th:each="li:${list}"><a
+						th:href="@{${li.MENU_URL}}" th:text="*{li.MENU_NAME}">test</a>
+						<dl class="layui-nav-child" th:each="lis:${li.sonMenuList}">
+							<dd>
+								<a
+									th:href="@{${lis.MENU_URL}(userId=${lis.USERS_ID},menuId=${lis.MENU_ID})}"
+									target="myFrameName" th:text="*{lis.MENU_NAME}"></a>
+							</dd>
+						</dl></li>
+				</ul>
+			</div>
+		</div>
+		<div class="layui-body" style="padding: 15px;">
+			<iframe id="myFrameId" name="myFrameName" frameborder="0"
+				style="width: 100%; height: 99%;"></iframe>
+		</div>
+		<div class="layui-footer" style="text-align: center;">
+			<span>Copyright © 2018 重庆添购科技有限公司 版权所有</span>
+		</div>
+	</div>
+	<input type="hidden" id="userId" th:value="${userInfo.USERS_ID}" />
+	<script th:src="@{/layui/layui.js}"></script>
+	<script th:src="@{/js/jquery-1.4.4.min.js}"></script>
+	<script type="text/javascript">
+		layui
+				.use(
+						[ 'upload', 'element' ],
+						function() {
+							var upload = layui.upload, element = layui.element, $ = layui.$;
+							var uploadInst = upload
+									.render({
+										elem : '#test1',
+										url : '/image/uploadUserhead',
+										done : function(res) {
+											//如果上传失败
+											if (res.code > 0) {
+												return layer.msg('上传失败');
+											}
+											//上传成功
+											$('#demoText')
+													.html(
+															'<span id="demoText"><i class="layui-icon" style="font-size: 30px; color: green;">&#xe616;</i></span>');
+											$('#userHead').val(res.data.src);
+										},
+										error : function() {
+											//演示失败状态，并实现重传
+											var demoText = $('#demoText');
+											demoText
+													.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+											demoText.find('.demo-reload').on(
+													'click', function() {
+														uploadInst.upload();
+													});
+										}
+									});
+						});
+		function updateHeadBox() {
+			layui.use([ 'layer' ], function() {
+				var layer = layui.layer, $ = layui.$;
+
+				layer.open({
+					type : 1,
+					content : $('#updatebox'),
+					btn : [ '确认修改', '取消修改' ],
+					btnAlign : 'c' //按钮居中
+					,
+					shade : 0 //不显示遮罩
+					,
+					yes : function() {
+						var userId = $('#userId').val();
+						var userHead = $('#userHead').val();
+						$.post("/systemUser/updateUserHead", {
+							userId : userId,
+							userHead : userHead
+						}, function(d) {
+							if (d > 0) {
+								$("#userhead").attr("src", userHead);
+							} else {
+								layer.msg("系统错误");
+							}
+						});
+						layer.closeAll();
+					},
+					btn2 : function() {
+						layer.closeAll();
+					}
+				});
+				$('#userHead').val("");
+				$('#demoText').html('<p id="demoText"></p>');
+			});
+		}
+		//定时器
+		var timer = window.setInterval(function() {
+			$.post("/login/isTimeout", {}, function(d) {
+				if (d > 0) {
+				} else {
+					clearInterval(timer);
+					top.location.href = '/login/login';
+				}
+			})
+		}, 2000);
+	</script>
+	<div class="layui-form layui-form-pane" id="updatebox"
+		style="padding: 15px 15px 0px 15px; text-align: center; display: none;">
+		<div class="layui-form-item">
+			<label class="layui-form-label">头像</label>
+			<div class="layui-input-inline" style="width: 110px">
+				<button class="layui-btn layui-btn-primary" id="test1" type="button">
+					<i class="layui-icon"></i>上传头像
+				</button>
+			</div>
+			<div class="layui-input-inline"
+				style="line-height: 40px; width: 90px">
+				<p id="demoText"></p>
+			</div>
+		</div>
+		<input type="hidden" id="userHead" />
+	</div>
+</body>
+</html>

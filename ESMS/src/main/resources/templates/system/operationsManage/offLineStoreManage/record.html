@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>认证记录</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<h2><a href="javascript:history.back(-1)">线下店铺审核</a>><a href="javascript:void(0)" onclick="location.reload()">认证记录</a></h2>
+	</div>
+	<div id="search" class="layui-form layui-form-pane">
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:90px">店铺名称</label>
+			<div class="layui-input-inline" style="width:160px">
+				<input class="layui-input" id="storeName" autocomplete="off"/>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:120px">用户手机号</label>
+			<div class="layui-input-inline" style="width:160px">
+				<input class="layui-input" id="phone" autocomplete="off"/>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:90px">店铺分类</label>
+			<div class="layui-input-inline" style="width:100px">
+				<select id="storeClass">
+					<option value="">请选择</option>
+					<option th:each="storeClass:${storeClass}" th:value="${storeClass.STORE_CLASSIFICATION_ID}" th:text="${storeClass.CLASSIFICATION_NAME}"></option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:90px">认证状态</label>
+			<div class="layui-input-inline" style="width:100px">
+				<select id="verifyState">
+					<option value="">请选择</option>
+					<option th:each="verifyState:${verifyState}" th:value="${verifyState.DICTIONARY_VALUE}" th:text="${verifyState.DESCRIBES}"></option>
+				</select>
+			</div>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+	</div>
+
+	<table id="verifyRecord" lay-filter="operation"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+layui.use(['table','jquery','form'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#verifyRecord'
+		,url: '/offLineStore/getVerifyRecord'
+		,page: true
+		,cols:[[
+			{field:'STORE_NAME',title:'店铺名称',width:100}
+			,{field:'userPhone',title:'用户电话',width:120}
+			,{field:'PHONE',title:'联系方式',width:120}
+			,{field:'SERVICE_PHONE',title:'客服电话',width:120}
+			,{field:'area',title:'地区'}
+			,{field:'ADDR',title:'详细地址'}
+			,{field:'CLASSIFICATION_NAME',title:'店铺分类'}
+			,{field:'LEVELS',title:'店铺等级'}
+			,{field:'BUSINESS_LICENSE',title:'营业执照',toolbar: '#business_license'}
+			,{field:'ID_CARD_UP',title:'店家身份证正面',toolbar: '#id_card'}
+			,{field:'ID_CARD_DON',title:'店家身份证反面',toolbar: '#id_card_don'}
+			,{field:'HEAD_PHOTO',title:'门头照片',toolbar: '#head_photo'}
+			,{field:'TO_APPLY_FOR_TIME',title:'申请时间'}
+			,{field:'AUDIT_STATE',title:'审核状态'}
+			,{field:'CTIME',title:'操作时间'}
+			,{field:'CUSER',title:'操作人',width:115}
+		]]
+	});
+	<!-- 监听搜索按钮 -->
+	$('#search .layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索 -->
+	var storeName = $("#storeName");
+	var storeClass = $("#storeClass");
+	var verifyState = $("#verifyState");
+	var phone = $("#phone");
+	var $ = layui.$, active = {
+		<!-- 搜索时执行重载-->
+		reload: function(){
+			//执行重载
+			table.reload('verifyRecord', {
+				where: {
+					storeName:storeName.val(),
+					storeClass:storeClass.val(),
+					verifyState:verifyState.val(),
+					phone:phone.val()
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+	};
+});
+function showPhoto(t) {
+	layer.open({
+		type : 1,
+		title : false,
+		maxmin: true, //开启最大化最小化按钮
+	    area: ['1200px', '700px'],
+		anim : 0,
+		skin : 'layui-layer-nobg', //没有背景色
+		shadeClose : true,
+		content : '<img src="'+t.src+'"/>'
+	});
+}
+</script>
+<script type="text/html" id="business_license">
+	<img src="{{d.BUSINESS_LICENSE}}" onclick="showPhoto(this)"/>
+</script>
+<script type="text/html" id="id_card">
+	<img src="{{d.ID_CARD_UP}}" onclick="showPhoto(this)"/>
+</script>
+<script type="text/html" id="id_card_don">
+	<img src="{{d.ID_CARD_DON}}" onclick="showPhoto(this)"/>
+</script>
+<script type="text/html" id="head_photo">
+	<img src="{{d.HEAD_PHOTO}}" onclick="showPhoto(this)"/>
+</script>
+</body>
+</html>

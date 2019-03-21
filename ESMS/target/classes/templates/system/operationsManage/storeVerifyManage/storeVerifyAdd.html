@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="renderer" content="webkit" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>添加店铺</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<blockquote class="layui-elem-quote layui-text" th:text="添加店铺认证信息"></blockquote>
+	<form class="layui-form " method="post" action="/storeVerify/add" enctype="multipart/form-data">
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺ID</label>
+			<div class="layui-input-block">
+				<input name="storeId" class="layui-input" type="text" autocomplete="off" lay-verify="required"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">电话</label>
+			<div class="layui-input-block">
+				<input name="phone" class="layui-input" type="text" autocomplete="off" lay-verify="required|phone"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">地址</label>
+			<div class="layui-input-block">
+				<input name="addr" class="layui-input" type="text" autocomplete="off" lay-verify="required"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺等级</label>
+			<div class="layui-input-block">
+				<select name="storeGrade" lay-verify="required">
+					<option value="">请选择</option>
+					<option th:each="storeGrade:${storeGrade}" th:value="${storeGrade.DICTIONARY_VALUE}" th:text="${storeGrade.DESCRIBES}"></option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺类型</label>
+			<div class="layui-input-block">
+				<select name="storeType" lay-verify="required">
+					<option value="">请选择</option>
+					<option th:each="storeType:${storeType}" th:value="${storeType.DICTIONARY_VALUE}" th:text="${storeType.DESCRIBES}"></option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">类型</label>
+			<div class="layui-input-block">
+				<select name="type" lay-verify="required">
+					<option value="">请选择</option>
+					<option th:each="type:${type}" th:value="${type.DICTIONARY_VALUE}" th:text="${type.DESCRIBES}"></option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">上传营业执照</label>
+			<div class="layui-input-block">
+				<input class="layui-input" type="file" name="license"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">上传店家身份证</label>
+			<div class="layui-input-block">
+				<input class="layui-input" type="file" name="idCard"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">上传门头照片</label>
+			<div class="layui-input-block">
+				<input class="layui-input" type="file" name="headPhoto"/>
+			</div>
+		</div>
+		<div class="layui-form-item">
+	    	<label class="layui-form-label">选择地区</label>
+		    <div class="layui-input-inline">
+				<select name="province" id="province" lay-filter="changeProvince"  lay-verify="required">
+			        <option value="0">请选择省</option>
+			        <option th:each="province:${province}" th:value="${province.CITY_CODE}" th:text="${province.CITY_NAME}"></option>
+				</select>
+			</div>
+		    <div class="layui-input-inline">
+				<select name="city" id="city" lay-filter="changeCity"  lay-verify="required">
+				</select>
+		    </div>
+		    <div class="layui-input-inline">
+				<select name="area" id="area"  lay-verify="required">
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item">
+	    	<label class="layui-form-label">地理位置</label>
+		    <div class="layui-input-inline">
+				<input name="longitude" id="longitude" class="layui-input" readonly="true" placeholder="经度" type="text"  lay-verify="required"/>
+			</div>
+			<div class="layui-input-inline">
+				<input name="latitude" id="latitude" class="layui-input" readonly="true" placeholder="纬度" type="text"  lay-verify="required"/>
+			</div>
+			<div class="layui-input-inline" id="location">
+				<a class="layui-btn layui-btn-normal" data-method="location">点击选择位置</a>
+			</div>
+		</div>
+		<div class="layui-form-item">
+		    <div class="layui-input-block">
+				<button class="layui-btn" lay-filter="demo1" lay-submit="">立即提交</button>
+				<a href="/storeVerify/toStoreVerifyList" style="border:1px solid green;padding:11px">取消</a>
+		    </div>
+		</div>
+	</form>
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+layui.use(['form','layer','jquery'], function(){
+	var form = layui.form
+	,$ = layui.jquery
+	,layer = layui.layer;
+	//监听提交
+	form.on('submit(demo1)', function(data){
+		var permit=true;
+		$.ajax({
+			type: 'POST',
+			async: false,
+			url: '/storeVerify/addVerify',
+			data: {storeId:data.field.storeId},
+			success : function(da){
+				if(da!="permit")
+				{
+					var index = layer.open({
+						type:0,
+						content:da,
+						title:['提示',''],
+						shade: 0,
+				        skin:'layui-layer-molv',
+					    btnAlign: 'c',
+						btn:'确定'
+						,yes: function(index, layero){
+							layer.close(index);
+						}
+					});
+					permit=false;
+				}
+			}
+		});
+		if(permit==false)
+		{
+			return false;
+		}
+	});
+	//监听省份选择
+	form.on('select(changeProvince)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var city = eval(da);
+			$("#city").empty();
+			$("#area").empty();
+			/* <![CDATA[ */
+			$("#city").append("<option value='0'>请选择市</option>");
+			for (var i = 0; i < city.length; i++) {
+				$("#city").append(
+						"<option value='"+city[i].CITY_CODE+"'>"
+								+ city[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+			/* ]]> */
+		});
+	});
+	//监听城市选择
+	form.on('select(changeCity)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var area = eval(da);
+			$("#area").empty();
+			/* <![CDATA[ */
+			$("#area").append("<option value='0'>请选择县/区</option>");
+			for (var i = 0; i < area.length; i++) {
+				$("#area").append(
+						"<option value='"+area[i].CITY_CODE+"'>"
+								+ area[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+			/* ]]> */
+		});
+	});
+	$('#location .layui-btn').on('click', function(){
+		var othis = $(this), method = othis.data('method');
+		active[method] ? active[method].call(this, othis) : '';
+	});
+	//触发事件
+	var active = {
+		location: function(){
+			var location;
+			layer.open({
+		    	type: 2 
+		    	,title: '选择位置'
+				,shade: 0
+				,area:['1500px','800px']
+				,maxmin: true
+				,content: 'http://localhost:8080/storeVerify/location'
+				,btn: ['确定', '关闭']
+				,yes: function(){
+					var lnglat = location.val();
+					var longitude = lnglat.substring(0,lnglat.indexOf(","));
+					var latitude = lnglat.substring(lnglat.indexOf(",")+1,lnglat.length);
+					$("#longitude").val("经度:"+longitude);
+					$("#latitude").val("纬度:"+latitude);
+					layer.closeAll();
+				}
+				,btn2: function(){
+					layer.closeAll();
+				}
+				,success: function(layero, index){
+					location = $("#lnglat", layero.find("iframe")[0].contentWindow.document);
+				}
+			});
+		}	
+	};
+});
+</script>
+</body>
+</html>

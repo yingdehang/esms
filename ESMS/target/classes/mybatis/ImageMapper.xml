@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.systemManage.ImageDao">
+	<!-- 查詢图片 -->
+	<select id="getImageList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select * from `es_photo`
+		<if test="PHOTO_TYPE!=null and PHOTO_TYPE !=''">
+			where PHOTO_TYPE = #{PHOTO_TYPE}
+		</if>
+		order by ADD_TIME DESC
+		limit #{page},#{limit}
+	</select>
+	<!-- 查询图片count -->
+	<select id="getImageListCount" parameterType="java.util.Map"
+		resultType="int">
+		select count(*) from `es_photo`
+		<if test="PHOTO_TYPE!=null and PHOTO_TYPE !=''">
+			where PHOTO_TYPE = #{PHOTO_TYPE}
+		</if>
+	</select>
+	<!-- 查询图片类型 -->
+	<select id="getptlist" resultType="java.util.Map">
+		SELECT * FROM `es_dictionary`
+		WHERE DICTIONARY_VALUE LIKE CONCAT('%','PHOTO','%')
+	</select>
+	<!-- 添加图片 -->
+	<insert id="addImage" parameterType="java.util.Map">
+		INSERT INTO `es_photo`
+		(`PHOTO_ID`, `PHOTO_NAME`, `PHOTO_URL`, `ADD_TIME`,
+		`PHOTO_TYPE`,`CLICK_URL`)
+		VALUES (#{uuid}, #{PHOTO_NAME}, #{PHOTO_URL},
+		now(),
+		#{PHOTO_TYPE},#{CLICK_URL});
+	</insert>
+	<!-- 删除图片 -->
+	<delete id="deleteImageById" parameterType="java.lang.String">
+		DELETE FROM
+		`es_photo` WHERE `PHOTO_ID` = #{PHOTO_ID}
+	</delete>
+	<!-- 修改点击链接地址 -->
+	<update id="updateClickUrl" parameterType="java.util.Map">
+		update `es_photo` set
+		CLICK_URL=#{CLICK_URL} where PHOTO_ID=#{PHOTO_ID}
+	</update>
+	<!-- 修改图片 -->
+	<update id="updateImage" parameterType="java.util.Map">
+		update `es_photo` set
+		PHOTO_URL=#{PHOTO_URL} where PHOTO_ID=#{PHOTO_ID}
+	</update>
+	<!-- 修改图片名称 -->
+	<update id="updatePHOTONAME" parameterType="java.util.Map">
+		update `es_photo` set
+		PHOTO_NAME=#{PHOTO_NAME},ADD_TIME=now() where PHOTO_ID=#{PHOTO_ID}
+	</update>
+</mapper>

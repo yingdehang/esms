@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.systemManage.AlipayDao">
+	<select id="getalipaypayList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		ea.*,
+		eu.`PHONE`
+		FROM
+		`es_alipaywater` ea
+		LEFT JOIN
+		`es_users` eu
+		ON
+		ea.userId = eu.`USERS_ID`
+		WHERE
+		ea.gmt_create BETWEEN
+		<if test="null!=onestart and onestart!=''">
+			#{onestart}
+		</if>
+		<if test="null==onestart or onestart==''">
+			'2018-01-01 00:00:00'
+		</if>
+		AND
+		<if test="null!=oneend and oneend!=''">
+			#{oneend}
+		</if>
+		<if test="null==oneend or oneend==''">
+			now()
+		</if>
+		<if test="null!=phoneNumber and phoneNumber!=''">
+			AND eu.`PHONE` LIKE
+			CONCAT('%',#{phoneNumber},'%')
+		</if>
+		<if
+			test="null != twostart and null != twoend and twostart != '' and twoend != ''">
+			and ea.gmt_payment BETWEEN #{twostart} AND
+			#{twoend}
+		</if>
+		<if
+			test="(null == twostart or twostart == '') and null != twoend and twoend != ''">
+			and ea.gmt_payment BETWEEN '2018-01-01 00:00:00' AND
+			#{twoend}
+		</if>
+		<if
+			test="null != twostart and twostart != '' and (null == twoend or twoend == '')">
+			and ea.gmt_payment BETWEEN #{twostart} AND now()
+		</if>
+		<if
+			test="null != threestart and null != threeend and threestart != '' and threeend != ''">
+			and ea.gmt_close BETWEEN #{threestart} AND
+			#{threeend}
+		</if>
+		<if
+			test="(null == threestart or threestart == '') and null != threeend and threeend != ''">
+			and ea.gmt_close BETWEEN '2018-01-01 00:00:00' AND
+			#{threeend}
+		</if>
+		<if
+			test="null != threestart and threestart != '' and (null == threeend or threeend == '')">
+			and ea.gmt_close BETWEEN #{threestart} AND now()
+		</if>
+		limit ${page},${limit}
+	</select>
+
+	<select id="getalipaypayListCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM
+		`es_alipaywater` ea
+		LEFT JOIN
+		`es_users` eu
+		ON
+		ea.userId = eu.`USERS_ID`
+		WHERE
+		ea.gmt_create BETWEEN
+		<if test="null!=onestart and onestart!=''">
+			#{onestart}
+		</if>
+		<if test="null==onestart or onestart==''">
+			'2018-01-01 00:00:00'
+		</if>
+		AND
+		<if test="null!=oneend and oneend!=''">
+			#{oneend}
+		</if>
+		<if test="null==oneend or oneend==''">
+			now()
+		</if>
+		<if test="null!=phoneNumber and phoneNumber!=''">
+			AND eu.`PHONE` LIKE
+			CONCAT('%',#{phoneNumber},'%')
+		</if>
+		<if
+			test="null != twostart and null != twoend and twostart != '' and twoend != ''">
+			and ea.gmt_payment BETWEEN #{twostart} AND
+			#{twoend}
+		</if>
+		<if
+			test="(null == twostart or twostart == '') and null != twoend and twoend != ''">
+			and ea.gmt_payment BETWEEN '2018-01-01 00:00:00' AND
+			#{twoend}
+		</if>
+		<if
+			test="null != twostart and twostart != '' and (null == twoend or twoend == '')">
+			and ea.gmt_payment BETWEEN #{twostart} AND now()
+		</if>
+		<if
+			test="null != threestart and null != threeend and threestart != '' and threeend != ''">
+			and ea.gmt_close BETWEEN #{threestart} AND
+			#{threeend}
+		</if>
+		<if
+			test="(null == threestart or threestart == '') and null != threeend and threeend != ''">
+			and ea.gmt_close BETWEEN '2018-01-01 00:00:00' AND
+			#{threeend}
+		</if>
+		<if
+			test="null != threestart and threestart != '' and (null == threeend or threeend == '')">
+			and ea.gmt_close BETWEEN #{threestart} AND now()
+		</if>
+	</select>
+</mapper>

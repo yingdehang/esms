@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>活动管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<script th:src="@{/layui/layui.js}"></script>
+</head>
+<body>
+	<!-- 活动管理顶部 -->
+	<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label>活动管理</label>
+		</div>
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			<button th:if="${addActivity}" class="layui-btn layui-btn-xs" data-type="addActive">
+				<i class="layui-icon" style="font-size: 14px;">&#xe61f;</i>添加活动
+			</button>
+		</div>
+	</div>
+	<table class="layui-table"
+		lay-data="{url:'/activity/getActiveList/', page:true, id:'actionlist'}"
+		lay-filter="demo">
+		<thead>
+			<tr>
+				<th
+					lay-data="{fixed: 'left',templet: '#indexTpl',align:'center',width:'5%'}">序号</th>
+				<th lay-data="{field:'EANAME',align:'center',width:'20%'}">活动名称</th>
+				<th lay-data="{field:'STARTTIME',sort:true, truealign:'center'}">活动开始时间</th>
+				<th lay-data="{field:'ENDTIME',align:'center'}">活动结束时间</th>
+				<th lay-data="{field:'EAPHOTO',toolbar:'#eaphoto',align:'center'}">活动BANNER</th>
+				<th lay-data="{field:'EAURL',toolbar:'#eaurl',align:'center'}">活动页地址</th>
+				<th lay-data="{field:'EASTATE',toolbar:'#eastate',align:'center'}">活动状态</th>
+				<th
+					lay-data="{field:'SORT',align:'center',event:'setSORT',width:'5%'}">排序</th>
+				<th
+					lay-data="{fixed: 'right',align:'center', toolbar: '#barDemo',width:'15%'}">操作</th>
+			</tr>
+		</thead>
+	</table>
+	<script type="text/html" id="indexTpl">
+    	{{d.LAY_TABLE_INDEX+1}}
+	</script>
+	<script id="barDemo" type="text/html">
+  		{{# if(d.EASTATE=='0'){}}
+			<a th:if="${openActivity}" class="layui-btn layui-btn-xs" lay-event="openActive">开启</a>
+			<a th:if="${deleteActivity}" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="deleteActive">删除</a>
+		{{#}else if(d.EASTATE=='1'){}}
+  			<a th:if="${closeActivity}" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="closeActive">关闭</a>
+		{{#}}}
+		<a th:if="${setActivity}" class="layui-btn layui-btn-primary layui-btn-xs" lay-event="setActive"><i class="layui-icon" style="font-size: 14px;">&#xe614;</i>活动设置</a>
+	</script>
+	<script id="eastate" type="text/html">
+  		{{# if(d.EASTATE=='0'){}}
+			<span style="color:red;">活动关闭</span>
+		{{#}else if(d.EASTATE=='1'){}}
+  			<span style="color:green;">活动开启</span>
+		{{#}}}
+	</script>
+	<script id="eaurl" type="text/html">
+  		<a lay-event="seeEAURL" title="点击查看活动页面">{{d.EAURL}}</a>
+	</script>
+	<script id="eaphoto" type="text/html">
+  		<a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="seeBanner" title="点击查看活动banner">点击查看活动banner</a>
+	</script>
+	<div id="addbox" class="layui-form layui-form-pane"
+		style="display: none; padding: 15px 15px 0px 15px;">
+		<div class="layui-form-item">
+			<label class="layui-form-label">活动名称</label>
+			<div class="layui-input-block">
+				<input id="EANAME" class="layui-input" type="text"
+					placeholder="请输入活动名称" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">活动页地址</label>
+			<div class="layui-input-block">
+				<input id="EAURL" class="layui-input" type="text"
+					placeholder="请输入活动页地址" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">活动时间</label>
+			<div class="layui-input-block">
+				<input class="layui-input" id="activeTime" type="text"
+					placeholder="请选择活动时间段" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">BANNER</label>
+			<div class="layui-input-inline" style="width: 150px">
+				<button class="layui-btn layui-btn-primary" id="test1" type="button">
+					<i class="layui-icon"></i>上传BANNER
+				</button>
+			</div>
+			<div class="layui-input-inline"
+				style="line-height: 40px; width: 95px">
+				<p id="demoText"></p>
+			</div>
+		</div>
+		<input type="hidden" id="activityBANNER" />
+	</div>
+</body>
+<script>
+	/* <![CDATA[ */
+	layui
+			.use(
+					[ 'element', 'table', 'laydate', 'upload' ],
+					function() {
+						var element = layui.element, table = layui.table, $ = layui.$;
+						var laydate = layui.laydate, upload = layui.upload;
+
+						var uploadInst = upload
+								.render({
+									elem : '#test1',
+									url : '/activity/uploadBanner',
+									done : function(res) {
+										//如果上传失败
+										if (res.code > 0) {
+											return layer.msg('上传失败');
+										}
+										//上传成功
+										$('#demoText')
+												.html(
+														"<span id='demoText'><i class='layui-icon' style='font-size: 30px; color: green;'>&#xe616;</i></span>");
+										$("#activityBANNER").val(res.data.src);
+									},
+									error : function() {
+										//演示失败状态，并实现重传
+										var demoText = $('#demoText');
+										demoText
+												.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+										demoText.find('.demo-reload').on(
+												'click', function() {
+													uploadInst.upload();
+												});
+									}
+								});
+
+						//日期时间范围
+						laydate.render({
+							elem : '#activeTime',
+							type : 'datetime',
+							range : true
+						});
+
+						//监听工具条
+						table.on('tool(demo)',function(obj) {
+											var data = obj.data;
+											//活动设置
+											if (obj.event === 'setActive') {
+												window.location.href = "/activity/toActivitySetHtml?ESID="
+														+ data.ESID;
+											}
+											//修改排序
+											else if (obj.event === 'setSORT') {
+												layer
+														.prompt(
+																{
+																	formType : 3,
+																	title : '请输入0~99之间的整数',
+																	value : data.sign
+																},
+																function(value,
+																		index) {
+																	var regstr = /^((?!0)\d{1,2}|99)$/;
+																	if (value
+																			.match(regstr)) {
+																		$
+																				.post(
+																						"/activity/updateActivitySort",
+																						{
+																							ESID : data.ESID,
+																							SORT : value
+																						},
+																						function(
+																								d) {
+																							if (d > 0) {
+																								layer
+																										.msg("修改成功");
+																								table
+																										.reload(
+																												'actionlist',
+																												{
+																													page : {
+																														curr : 1
+																													}
+																												});
+																							} else {
+																								layer
+																										.msg("操作失败");
+																							}
+																						});
+																		layer
+																				.close(index);
+																	} else {
+																		layer
+																				.msg("请输入正确的数字");
+																	}
+																});
+											}
+											//开启活动
+											else if (obj.event === 'openActive') {
+												$
+														.post(
+																"/activity/updateActivityState",
+																{
+																	ESID : data.ESID,
+																	EASTATE : '1'
+																},
+																function(d) {
+																	if (d > 0) {
+																		table
+																				.reload(
+																						'actionlist',
+																						{
+																							page : {
+																								curr : 1
+																							}
+																						});
+																	} else {
+																		layer
+																				.msg("操作失败");
+																	}
+																});
+											}
+											//删除活动
+											else if (obj.event === 'deleteActive') {
+												layer
+														.confirm(
+																'确定删除'
+																		+ data.EANAME
+																		+ '活动吗？',
+																function(index) {
+																	$
+																			.post(
+																					"/activity/deleteActivity",
+																					{
+																						ESID : data.ESID
+																					},
+																					function(
+																							d) {
+																						if (d > 0) {
+																							layer
+																									.msg("操作成功");
+																							obj
+																									.del();
+																							layer
+																									.close(index);
+																						} else {
+																							layer
+																									.msg("操作失败！");
+																						}
+																					});
+
+																});
+											}
+											//关闭活动
+											else if (obj.event === 'closeActive') {
+												$
+														.post(
+																"/activity/updateActivityState",
+																{
+																	ESID : data.ESID,
+																	EASTATE : '0'
+																},
+																function(d) {
+																	if (d > 0) {
+																		table
+																				.reload(
+																						'actionlist',
+																						{
+																							page : {
+																								curr : 1
+																							}
+																						});
+																	} else {
+																		layer
+																				.msg("操作失败");
+																	}
+																});
+											}
+											//查看活动banner
+											else if (obj.event === 'seeBanner') {
+												layer
+														.open({
+															type : 1,
+															title : false,
+															maxWidth : '760px',
+															anim : 0,
+															skin : 'layui-layer-nobg', //没有背景色
+															shadeClose : true,
+															offset : 'auto',
+															content : '<img src="'+data.EAPHOTO+'" width="750px" />'
+														});
+											}
+											//查看活动页
+											else if (obj.event === 'seeEAURL') {
+												layer
+														.open({
+															type : 2,
+															title : false,
+															area : [ '770px',
+																	'600px' ],
+															shadeClose : true,
+															skin : 'yourclass',
+															content : data.EAURL
+														});
+											}
+										});
+						active = {
+							addActive : function() {
+								layer.open({
+											type : 1,
+											title : '添加活动',
+											area : [ '500px', '400px' ],
+											content : $('#addbox'),
+											btn : [ '确定添加', '取消添加' ],
+											btnAlign : 'c',
+											yes : function() {
+												var EANAME = $("#EANAME").val();
+												var EAURL = $("#EAURL").val();
+												var activeTime = $(
+														"#activeTime").val();
+												var activityBANNER = $(
+														"#activityBANNER")
+														.val();
+												if (null != EANAME
+														& EANAME != "") {
+													if (null != EAURL
+															& EAURL != "") {
+														if (null != activeTime
+																& activeTime != "") {
+															if (null != activityBANNER
+																	& activityBANNER != "") {
+																$
+																		.post(
+																				"/activity/addactivity",
+																				{
+																					EANAME : EANAME,
+																					EAURL : EAURL,
+																					activeTime : activeTime,
+																					activityBANNER : activityBANNER
+																				},
+																				function(
+																						d) {
+																					if (d > 0) {
+																						table
+																								.reload(
+																										'actionlist',
+																										{
+																											page : {
+																												curr : 1
+																											}
+																										});
+																					} else {
+																						layer
+																								.msg("添加失败");
+																					}
+																				});
+																layer
+																		.closeAll();
+															} else {
+																layer
+																		.msg("活动BANNER不能为空");
+																return false;
+															}
+														} else {
+															layer
+																	.msg("活动时间不能为空");
+															return false;
+														}
+													} else {
+														layer.msg("活动链接不能为空");
+														return false;
+													}
+												} else {
+													layer.msg("活动名称不能为空");
+													return false;
+												}
+												$("#EANAME").val("");
+												$("#EAURL").val("");
+												$("#activeTime").val("");
+												$("#activityBANNER").val("");
+											},
+											btn2 : function() {
+												layer.closeAll();
+											}
+										});
+								$("#EANAME").val("");
+								$("#EAURL").val("");
+								$("#activeTime").val("");
+								$("#activityBANNER").val("");
+								$("#demoText").html("<p id='demoText'></p>");
+							}
+						};
+						$('.demoTable .layui-btn').on('click', function() {
+							var type = $(this).data('type');
+							active[type] ? active[type].call(this) : '';
+						});
+					});
+	/* ]]> */
+</script>
+</html>

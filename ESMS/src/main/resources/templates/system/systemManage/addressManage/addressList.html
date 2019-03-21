@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>象本商城后台管理系统模板</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div style="width: 100%; height: 32px;">
+		<div class="demoTable layui-form layui-form-pane"
+			th:if="${query.isHave} gt '0'" style="float: left;">
+			<label class="layui-form-label">地区搜索</label>
+			<div class="layui-inline">
+				<input name="addressName" class="layui-input" id="addressName"
+					placeholder="请输入地区名" autocomplete="off" />
+			</div>
+			<button class="layui-btn" data-type="reload">搜索</button>
+		</div>
+		<div style="float: right;">
+			<div class="site-demo-button" th:if="${add.isHave} gt '0'"
+				id="addMenu" style="margin-bottom: 0; float: left;">
+				<button class="layui-btn" data-method="addaddress" data-type="auto">添加</button>
+				<input type="hidden" th:unless="null eq ${add.PERMISSIONS_URL}"
+					id="addPERMISSIONS_URL" th:value="${add.PERMISSIONS_URL}" />
+			</div>
+			<div class="demoTable" id="queryparent"
+				style="display: none; float: left; margin-left: 10px;">
+				<input type="hidden" id="addaddressPid" value="1" />
+				<button class="layui-btn" data-type="reParentMenu">返回父菜单</button>
+			</div>
+		</div>
+	</div>
+	<table class="layui-table" lay-filter="demoEvent"
+		lay-data="{url:'/address/getAddressList/',page:true,id:'addresslist'}">
+		<thead>
+			<tr>
+				<th
+					lay-data="{fixed: 'right', align:'center', toolbar: '#indexunmber'}">编号</th>
+				<th
+					lay-data="{field:'CITY_NAME', event: 'setCITY_NAME', style:'cursor: pointer;'}">区域名称</th>
+				<th
+					lay-data="{field:'CITY_PY', event: 'setCITY_PY', style:'cursor: pointer;'}">区域名称拼音</th>
+				<th lay-data="{fixed: 'right', align:'center', toolbar: '#chaozuo'}">操作</th>
+			</tr>
+		</thead>
+	</table>
+	<script id="indexunmber" type="text/html">
+			{{d.LAY_INDEX}}
+	</script>
+	<script id="chaozuo" type="text/html">
+		{{# if(d.isHaveSon>0){ }}
+			<a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="queryson">查看该区域下城市</a>
+		{{# }else{ }}
+			<a th:if="${add.isHave} gt '0'" class='layui-btn layui-btn-xs' lay-event="addsonaddress">添加子类</a>
+  			<a th:if="${delete.isHave} gt '0'" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		{{# }}}
+	</script>
+	<input type="hidden" id="updateUrl" th:if="${update.isHave} gt '0'"
+		th:value="${update.PERMISSIONS_URL}" />
+	<input type="hidden" id="deleteUrl" th:if="${delete.isHave} gt '0'"
+		th:value="${delete.PERMISSIONS_URL}" />
+	<div class="layui-form layui-form-pane" id="addbox"
+		th:if="${add.isHave} gt '0'"
+		style="width: 300px; margin: 20px auto; text-align: center; display: none;">
+		<div class="layui-form-item">
+			<label class="layui-form-label">区域名称</label>
+			<div class="layui-input-block">
+				<input id="CITY_NAME" class="layui-input" type="text"
+					placeholder="请输入区域名称" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">值</label>
+			<div class="layui-input-block">
+				<input id="CITY_PY" class="layui-input" type="text"
+					placeholder="请输入区域名称拼音" autocomplete="off" />
+			</div>
+		</div>
+	</div>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/systemManageJsFile/addressManage.js}"></script>
+</html>

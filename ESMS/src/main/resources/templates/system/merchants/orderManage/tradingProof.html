@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>上传交易凭证</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+	<style type="text/css">
+		.layui-table-cell{height:auto;line-height:auto;padding:0 15px;position:relative;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box}
+	</style>
+</head>
+<body>
+	<input type="hidden" id="orderNumber" th:value="${order.ORDER_NUMBER}"/>
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<h2><a href="javascript:history.back(-1)">订单处理</a>><a href="javascript:void(0)" onclick="location.reload()">上传交易凭证</a></h2>
+	</div>
+	<div class="layui-fluid">
+		<div class="layui-row">
+			<div class="layui-col-lg12" style="height:40px;border-bottom:2px solid #888888;margin-top:20px;border-top:2px solid #888888;background-color:#D0D0D0">
+				<div class="layui-col-lg4" style="height:40px">
+					<p style="font-size:15px;margin-top:4px;margin-left:5px" th:text="订单编号：+${order.ORDER_NUMBER}"></p>
+				</div>
+				<div class="layui-col-lg4" style="height:40px">
+					<p style="font-size:15px;margin-top:4px;" th:text="下单时间：+${order.ORDER_TIME}"></p>
+				</div>
+				<div class="layui-col-lg4" style="height:40px">
+					<p style="font-size:15px;margin-top:4px;" th:text="买家：+${order.NICKNAME}+'('+${order.PHONE}+')'"></p>
+				</div>
+			</div>
+			<div class="layui-col-lg12">
+				<div th:each="goods : ${order.goods}" class="layui-col-lg12" style="height:170px;border-bottom:1px solid #A0A0A0">
+					<div style="height:100%">
+						<!-- 商品图片 -->
+						<div class="layui-col-lg2" style="height:150px;margin-top:10px;margin-left:10px;">
+							<img th:src="${goods.ICON}" style="height:100%;"/>
+						</div>
+						<!-- 商品名字 -->
+						<div class="layui-col-lg7 layui-col-lg-offset2" style="height:70px;margin-top:10px;margin-left:10px">
+							<span th:text="商品名字：+${goods.GOODS_NAME}"></span>
+						</div>
+						<!-- 商品属性/数量/价格 -->
+						<div class="layui-col-lg7 layui-col-lg-offset2" style="height:70px;margin-top:10px;margin-left:10px">
+							<div class="layui-col-lg2" style="height:70px">
+								<span th:text="属性：+${goods.ATTRIBUTE}"></span>
+							</div>
+							<div class="layui-col-lg2 layui-col-lg-offset2" style="height:70px">
+								<span th:text="数量：+${goods.NUMBER}"></span>
+							</div>
+							<div class="layui-col-lg2 layui-col-lg-offset2" style="height:70px">
+								<span th:text="单价：￥+${goods.PRICE}"></span>
+							</div>
+						</div>
+					</div>
+				</div>		
+			</div>
+			<div class="layui-col-lg12" style="height:40px;border-bottom:2px solid #888888;margin-top:20px;border-top:2px solid #888888;background-color:#D0D0D0">
+				<div class="layui-col-lg12" style="height:40px">
+					<p style="font-size:15px;margin-top:4px;margin-left:5px">上传交易凭证</p>
+				</div>
+				<div class="layui-upload">
+					<button class="layui-btn layui-btn-normal" id="testList" type="button">选择交易凭证</button> 
+					<div class="layui-upload-list">
+						<table class="layui-table">
+							<thead>
+								<tr>
+									<th>文件名</th>
+									<th>大小</th>
+									<th>状态</th>
+									<th>操作</th>
+								</tr>
+							</thead>
+							<tbody id="demoList"></tbody>
+						</table>
+					</div>
+					<button class="layui-btn" id="testListAction"  data-type="upload">开始上传</button>
+				</div> 
+			</div>
+		</div>
+	</div>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script>
+/* <![CDATA[ */
+var count = 0;
+var tradingProof = "";
+layui.use(['element','form','table','laydate','layer','upload'], function(){
+	var element = layui.element,form = layui.form,$ = layui.jquery,table = layui.table,laydate = layui.laydate,layer = layui.layer,upload = layui.upload;
+	var demoListView = $('#demoList');
+	var orderNumber = $("#orderNumber").val();
+	var uploadListIns = upload.render({
+	    elem: '#testList'
+	    ,url: '/merchantsOrder/uploadTradingProof'
+	    ,accept: 'file'
+	    ,multiple: true
+	    ,auto: false
+	    ,data : {
+			'orderNumber' : orderNumber
+		}
+	    //,bindAction: '#testListAction'
+	    ,choose: function(obj){ 
+	      count++;
+	      var files = this.files = obj.pushFile(); //将每次选择的文件追加到文件队列
+	      //读取本地文件
+	      obj.preview(function(index, file, result){
+	        var tr = $(['<tr id="upload-'+ index +'">'
+	          ,'<td><img src="'+ result +'" alt="'+ file.name +'" class="layui-upload-img"/></td>'
+	          ,'<td>'+ (file.size/1014).toFixed(1) +'kb</td>'
+	          ,'<td>等待上传</td>'
+	          ,'<td>'
+	            ,'<button class="layui-btn layui-btn-mini demo-reload layui-hide">重传</button>'
+	            ,'<button class="layui-btn layui-btn-mini layui-btn-danger demo-delete">删除</button>'
+	          ,'</td>'
+	        ,'</tr>'].join(''));
+	        
+	        //单个重传
+	        tr.find('.demo-reload').on('click', function(){
+	          obj.upload(index, file);
+	        });
+	        
+	        //删除
+	        tr.find('.demo-delete').on('click', function(){
+	          count--;
+	          delete files[index]; //删除对应的文件
+	          tr.remove();
+	          uploadListIns.config.elem.next()[0].value = ''; //清空 input file 值，以免删除后出现同名文件不可选
+	        });
+	        
+	        demoListView.append(tr);
+	      });
+	    }
+	    ,done: function(res, index, upload){
+	      if(res.code == 0){ //上传成功
+	    	tradingProof = tradingProof+res.url+",";
+	        var tr = demoListView.find('tr#upload-'+ index)
+	        ,tds = tr.children();
+	        tds.eq(2).html('<span style="color: #5FB878;">上传成功</span>');
+	        tds.eq(3).html(''); //清空操作
+	        return delete this.files[index]; //删除文件队列已经上传成功的文件
+	      }
+	      this.error(index, upload);
+	    }
+	    ,allDone: function(obj){ //当文件全部被提交后，才触发
+	    	$.ajax({   
+				type : "POST",
+				async:false,
+				url : "/merchantsOrder/saveProofUrl",   
+				data : {   
+					tradingProof:tradingProof.substring(0,tradingProof.length-1),orderNumber:orderNumber
+				},  
+				success : function(da) {  
+				}   
+			});
+	    	history.back(-1);
+	    }
+	    ,error: function(index, upload){
+	      var tr = demoListView.find('tr#upload-'+ index)
+	      ,tds = tr.children();
+	      tds.eq(2).html('<span style="color: #FF5722;">上传失败</span>');
+	      tds.eq(3).find('.demo-reload').removeClass('layui-hide'); //显示重传
+	    }
+	  });
+	$('#testListAction').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	var load;
+	var $ = layui.$, active = {
+		upload:function(){
+			if(count>0)
+			{
+				layer.confirm('是否上传?', {icon: 3, title:'提示'}, function(index){
+					load = layer.load(2);
+					uploadListIns.upload();
+					layer.close(index);
+				});
+			}
+			else
+			{
+				layer.msg("请选择交易凭证图片");
+			}
+		}
+	}
+});
+/* ]]> */
+</script>
+</html>

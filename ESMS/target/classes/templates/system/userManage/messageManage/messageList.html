@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>消息管理</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<h2><a href="javascript:void(0)" onclick="location.reload()">消息管理</a></h2>
+	</div>
+	<div id="push" style="margin-left:50px;display:none;margin-right:50px">
+		<div class="layui-form layui-form-pane" style="margin-top:20px">
+			<div class="layui-form-item">
+				<label class="layui-form-label">标题</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="title" placeholder="请输入标题" maxlength="10"/>
+				</div>
+			</div>
+			<div class="layui-form-item layui-form-text">
+				<label class="layui-form-label">内容</label>
+				<div class="layui-input-block">
+					<textarea id="content" class="layui-textarea" placeholder="请输入内容" maxlength="2000"></textarea>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="site-demo-button" id="message" style="margin-bottom:10px;margin-top:20px">
+		<button class="layui-btn" data-method="message1">消息推送</button>
+		<button class="layui-btn" data-method="message2">发送短信</button>
+	</div>
+	<table id="messageList"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+layui.use(['table','jquery','form','layer'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	var layer = layui.layer;
+	
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#messageList'
+		,url: '/message/getMessageList'
+		,page: true
+		,cols:[[
+			{field:'MESSAGE_TYPE',title:'消息类型'}
+			,{field:'CONTENT',title:'内容'}
+			,{field:'MESSAGE_TIME',title:'时间'}
+			,{field:'USER_DJ',title:'用户等级'}
+			,{field:'STORE_DJ',title:'店铺等级'}
+			,{field:'PHONE',title:'用户账号'}
+		]]
+	});
+	
+	$('#message .layui-btn').on('click', function(){
+		var othis = $(this), method = othis.data('method');
+		active[method] ? active[method].call(this, othis) : '';
+	});
+	
+	var title = $("#title");
+	var content = $("#content");
+	var active = {
+		message1: function(){
+			var index1 = layer.open({
+				type: 1
+				,id:'m1'
+		        ,title: '消息推送'
+		        ,area: ['850px', '400px']
+		        ,shade: 0
+		        ,maxmin: true
+		        ,content: $("#push")
+		        ,skin:'layui-layer-molv'
+		        ,btnAlign: 'c'
+		        ,btn: ['发送', '关闭']
+		        ,yes: function(){
+		        	if(title.val()==="")
+		        	{
+		        		layer.msg("请输入标题");
+		        	}
+		        	else if(content.val()==="")
+		        	{
+		        		layer.msg("请输入内容");
+		        	}
+		        	else
+		        	{
+			        	layer.confirm('确定发送吗?', {icon: 3, title:'提示'}, function(index2){
+							$.post("/message/push",{title:title.val(),content:content.val()},function(da){});
+							title.val("");
+							content.val("");
+							layer.close(index2);
+							layer.close(index1);
+						});
+		        	}
+		        }
+		        ,btn2: function(){
+		        	title.val("");
+		        	content.val("");
+					layer.close();
+		        }
+			});
+		}
+		,message2: function(){
+			var index = layer.open({
+				type: 1
+				,id:'m2'
+		        ,title: '发送短信'
+		        ,area: ['390px', '260px']
+		        ,shade: 0
+		        ,maxmin: true
+		        ,content: ''
+		        ,skin:'layui-layer-molv'
+		        ,btnAlign: 'c'
+		        ,btn: ['发送', '关闭']
+		        ,yes: function(){
+		        	layer.close(index);
+		        }
+		        ,btn2: function(){
+					layer.close();
+		        }
+				,zIndex: layer.zIndex
+		        ,success: function(layero){
+					layer.setTop(layero);
+		        }
+			});
+		}
+	}
+});
+/*]]>*/
+</script>
+</body>
+</html>

@@ -1,0 +1,777 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.operationsManage.OffLineStoreDao">
+	<!-- 未认证的线下店铺数据 -->
+	<select id="getNoVerifyStore" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select
+		esce.`STORE_CERTIFICATION_ID`,
+		es.STORE_NAME,
+		escl.`CLASSIFICATION_NAME`,
+		ea1.`CITY_NAME` as
+		`PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		esce.`ADDR`,
+		ed1.`DESCRIBES` as LEVELS,
+		esce.PHONE,
+		eu.PHONE AS
+		userPhone,
+		es.SERVICE_PHONE,
+		esce.ID_CARD_UP,
+		esce.BUSINESS_LICENSE,
+		esce.HEAD_PHOTO,
+		esce.ID_CARD_DON,
+		esce.`TO_APPLY_FOR_TIME`,
+		ed2.`DESCRIBES` as AUDIT_STATE
+		from
+		es_store_certification esce
+		LEFT
+		OUTER JOIN es_store es ON esce.STORE_ID=es.STORE_ID
+		LEFT OUTER JOIN
+		es_users eu ON eu.USERS_ID=es.USERS_ID
+		LEFT OUTER JOIN
+		es_store_classification escl ON
+		es.STORE_CLASSIFICATION_ID=escl.STORE_CLASSIFICATION_ID
+		LEFT OUTER JOIN
+		es_area ea1 on esce.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area
+		ea2 ON esce.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON
+		esce.`AREA`=ea3.`CITY_CODE`
+		left outer join es_dictionary ed1 on
+		esce.`LEVELS`=ed1.`DICTIONARY_VALUE`
+		left outer join es_dictionary ed2
+		on
+		esce.`AUDIT_STATE`=ed2.`DICTIONARY_VALUE`
+		where
+		esce.`TYPES`='STORE_XS_XX'
+		AND
+		(esce.AUDIT_STATE='STORE_AUTHENTICATION_UNAUTHORIZED' OR
+		esce.AUDIT_STATE='STORE_AUTHENTICATION_DSH')
+		<if test="storeName!=null and storeName!=''">
+			AND es.STORE_NAME LIKE #{storeName}
+		</if>
+		<if test="storeClass!=null and storeClass!=''">
+			AND es.STORE_CLASSIFICATION_ID=#{storeClass}
+		</if>
+		<if test="phone!=null and phone!=''">
+			AND eu.PHONE=#{phone}
+		</if>
+		order by TO_APPLY_FOR_TIME asc
+	</select>
+	<!-- 未认证的线下店铺数据分页 -->
+	<select id="getNoVerifyStorePage" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select
+		esce.`STORE_CERTIFICATION_ID`,
+		es.STORE_NAME,
+		escl.`CLASSIFICATION_NAME`,
+		ea1.`CITY_NAME` as
+		`PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		esce.`ADDR`,
+		ed1.`DESCRIBES` as LEVELS,
+		esce.PHONE,
+		eu.PHONE AS
+		userPhone,
+		es.SERVICE_PHONE,
+		esce.ID_CARD_UP,
+		esce.BUSINESS_LICENSE,
+		esce.HEAD_PHOTO,
+		esce.ID_CARD_DON,
+		esce.`TO_APPLY_FOR_TIME`,
+		ed2.`DESCRIBES` as AUDIT_STATE
+		from
+		es_store_certification esce
+		LEFT
+		OUTER JOIN es_store es ON esce.STORE_ID=es.STORE_ID
+		LEFT OUTER JOIN
+		es_users eu ON eu.USERS_ID=es.USERS_ID
+		LEFT OUTER JOIN
+		es_store_classification escl ON
+		es.STORE_CLASSIFICATION_ID=escl.STORE_CLASSIFICATION_ID
+		LEFT OUTER JOIN
+		es_area ea1 on esce.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area
+		ea2 ON esce.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON
+		esce.`AREA`=ea3.`CITY_CODE`
+		left outer join es_dictionary ed1 on
+		esce.`LEVELS`=ed1.`DICTIONARY_VALUE`
+		left outer join es_dictionary ed2
+		on
+		esce.`AUDIT_STATE`=ed2.`DICTIONARY_VALUE`
+		where
+		esce.`TYPES`='STORE_XS_XX'
+		AND
+		(esce.AUDIT_STATE='STORE_AUTHENTICATION_UNAUTHORIZED' OR
+		esce.AUDIT_STATE='STORE_AUTHENTICATION_DSH')
+		<if test="storeName!=null and storeName!=''">
+			AND es.STORE_NAME LIKE #{storeName}
+		</if>
+		<if test="storeClass!=null and storeClass!=''">
+			AND es.STORE_CLASSIFICATION_ID=#{storeClass}
+		</if>
+		<if test="phone!=null and phone!=''">
+			AND eu.PHONE=#{phone}
+		</if>
+		order by TO_APPLY_FOR_TIME asc
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 获取店铺所有分类 -->
+	<select id="getStoreClass" resultType="java.util.Map">
+		select * from
+		es_store_classification
+	</select>
+	<!-- 获取店铺信息 -->
+	<select id="getStoreInfo" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT
+		esce.`STORE_CERTIFICATION_ID`,
+		es.STORE_ID,
+		es.STORE_NAME,
+		es.`STORE_CLASSIFICATION_ID`,
+		escl.`CLASSIFICATION_NAME`,
+		ea1.`CITY_NAME` AS `PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		esce.`ADDR`,
+		esce.LEVELS,
+		ed1.DESCRIBES,
+		esce.PHONE,
+		es.SERVICE_PHONE,
+		esce.ID_CARD_UP,
+		esce.BUSINESS_LICENSE,
+		esce.HEAD_PHOTO,
+		esce.ID_CARD_DON,
+		esce.`TO_APPLY_FOR_TIME`,
+		ed2.`DESCRIBES` AS
+		AUDIT_STATE,
+		eu.PHONE AS CUSER,
+		esce.`CTIME`,
+		eu2.`PHONE` AS userPhone,
+		ed3.`DESCRIBES` AS WAITING_STATE
+		FROM
+		es_store_certification esce
+		LEFT
+		OUTER JOIN es_store es ON esce.STORE_ID=es.STORE_ID
+		LEFT OUTER JOIN
+		es_store_classification escl ON
+		es.STORE_CLASSIFICATION_ID=escl.STORE_CLASSIFICATION_ID
+		LEFT OUTER JOIN
+		es_area ea1 ON esce.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area
+		ea2 ON esce.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON
+		esce.`AREA`=ea3.`CITY_CODE`
+		LEFT OUTER JOIN es_dictionary ed1 ON
+		esce.`LEVELS`=ed1.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary ed2
+		ON
+		esce.`AUDIT_STATE`=ed2.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_users eu
+		ON esce.CUSER=eu.USERS_ID
+		LEFT OUTER JOIN es_users eu2 ON
+		es.`USERS_ID`=eu2.`USERS_ID`
+		LEFT OUTER JOIN es_dictionary ed3 ON
+		esce.`WAITING_STATE`=ed3.`DICTIONARY_VALUE`
+		where
+		esce.STORE_CERTIFICATION_ID=#{certificationId}
+	</select>
+	<!-- 进行认证 -->
+	<update id="verify" parameterType="java.util.Map">
+		update es_store_certification
+		set
+		<if test="result eq 1">
+			AUDIT_STATE='STORE_AUTHENTICATION_PASS',
+		</if>
+		<if test="result eq 0">
+			AUDIT_STATE='STORE_AUTHENTICATION_NO',
+		</if>
+		<if test="content != null and content!=''">
+			CONTENT=#{content},
+		</if>
+		CUSER=#{userId},
+		CTIME=now()
+		where
+		STORE_CERTIFICATION_ID=#{certificationId}
+	</update>
+	<!-- 获取未分页的认证记录 -->
+	<select id="getVerifyRecord" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		esce.`STORE_CERTIFICATION_ID`,
+		es.STORE_NAME,
+		escl.`CLASSIFICATION_NAME`,
+		ea1.`CITY_NAME` AS
+		`PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		esce.`ADDR`,
+		ed1.`DESCRIBES` AS LEVELS,
+		esce.PHONE,
+		eu2.PHONE AS
+		userPhone,
+		es.SERVICE_PHONE,
+		esce.ID_CARD_UP,
+		esce.BUSINESS_LICENSE,
+		esce.HEAD_PHOTO,
+		esce.ID_CARD_DON,
+		esce.`TO_APPLY_FOR_TIME`,
+		ed2.`DESCRIBES` AS AUDIT_STATE,
+		esce.CUSER,
+		esce.`CTIME`
+		FROM
+		es_store_certification esce
+		LEFT OUTER JOIN es_store es ON
+		esce.STORE_ID=es.STORE_ID
+		LEFT OUTER JOIN
+		es_users eu2 ON
+		eu2.USERS_ID=es.USERS_ID
+		LEFT OUTER JOIN
+		es_store_classification escl ON
+		es.STORE_CLASSIFICATION_ID=escl.STORE_CLASSIFICATION_ID
+		LEFT OUTER JOIN
+		es_area ea1 ON esce.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area
+		ea2 ON esce.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON
+		esce.`AREA`=ea3.`CITY_CODE`
+		LEFT OUTER JOIN es_dictionary ed1 ON
+		esce.`LEVELS`=ed1.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary ed2
+		ON
+		esce.`AUDIT_STATE`=ed2.`DICTIONARY_VALUE`
+		WHERE
+		esce.`TYPES`='STORE_XS_XX'
+		AND
+		(esce.AUDIT_STATE='STORE_AUTHENTICATION_PASS' OR
+		esce.AUDIT_STATE='STORE_AUTHENTICATION_NO')
+		<if test="storeName!=null and storeName!=''">
+			AND es.STORE_NAME LIKE #{storeName}
+		</if>
+		<if test="storeClass!=null and storeClass!=''">
+			AND es.STORE_CLASSIFICATION_ID=#{storeClass}
+		</if>
+		<if test="verifyState!=null and verifyState!=''">
+			AND esce.AUDIT_STATE=#{verifyState}
+		</if>
+		<if test="phone!=null and phone!=''">
+			AND eu2.PHONE=#{phone}
+		</if>
+		ORDER BY CTIME DESC
+	</select>
+	<!-- 获取已分页的认证记录 -->
+	<select id="getVerifyRecordPage" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		esce.`STORE_CERTIFICATION_ID`,
+		es.STORE_NAME,
+		escl.`CLASSIFICATION_NAME`,
+		ea1.`CITY_NAME` AS
+		`PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		esce.`ADDR`,
+		ed1.`DESCRIBES` AS LEVELS,
+		esce.PHONE,
+		eu2.PHONE AS
+		userPhone,
+		es.SERVICE_PHONE,
+		esce.ID_CARD_UP,
+		esce.BUSINESS_LICENSE,
+		esce.HEAD_PHOTO,
+		esce.ID_CARD_DON,
+		esce.`TO_APPLY_FOR_TIME`,
+		ed2.`DESCRIBES` AS AUDIT_STATE,
+		eu.PHONE AS CUSER,
+		esce.`CTIME`
+		FROM
+		es_store_certification esce
+		LEFT OUTER JOIN es_store es ON
+		esce.STORE_ID=es.STORE_ID
+		LEFT OUTER JOIN
+		es_users eu2 ON
+		eu2.USERS_ID=es.USERS_ID
+		LEFT OUTER JOIN
+		es_store_classification escl ON
+		es.STORE_CLASSIFICATION_ID=escl.STORE_CLASSIFICATION_ID
+		LEFT OUTER JOIN
+		es_area ea1 ON esce.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area
+		ea2 ON esce.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON
+		esce.`AREA`=ea3.`CITY_CODE`
+		LEFT OUTER JOIN es_dictionary ed1 ON
+		esce.`LEVELS`=ed1.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary ed2
+		ON
+		esce.`AUDIT_STATE`=ed2.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_users eu
+		ON esce.CUSER=eu.USERS_ID
+		WHERE
+		esce.`TYPES`='STORE_XS_XX'
+		AND
+		(esce.AUDIT_STATE='STORE_AUTHENTICATION_PASS' OR
+		esce.AUDIT_STATE='STORE_AUTHENTICATION_NO')
+		<if test="storeName!=null and storeName!=''">
+			AND es.STORE_NAME LIKE #{storeName}
+		</if>
+		<if test="storeClass!=null and storeClass!=''">
+			AND es.STORE_CLASSIFICATION_ID=#{storeClass}
+		</if>
+		<if test="verifyState!=null and verifyState!=''">
+			AND esce.AUDIT_STATE=#{verifyState}
+		</if>
+		<if test="phone!=null and phone!=''">
+			AND eu2.PHONE=#{phone}
+		</if>
+		ORDER BY CTIME DESC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 通过认证的线下店铺数据未分页 -->
+	<select id="getOffLineStoreList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		es.STORE_ID,
+		es.USERS_ID,
+		esce.`STORE_CERTIFICATION_ID`,
+		es.STORE_NAME,
+		escl.`CLASSIFICATION_NAME` AS STORE_CLASS,
+		ea1.`CITY_NAME` AS
+		`PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		esce.`ADDR`,
+		ed1.`DESCRIBES` AS LEVELS,
+		esce.PHONE,
+		es.SERVICE_PHONE,
+		esce.ID_CARD_UP,
+		esce.BUSINESS_LICENSE,
+		esce.HEAD_PHOTO,
+		esce.ID_CARD_DON,
+		esce.`TO_APPLY_FOR_TIME`,
+		ed2.`DESCRIBES` AS
+		AUDIT_STATE,
+		eu.PHONE AS CUSER,
+		es.`OPEN_SHOP_TIME`,
+		eu2.`PHONE` AS
+		userPhone,
+		euc.UC_NAMES,
+		eu3.`PHONE` AS zzPhone,
+		euc2.`UC_NAMES` AS
+		zzName
+		FROM
+		es_store_certification esce
+		LEFT OUTER JOIN
+		es_store es ON esce.STORE_ID=es.STORE_ID
+		LEFT OUTER JOIN
+		es_store_classification escl ON
+		es.STORE_CLASSIFICATION_ID=escl.STORE_CLASSIFICATION_ID
+		LEFT OUTER JOIN
+		es_area ea1 ON esce.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area
+		ea2 ON esce.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON
+		esce.`AREA`=ea3.`CITY_CODE`
+		LEFT OUTER JOIN es_dictionary ed1 ON
+		esce.`LEVELS`=ed1.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary ed2
+		ON
+		esce.`AUDIT_STATE`=ed2.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_users eu
+		ON esce.CUSER=eu.USERS_ID
+		LEFT OUTER JOIN es_users eu2 ON
+		es.`USERS_ID`=eu2.`USERS_ID`
+		LEFT OUTER JOIN es_user_certification euc
+		ON es.USERS_ID=euc.USERS_ID
+		LEFT OUTER JOIN es_users eu3 ON
+		(esce.`AREA`=eu3.`AREAID` AND eu3.`IS_ZZ`='1')
+		LEFT OUTER JOIN
+		es_user_certification euc2 ON eu3.`USERS_ID`=euc2.`USERS_ID`
+		WHERE
+		esce.`TYPES`='STORE_XS_XX'
+		AND
+		(esce.AUDIT_STATE='STORE_AUTHENTICATION_PASS' OR
+		esce.AUDIT_STATE='STORE_AUTHENTICATION_FREEZE')
+		<if test="storeName!=null and storeName!=''">
+			AND es.STORE_NAME LIKE #{storeName}
+		</if>
+		<if test="storeClass!=null and storeClass!=''">
+			AND es.STORE_CLASSIFICATION_ID=#{storeClass}
+		</if>
+		<if test="phone!=null and phone!=''">
+			AND eu2.`PHONE`=#{phone}
+		</if>
+		<if test="storeState!=null and storeState!=''">
+			AND esce.`AUDIT_STATE`=#{storeState}
+		</if>
+		<if test="start!=null and start!='' and end!=null and end!=''">
+			AND esce.CTIME BETWEEN #{start} AND #{end}
+		</if>
+		<if test="province!=null and province!=0">
+			AND esce.`PROVINCE`=#{province}
+		</if>
+		<if test="city!=null and city!=0">
+			AND esce.`CITY`=#{city}
+		</if>
+		<if test="area!=null and area!=0">
+			AND esce.`AREA`=#{area}
+		</if>
+		<if test="storeDJ!=null and storeDJ!=''">
+			AND esce.`LEVELS`=#{storeDJ}
+		</if>
+		ORDER BY OPEN_SHOP_TIME DESC
+	</select>
+	<!-- 通过认证的线下店铺数据已分页 -->
+	<select id="getOffLineStoreListPage"
+		parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		es.STORE_ID,
+		esce.`STORE_CERTIFICATION_ID`,
+		es.STORE_NAME,
+		escl.`CLASSIFICATION_NAME`,
+		ea1.`CITY_NAME` AS `PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		esce.`ADDR`,
+		ed1.`DESCRIBES` AS LEVELS,
+		esce.PHONE,
+		es.SERVICE_PHONE,
+		es.STATE,
+		es.STORE_ID,
+		esce.ID_CARD_UP,
+		esce.BUSINESS_LICENSE,
+		esce.HEAD_PHOTO,
+		esce.ID_CARD_DON,
+		esce.`TO_APPLY_FOR_TIME`,
+		ed2.`DICTIONARY_VALUE` AS
+		AUDIT_STATE,
+		eu.PHONE AS CUSER,
+		es.`OPEN_SHOP_TIME`,
+		eu2.`PHONE` AS
+		userPhone,
+		euc.`UC_NAMES`
+		FROM
+		es_store_certification esce
+		LEFT OUTER JOIN
+		es_store es ON
+		esce.STORE_ID=es.STORE_ID
+		LEFT OUTER JOIN
+		es_store_classification escl
+		ON
+		es.STORE_CLASSIFICATION_ID=escl.STORE_CLASSIFICATION_ID
+		LEFT OUTER
+		JOIN
+		es_area ea1 ON esce.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN
+		es_area
+		ea2 ON esce.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3
+		ON
+		esce.`AREA`=ea3.`CITY_CODE`
+		LEFT OUTER JOIN es_dictionary ed1 ON
+		esce.`LEVELS`=ed1.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary ed2
+		ON
+		esce.`AUDIT_STATE`=ed2.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_users eu
+		ON esce.CUSER=eu.USERS_ID
+		LEFT OUTER JOIN es_users eu2 ON
+		es.`USERS_ID`=eu2.`USERS_ID`
+		LEFT OUTER JOIN es_user_certification euc
+		ON es.USERS_ID=euc.USERS_ID
+		WHERE
+		esce.`TYPES`='STORE_XS_XX'
+		AND
+		(esce.AUDIT_STATE='STORE_AUTHENTICATION_PASS' OR
+		esce.AUDIT_STATE='STORE_AUTHENTICATION_FREEZE')
+		<if test="storeName!=null and storeName!=''">
+			AND es.STORE_NAME LIKE #{storeName}
+		</if>
+		<if test="storeClass!=null and storeClass!=''">
+			AND es.STORE_CLASSIFICATION_ID=#{storeClass}
+		</if>
+		<if test="phone!=null and phone!=''">
+			AND eu2.`PHONE`=#{phone}
+		</if>
+		<if test="storeState!=null and storeState!=''">
+			AND esce.`AUDIT_STATE`=#{storeState}
+		</if>
+		<if test="start!=null and start!='' and end!=null and end!=''">
+			AND esce.CTIME BETWEEN #{start} AND #{end}
+		</if>
+		<if test="province!=null and province!=0">
+			AND esce.`PROVINCE`=#{province}
+		</if>
+		<if test="city!=null and city!=0">
+			AND esce.`CITY`=#{city}
+		</if>
+		<if test="area!=null and area!=0">
+			AND esce.`AREA`=#{area}
+		</if>
+		<if test="storeDJ!=null and storeDJ!=''">
+			AND esce.`LEVELS`=#{storeDJ}
+		</if>
+		ORDER BY OPEN_SHOP_TIME DESC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 获取店铺状态（正常/冻结） -->
+	<select id="getStoreState" resultType="java.util.Map">
+		SELECT * FROM
+		es_dictionary WHERE PID='26' AND
+		(DICTIONARY_VALUE='STORE_AUTHENTICATION_PASS' OR
+		DICTIONARY_VALUE='STORE_AUTHENTICATION_FREEZE')
+	</select>
+	<!-- 转换店铺状态（正常/冻结） -->
+	<update id="changeState" parameterType="java.util.Map">
+		UPDATE es_store
+		SET
+		<if test="result eq 1">
+			STATE='STORE_STATE_NORMAL'
+		</if>
+		<if test="result eq 0">
+			STATE='STORE_AUTHENTICATION_FREEZE'
+		</if>
+		WHERE STORE_ID=#{id}
+	</update>
+	<!-- 改变店铺名字 -->
+	<update id="changeName" parameterType="java.lang.String">
+		update es_store set
+		STORE_NAME=#{storeName} WHERE STORE_ID=#{storeId}
+	</update>
+	<!-- 改变店铺详细地址 -->
+	<update id="changeAddr" parameterType="java.lang.String">
+		update
+		es_store_certification set ADDR=#{addr} WHERE
+		STORE_CERTIFICATION_ID=#{id}
+	</update>
+	<!-- 改变店铺分类 -->
+	<update id="changeClass" parameterType="java.lang.String">
+		update es_store set
+		STORE_CLASSIFICATION_ID=#{storeClass} WHERE STORE_ID=#{storeId}
+	</update>
+	<!-- 改变店铺客服电话 -->
+	<update id="changeServicePhone" parameterType="java.lang.String">
+		update es_store
+		set SERVICE_PHONE=#{servicePhone} WHERE STORE_ID=#{storeId}
+	</update>
+	<!-- 取出所有的通过认证的店铺的认证信息 -->
+	<select id="getStoreCertificationList"
+		resultType="java.util.Map">
+		SELECT * FROM es_store_certification WHERE
+		AUDIT_STATE='STORE_AUTHENTICATION_PASS'
+	</select>
+	<!-- 将店铺等级替换为新的等级并删除WAITING_STATE字段的值 -->
+	<update id="changeLevel" parameterType="java.util.Map">
+		UPDATE
+		es_store_certification SET WAITING_STATE=NULL,LEVELS=#{newLevel} WHERE
+		STORE_CERTIFICATION_ID=#{id}
+	</update>
+	<!-- 获取店铺所有等级 -->
+	<select id="getStoreLevel" resultType="java.util.Map">
+		SELECT * FROM
+		es_dictionary WHERE PID='64'
+	</select>
+	<!-- 为店铺添加一个待改变的等级 -->
+	<update id="addNewLevel" parameterType="java.util.Map">
+		UPDATE
+		es_store_certification SET WAITING_STATE=#{storeLevel} WHERE
+		STORE_CERTIFICATION_ID=#{id}
+	</update>
+	<!-- 获取店铺认证状态 -->
+	<select id="getVerifyState" resultType="java.util.Map">
+		SELECT * FROM
+		es_dictionary WHERE PID='26' AND
+		(DICTIONARY_VALUE='STORE_AUTHENTICATION_PASS' OR
+		DICTIONARY_VALUE='STORE_AUTHENTICATION_NO')
+	</select>
+	<!-- 改变店铺的状态为正常 -->
+	<update id="changeStoreStateNormal"
+		parameterType="java.lang.String">
+		UPDATE es_store SET
+		STATE='STORE_STATE_NORMAL',OPEN_SHOP_TIME=NOW() WHERE
+		STORE_ID=#{storeId}
+	</update>
+	<!-- 查询线下店铺某月/日的大额报单流水 -->
+	<select id="getDeclarationWater" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT SUM(MONEY) AS MONEY,SUM(COMMISSION) AS COMMISSION
+		FROM es_offline WHERE USERS_ID=#{userId} AND PASS_TIME LIKE #{time}
+		AND STATE='1'
+	</select>
+
+	<!-- 通过storeId得到线下店铺数据 -->
+	<select id="getOffLineStoreInfoById"
+		parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT
+		es.STORE_ID,
+		es.USERS_ID,
+		esce.`STORE_CERTIFICATION_ID`,
+		es.STORE_NAME,
+		escl.`CLASSIFICATION_NAME` AS STORE_CLASS,
+		ea1.`CITY_NAME` AS
+		`PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		esce.`ADDR`,
+		ed1.`DESCRIBES` AS LEVELS,
+		esce.PHONE,
+		es.SERVICE_PHONE,
+		esce.ID_CARD_UP,
+		esce.BUSINESS_LICENSE,
+		esce.HEAD_PHOTO,
+		esce.ID_CARD_DON,
+		esce.`TO_APPLY_FOR_TIME`,
+		ed2.`DESCRIBES` AS
+		AUDIT_STATE,
+		eu.PHONE AS CUSER,
+		es.`OPEN_SHOP_TIME`,
+		eu2.`PHONE` AS
+		userPhone,
+		euc.UC_NAMES,
+		eu3.`PHONE` AS zzPhone,
+		euc2.`UC_NAMES` AS
+		zzName,
+		esce.IS
+		FROM
+		es_store_certification esce
+		LEFT OUTER JOIN es_store
+		es ON esce.STORE_ID=es.STORE_ID
+		LEFT OUTER JOIN
+		es_store_classification
+		escl ON
+		es.STORE_CLASSIFICATION_ID=escl.STORE_CLASSIFICATION_ID
+		LEFT
+		OUTER JOIN
+		es_area ea1 ON esce.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER
+		JOIN es_area
+		ea2 ON esce.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area
+		ea3 ON
+		esce.`AREA`=ea3.`CITY_CODE`
+		LEFT OUTER JOIN es_dictionary ed1 ON
+		esce.`LEVELS`=ed1.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_dictionary ed2
+		ON
+		esce.`AUDIT_STATE`=ed2.`DICTIONARY_VALUE`
+		LEFT OUTER JOIN es_users eu
+		ON esce.CUSER=eu.USERS_ID
+		LEFT OUTER JOIN es_users eu2 ON
+		es.`USERS_ID`=eu2.`USERS_ID`
+		LEFT OUTER JOIN es_user_certification euc
+		ON es.USERS_ID=euc.USERS_ID
+		LEFT OUTER JOIN es_users eu3 ON
+		(esce.`AREA`=eu3.`AREAID` AND eu3.`IS_ZZ`='1')
+		LEFT OUTER JOIN
+		es_user_certification euc2 ON eu3.`USERS_ID`=euc2.`USERS_ID`
+		WHERE
+		esce.`TYPES`='STORE_XS_XX'
+		AND
+		(esce.AUDIT_STATE='STORE_AUTHENTICATION_PASS' OR
+		esce.AUDIT_STATE='STORE_AUTHENTICATION_FREEZE')
+		AND
+		es.STORE_ID=#{storeId}
+	</select>
+	<!-- 取出不是当月注册的用户 -->
+	<select id="getUsersExceptThisMonth"
+		parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_users
+		WHERE NOT (REGISTERED_TIME LIKE CONCAT('%',#{thisMonth},'%'))
+	</select>
+	<!-- 查询用户本月订单总额 -->
+	<select id="getOrderMoney" parameterType="java.util.Map"
+		resultType="java.lang.Double">
+		SELECT
+		SUM(eo.NUMBER * eo.PRICE) AS sumMoney
+		FROM
+		es_order eo,
+		es_goods eg,
+		es_store es
+		WHERE eo.USERS_ID = #{userId}
+		AND eo.ORDER_STATE
+		IN (
+		'ORDER_STATE_NO_EVALUATION',
+		'ORDER_STATE_AFTER-SALES',
+		'ORDER_STATE_COMPLETE',
+		'ORDER_STATE_YCX'
+		)
+		AND eo.GOODSID = eg.GOODSID
+		AND es.STORE_ID = eg.STORE_ID
+		AND es.STORE_ID =
+		'7c9bf08d2665419d881e879b80225b64'
+		AND (
+		eo.SHTIME BETWEEN #{startTime}
+		AND #{endTime}
+		)
+	</select>
+	<!-- 查询用户本月线下店铺支付总额 -->
+	<select id="getOffLinePayMoney" parameterType="java.util.Map"
+		resultType="java.lang.Double">
+		SELECT
+		SUM(MONEYS) AS offlinePay
+		FROM
+		es_running_water
+		WHERE
+		WATER_TYPE = '2'
+		AND MONEY_TYPE = '1'
+		AND WATER_DATA_TYPE = '线下店铺支付'
+		AND
+		USERS_ID = #{userId}
+		AND (
+		WATER_TIME BETWEEN #{startTime}
+		AND #{endTime}
+		)
+	</select>
+	<!-- 查询用户本月小额报单总额 -->
+	<select id="getLittleDeclarationMoney"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT
+		SUM(MONEY) AS money
+		FROM
+		es_store_water
+		WHERE IS_BD = '1'
+		AND USERID = #{userId}
+		AND (
+		ETIME
+		BETWEEN #{startTime}
+		AND #{endTime}
+		)
+	</select>
+	<!-- 查询用户本月大额报单总额 -->
+	<select id="getBigDeclarationMoney"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT
+		SUM(MONEY) AS money
+		FROM
+		es_offline
+		WHERE STATE = '1'
+		AND BUY_USERPHONE = #{phone}
+		AND (
+		PASS_TIME BETWEEN #{startTime}
+		AND #{endTime}
+		)
+	</select>
+	<!-- 改变用户会员等级 -->
+	<update id="changeMembershipGrade" parameterType="java.util.Map">
+		UPDATE es_users
+		SET MEMBERSHIP_GRADE=#{grade} WHERE USERS_ID=#{userId}
+	</update>
+	<!-- 得到已付款的订单 -->
+	<select id="getPayOrder" resultType="java.util.Map">
+		SELECT * FROM es_order WHERE
+		ORDER_STATE='ORDER_STATE_PAY' GROUP BY ORDER_NUMBER
+	</select>
+	<!-- 取消订单 -->
+	<update id="cancleOrder" parameterType="java.lang.String">
+		UPDATE es_order SET
+		ORDER_STATE='ORDER_STATE_QX',CANCEL_TIME=NOW() WHERE
+		ORDER_NUMBER=#{orderNumber}
+	</update>
+
+</mapper>

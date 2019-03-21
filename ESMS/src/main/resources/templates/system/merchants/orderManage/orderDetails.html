@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>订单详情</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+	<style type="text/css">
+		.layui-table-cell{height:auto;line-height:auto;padding:0 15px;position:relative;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box}
+	</style>
+</head>
+<body>
+	<input id="orderNumber" type="hidden" th:value="${order.ORDER_NUMBER}"/>
+	<input id="merchantId" type="hidden" th:value="${storeUser.USERS_ID}"/>
+	<input id="userId" type="hidden" th:value="${order.USERS_ID}"/>
+	<input id="sumPrice" type="hidden" th:value="${order.sumPrice}"/>
+	<input id="payType" type="hidden" th:value="${order.PAY_TYPE}"/>
+	<div class="layui-fluid">
+		<div class="layui-row">
+			<!-- 标题栏 -->
+			<div class="layui-col-lg12" style="background-color:white;padding-bottom:10px;">
+				<div class="layui-col-lg11">
+					<h2>
+						<a th:each="location:${location}" th:href="${location.value}" th:text="${location.name}"></a>
+					</h2>
+				</div>
+				<div class="layui-col-lg1">
+					<a class="layui-btn layui-btn-radius" style="float:right" href="javascript:history.back(-1)">返回</a>
+				</div>
+			</div>
+			<div class="layui-col-lg12" th:if="${arbitration=='true'} and ${order.ORDER_STATE!='ORDER_STATE_YCX'}">
+				<div class="layui-col-lg12" style="background-color:#F2F2F2;height:30px">
+					<p style="font-size:15px;color:#58B9DA;margin-top:4px;margin-left:5px">仲裁</p>
+				</div>
+				<div class="layui-form layui-form-pane">
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">责任判定：</label>
+						<div class="layui-input-inline">
+							<select id="duty">
+								<option value="">请选择</option>
+								<option value="商家">商家</option>
+								<option value="买家">买家</option>
+							</select>
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<label class="layui-form-label">撤销原因：</label>
+						<div class="layui-input-inline">
+							<input class="layui-input" id="reason"/>
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<div class="layui-input-inline">
+							<button id="confirm" class="layui-btn" data-type="confirm">确认</button>
+						</div>
+					</div>
+					<div class="layui-form-item layui-inline">
+						<div class="layui-input-inline">
+							<a class="layui-btn" href="javascript:history.back(-1)">取消</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="layui-col-lg12" style="background-color:#F2F2F2;height:30px">
+				<p style="font-size:15px;color:#58B9DA;margin-top:4px;margin-left:5px">订单信息</p>
+			</div>
+			<div class="layui-col-lg12" style="height:40px;border-bottom:1px solid #F2F2F2">
+				<div class="layui-col-lg2" style="height:40px">
+					<p style="font-size:15px;margin-top:4px;margin-left:5px" th:text="订单编号：+${order.ORDER_NUMBER}"></p>
+				</div>
+				<div class="layui-col-lg1 layui-col-lg-offset9" style="height:40px">
+					<p style="float:right;font-size:15px;margin-top:4px;" th:text="订单状态：+${order.DESCRIBES}"></p>
+				</div>
+			</div>
+			<div class="layui-col-lg12">
+				<p th:if="${order.ORDER_TIME!=''}" th:text="下单时间：+${order.ORDER_TIME}"></p>
+				<p th:if="${order.PAY_TIME!=''}" th:text="付款时间：+${order.PAY_TIME}"></p>
+				<p th:if="${order.DELIVERY_TIME!=''}" th:text="发货时间：+${order.DELIVERY_TIME}"></p>
+				<p th:if="${order.SHTIME!=''}" th:text="收货时间：+${order.SHTIME}"></p>
+				<p th:if="${order.COMMENTS_TIME!=''}" th:text="评价时间：+${order.COMMENTS_TIME}"></p>
+				<p th:if="${order.CANCEL_TIME!=''}" th:text="取消时间：+${order.CANCEL_TIME}"></p>
+				<div th:if="${order.CXTIME!=''}">
+					<span th:text="撤销时间：+${order.CXTIME}"></span>
+					<span th:text="责任判定：+${order.ZRPD}"></span>
+					<span th:text="撤销原因：+${order.CXYY}"></span>
+				</div>
+			</div>
+			<div class="layui-col-lg12" style="background-color:#F2F2F2;height:30px">
+				<p style="font-size:15px;color:#58B9DA;margin-top:4px;margin-left:5px">买家信息</p>
+			</div>
+			<div class="layui-col-lg12">
+				<span th:text="买家昵称：+${order.NICKNAME}"></span>&nbsp;&nbsp;&nbsp;<span th:text="电话：+${order.PHONE}"></span>
+			</div>
+			<div class="layui-col-lg12" style="background-color:#F2F2F2;height:30px">
+				<p style="font-size:15px;color:#58B9DA;margin-top:4px;margin-left:5px">卖家信息</p>
+			</div>
+			<div class="layui-col-lg12">
+				<span th:text="卖家姓名：+${storeUser.UC_NAMES}"></span>&nbsp;&nbsp;&nbsp;<span th:text="电话：+${storeUser.PHONE}"></span>
+			</div>
+			<div class="layui-col-lg12">
+				<span th:text="店铺名称：+${storeUser.STORE_NAME}"></span>
+			</div>
+			<div class="layui-col-lg12">
+				<span th:text="店铺类型：+${storeUser.STORE_TYPE}"></span>
+			</div>
+			<div class="layui-col-lg12">
+				<span th:text="店铺级别：+${storeUser.LEVELS}"></span>
+			</div>
+			<div class="layui-col-lg12" style="background-color:#F2F2F2;height:30px">
+				<p style="font-size:15px;color:#58B9DA;margin-top:4px;margin-left:5px">收货信息</p>
+			</div>
+			<div class="layui-col-lg12">
+				<p th:text="收货人：+${order.CONTACT}+${order.LXPHONE}"></p>
+				<p th:text="收货地址：+${order.p}+${order.c}+${order.a}+${order.ADDR}"></p>
+			</div>
+			<div class="layui-col-lg12" style="background-color:#F2F2F2;height:30px">
+				<p style="font-size:15px;color:#58B9DA;margin-top:4px;margin-left:5px">商品信息</p>
+			</div>
+			<div class="layui-col-lg12" style="border-bottom:1px solid #F2F2F2">
+				<div th:each="goods : ${order.goods}" class="layui-col-lg12" style="height:170px">
+					<div style="height:100%">
+						<!-- 商品图片 -->
+						<div class="layui-col-lg2" style="height:150px;margin-top:10px;margin-left:10px;">
+							<img th:src="${goods.ICON}" style="height:100%;"/>
+						</div>
+						<!-- 商品名字 -->
+						<div class="layui-col-lg7 layui-col-lg-offset2" style="height:70px;margin-top:10px;margin-left:10px">
+							<span th:text="商品名字：+${goods.GOODS_NAME}"></span>
+						</div>
+						<!-- 商品属性/数量/价格 -->
+						<div class="layui-col-lg7 layui-col-lg-offset2" style="height:70px;margin-top:10px;margin-left:10px">
+							<div class="layui-col-lg2" style="height:70px">
+								<span th:text="属性：+${goods.ATTRIBUTE}"></span>
+							</div>
+							<div class="layui-col-lg2 layui-col-lg-offset2" style="height:70px">
+								<span th:text="数量：+${goods.NUMBER}"></span>
+							</div>
+							<div class="layui-col-lg2 layui-col-lg-offset2" style="height:70px">
+								<span th:text="单价：￥+${goods.PRICE}"></span>
+							</div>
+						</div>
+					</div>
+				</div>		
+			</div>
+			<div class="layui-col-lg12">
+				<p th:text="商品合计金额：￥+${order.sumPrice}"></p>
+			</div>
+			<div class="layui-col-lg12" style="background-color:#F2F2F2;height:30px">
+				<p style="font-size:15px;color:#58B9DA;margin-top:4px;margin-left:5px">交易信息</p>
+			</div>
+			<div class="layui-col-lg12" style="border-bottom:1px solid #F2F2F2">
+				<p>
+					交易方式：
+					<span th:if="${order.PAY_TYPE=='0'}">零花钱</span>
+					<span th:if="${order.PAY_TYPE=='1'}">余额</span>
+					<span th:if="${order.PAY_TYPE=='2'}">消费券</span>
+					<span th:if="${order.PAY_TYPE==''}">未付款</span>
+				</p>
+				<p th:text="订单总金额：￥+${order.sumPrice}"></p>
+			</div>
+			<div>
+				<a class="layui-btn" th:if="${order.ORDER_STATE=='ORDER_STATE_NO_GOODS'}" th:href="'/merchantsOrder/toOrderLogistics?orderId='+${order.ORDER_ID}">查看物流</a>
+				<a class="layui-btn" th:if="${order.ORDER_STATE=='ORDER_STATE_NO_EVALUATION'}" th:href="'/merchantsOrder/toOrderLogistics?orderId='+${order.ORDER_ID}">查看物流</a>
+				<a class="layui-btn" th:if="${order.ORDER_STATE=='ORDER_STATE_AFTER-SALES'}" th:href="'/merchantsOrder/toOrderLogistics?orderId='+${order.ORDER_ID}">查看物流</a>
+				<a class="layui-btn" th:if="${order.ORDER_STATE=='ORDER_STATE_COMPLETE'}" th:href="'/merchantsOrder/toOrderLogistics?orderId='+${order.ORDER_ID}">查看物流</a>
+				<a class="layui-btn" th:if="${order.ORDER_STATE=='ORDER_STATE_YCX'}" th:href="'/merchantsOrder/toOrderLogistics?orderId='+${order.ORDER_ID}">查看物流</a>
+			</div>
+		</div>
+	</div> 
+
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script>
+layui.use(['element','form','table','laydate','layer'], function(){
+	var element = layui.element,form = layui.form,$ = layui.jquery,table = layui.table,laydate = layui.laydate,layer = layui.layer;
+	<!-- 监听仲裁 -->
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	var duty = $("#duty");
+	var reason = $("#reason");
+	var orderNumber = $("#orderNumber").val();
+	var merchantId = $("#merchantId").val();
+	var userId = $("#userId").val();
+	var sumPrice = $("#sumPrice").val();
+	var payType = $("#payType").val();
+	var active = {
+		confirm: function(){
+			if(duty.val()=='')
+			{
+				layer.msg("请进行责任判定");
+			}
+			else if(reason.val()=='')
+			{
+				layer.msg("请输入撤销原因");
+			}
+			else
+			{
+				layer.confirm('确定撤销此订单吗?', {icon: 3, title:'提示'}, function(index){
+					$.ajax({   
+						type : "POST",
+						async:false,
+						url : "/order/arbitration",   
+						data : {   
+							orderNumber:orderNumber,reason:reason.val(),duty:duty.val(),merchantId:merchantId,userId:userId,sumPrice:sumPrice,payType:payType
+						},  
+						success : function(da) {  
+							if(da!="ok")
+							{
+								layer.msg(da);
+							}
+							else
+							{
+								layer.close(index);
+								window.location.href="/order/toOrderSearch";
+							}
+					    }
+					});
+				});
+			}
+		}
+	};
+});
+</script>
+</html>

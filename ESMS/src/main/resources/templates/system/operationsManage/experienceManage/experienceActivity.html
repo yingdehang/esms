@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>礼包管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div id="add" style="margin-left:50px;display:none;margin-right:50px">
+		<div class="layui-form layui-form-pane" style="margin-top:20px">
+			<div class="layui-form-item">
+				<label class="layui-form-label">活动名称</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="name" maxlength="100"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">激活金额</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="money"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">象币</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="integral"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">有效时间</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="time"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">礼包数量</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="number"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">礼包类型</label>
+				<div class="layui-input-block">
+					<select id="type">
+						<option value="">请选择</option>
+						<option value="1">体验专区</option>
+						<option value="2">购买专区</option>
+					</select>
+				</div>
+			</div>
+			<div class="layui-upload">
+				<button class="layui-btn" id="test1" type="button">上传图片</button>
+				<div class="layui-upload-list">
+					<img class="layui-upload-img" id="demo1" style="margin-right:50px"/>
+				</div>
+			</div> 
+			
+		</div>
+	</div>
+	<div id="modify" style="margin-left:50px;display:none;margin-right:50px">
+		<div class="layui-form layui-form-pane" style="margin-top:20px">
+			<div class="layui-form-item">
+				<label class="layui-form-label">活动名称</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="name2" maxlength="100"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">激活金额</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="money2"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">象币</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="integral2"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">有效时间</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="time2"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">礼包数量</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="number2"/>
+				</div>
+			</div>
+			<div class="layui-upload">
+				<button class="layui-btn" id="test2" type="button">修改图片</button>
+				<div class="layui-upload-list">
+					<img class="layui-upload-img" id="demo2" style="margin-right:50px"/>
+				</div>
+			</div> 
+			
+		</div>
+	</div>
+	
+	<div style="padding-bottom: 5px; border-bottom: 2px solid #5FB878;margin-bottom:10px">
+		<h2>
+			<a href="javascript:history.go(-1)">礼包审核</a>>
+			<a href="javascript:void(0)" onclick="location.reload()">礼包管理</a>
+		</h2>
+	</div>
+	<div id="search" class="layui-form layui-form-pane">
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">礼包类型</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="acType" lay-filter="changeType">
+					<option value="">筛选</option>
+					<option value="1">体验专区</option>
+					<option value="2">购买专区</option>
+				</select>
+			</div>
+		</div>
+	</div>
+	<button class="layui-btn" data-method="add">添加</button>
+	<table id="activitis" lay-filter="operation"></table>
+
+	<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+var count = 0;
+var count2 = 0;
+var id;
+layui.use(['table','jquery','layer','form','upload','laydate'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var layer = layui.layer;
+	var form = layui.form;
+	var upload = layui.upload;
+	var laydate = layui.laydate;
+	laydate.render({
+		elem: '#startTime'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#endTime'
+		,type: 'datetime'
+	});
+	//添加礼包的上传
+	var uploadInst = upload.render({
+	    elem: '#test1'
+	    ,url: '/experience/addActivityImg'
+	    ,accept: 'images'
+	    ,auto: false
+	    ,choose: function(obj){ 
+	    	count++;
+	    	obj.preview(function(index, file, result){
+		        $('#demo1').attr('src', result); //图片链接（base64）
+		    });
+		}
+	    ,done: function(res, index, upload){
+		      if(res.code == 0){ //上传成功
+		    	var url = res.url;
+		      	$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/experience/addActivity",   
+					data : {   
+						name:$("#name").val(),money:$("#money").val(),time:$("#time").val(),url:url,integral:$("#integral").val(),number:$("#number").val(),type:$("#type").val()
+					},  
+					success : function(da) {  
+						table.reload('activitis', {
+						});
+						$('#demo1').attr('src', '');
+				      	count=0;
+				      	$("#name").val("");
+				      	$("#money").val("");
+				      	$("#integral").val("");
+				      	$("#time").val("");
+				      	$("#number").val("");
+				      	$("#type option[value='']").attr("selected",true);
+						form.render('select');
+					}   
+				});
+		      }
+		}
+	});
+	//修改图片的上传
+	var uploadInst2 = upload.render({
+	    elem: '#test2'
+	    ,url: '/experience/addActivityImg'
+	    ,accept: 'images'
+	    ,auto: false
+	    ,choose: function(obj){ 
+	    	count2++;
+	    	obj.preview(function(index, file, result){
+		        $('#demo2').attr('src', result); //图片链接（base64）
+		    });
+		}
+	    ,done: function(res, index, upload){
+		      if(res.code == 0){ //上传成功
+		    	var url = res.url;
+		    	$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/experience/modifyActivity",   
+					data : {   
+						id:id,name:$("#name2").val(),money:$("#money2").val(),time:$("#time2").val(),url:url,integral:$("#integral2").val(),number:$("#number2").val()
+					},  
+					success : function(da) {  
+						table.reload('activitis', {
+						});
+				      	count2=0;
+				      	$('#demo2').attr('src', '');
+				      	$("#name2").val("");
+				      	$("#money2").val("");
+				      	$("#integral2").val("");
+				      	$("#time2").val("");
+				      	$("#number2").val("");
+					}   
+				});
+		      }
+		}
+	});
+
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#activitis'
+		,url: '/experience/getActivitis'
+		,page: true
+		,cols:[[
+			{field:'ACTIVITY_NAME',title:'礼包名称'}
+			,{field:'PHOTO_URL',title:'礼包图片',toolbar:'#is_photo'}
+			,{field:'MONEY',title:'礼包价格'}
+			,{field:'INTEGRAL',title:'象币'}
+			,{field:'IS_UP',title:'礼包数量'}
+			,{field:'VALID_TIME',title:'体验时间'}
+			,{field:'ADDTIME',title:'添加时间',width:180}
+			,{field:'IS_PREFECTURE',title:'礼包类型',templet:'#types'}
+			,{field:'IS_SORT',title:'排序',edit: 'text'}
+			,{fixed:'right',width:250, align:'center', toolbar: '#toolbar',title:'操作'}
+		]]
+	});
+	//礼包类型筛选
+	form.on('select(changeType)',function(data){
+		table.reload('activitis', {
+			where: {
+				type:data.value
+			}
+			,page:{
+				curr:1
+			}
+		});
+	});
+	//判断对象是不是整数
+	var r = /^[-\+]?\d+$/;　　//整数  
+	//监听单元格编辑
+	table.on('edit(operation)', function(obj){
+		//console.log(obj.value); //得到修改后的值
+		//console.log(obj.field); //当前编辑的字段名
+		//console.log(obj.data); //所在行的所有相关数据 
+		if(r.test(obj.value)==true)//整数
+		{
+			$.ajax({   
+				type : "POST",
+				async:false,
+				url : "/experience/changeSort",   
+				data : {   
+					id:obj.data.EEACID,sort:obj.value
+				},  
+				success : function(da) { 
+					layer.msg("修改成功");
+				}   
+			});  
+			table.reload('activitis', {
+			});
+		}
+		else//非整数
+		{
+			layer.msg("请输入一个整数");
+			table.reload('activitis', {
+			});
+		}
+	});
+	
+	$('.layui-btn').on('click', function(){
+		var othis = $(this), method = othis.data('method');
+		active[method] ? active[method].call(this, othis) : '';
+	});
+	
+	var name = $("#name");
+	var money = $("#money");
+	var time = $("#time");
+	var integral = $("#integral");
+	var number = $("#number");
+	var type = $("#type");
+	var x = /^\d\d*\.\d+$/;　　//正浮点数
+	var z = /^\d+$/;　　//非负整数  
+	var t = /^[1-9]+$|^[1-9]+\d+$/; //正整数
+	var y = /^[+]?\d+$/;　　//整数 
+	var active = {
+			add: function(){
+				var index1 = layer.open({
+					type: 1
+					,id:'m1'
+			        ,title: '新增礼包'
+			        ,area: ['700px', '800px']
+			        ,shade: 0
+			        ,maxmin: true
+			        ,content: $("#add")
+			        ,skin:'layui-layer-molv'
+			        ,btnAlign: 'c'
+			        ,btn: ['确定', '取消']
+			        ,yes: function(){
+			        	if(name.val()!=""){
+				        	if(x.test(money.val())==true||z.test(money.val())==true){
+				        		if(x.test(integral.val())==true||z.test(integral.val())==true){
+					        		if(t.test(time.val())==true){
+					        			if(y.test(number.val())==true){
+					        				if(type.val()!=""){
+							        			if(count>0){
+											        layer.confirm('确定?', {icon: 3, title:'提示'}, function(index2){
+											        	uploadInst.upload();
+														layer.close(index2);
+														layer.close(index1);
+													});
+							        			}else{
+							        				layer.msg("请选择图片");
+							        			}
+					        				}else{
+					        					layer.msg("请选择礼包类型");
+					        				}
+					        			}else{
+					        				layer.msg("礼包数量应为整数");
+					        			}
+					        		}else{
+					        			layer.msg("有效时间应为大于0的整数");
+					        		}
+				        		}else{
+				        			layer.msg("请输入正确的象币数量");
+				        		}
+				        	}else{
+				        		layer.msg("请输入正确的金额");
+				        	}
+			        	}else{
+			        		layer.msg("请输入活动名称");
+			        	}
+			        }
+			        ,btn2: function(){
+			        	$('#demo1').attr('src', '');
+				      	count=0;
+				      	$("#name").val("");
+				      	$("#money").val("");
+				      	$("#integral").val("");
+				      	$("#time").val("");
+				      	$("#number").val("");
+				      	$("#type option[value='']").attr("selected",true);
+						form.render('select');
+						layer.close();
+			        }
+			        ,cancel: function(index, layero){ 
+			        	$('#demo1').attr('src', '');
+				      	count=0;
+				      	$("#name").val("");
+				      	$("#money").val("");
+				      	$("#integral").val("");
+				      	$("#time").val("");
+				      	$("#number").val("");
+				      	$("#type option[value='']").attr("selected",true);
+						form.render('select');
+			        	layer.close(index)
+			        	return false; 
+			        }  
+				});
+			}
+	}
+	
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'goods'){ //商品管理
+			window.location.href="/experience/toExperienceGoods?id="+data.EEACID;
+		}else if(layEvent === 'modify'){//修改
+			var name2 = $("#name2");
+			var money2 = $("#money2");
+			var time2 = $("#time2");
+			var integral2 = $("#integral2");
+			var number2 = $("#number2");
+			//赋值
+			$.ajax({   
+				type : "POST",
+				async:false,
+				url : "/experience/getActivity",   
+				data : {   
+					id:data.EEACID
+				},  
+				success : function(da) {  
+					var d = eval(da);
+					name2.val(d.ACTIVITY_NAME);
+					money2.val(d.MONEY);
+					time2.val(d.VALID_TIME);
+					integral2.val(d.INTEGRAL);
+					number2.val(d.IS_UP);
+					$('#demo2').attr('src', d.PHOTO_URL);
+				}   
+			});
+			
+			id = data.EEACID;
+			var index1 = layer.open({
+				type: 1
+				,id:'m'
+		        ,title: '修改礼包'
+		        ,area: ['700px', '800px']
+		        ,shade: 0
+		        ,maxmin: true
+		        ,content: $("#modify")
+		        ,skin:'layui-layer-molv'
+		        ,btnAlign: 'c'
+		        ,btn: ['确定', '取消']
+		        ,yes: function(){
+		        	if(name2.val()!=""){
+			        	if(x.test(money2.val())==true||z.test(money2.val())==true){
+			        		if(x.test(integral2.val())==true||z.test(integral2.val())==true){
+				        		if(t.test(time2.val())==true){
+				        			if(y.test(number2.val())==true){
+						        			if(count2>0){
+										        layer.confirm('确定?', {icon: 3, title:'提示'}, function(index2){
+										        	uploadInst2.upload();
+													layer.close(index2);
+													layer.close(index1);
+												});
+						        			}else{
+						        				layer.confirm('确定?', {icon: 3, title:'提示'}, function(index2){
+						        					$.ajax({   
+							        					type : "POST",
+							        					async:false,
+							        					url : "/experience/modifyActivity",   
+							        					data : {   
+							        						id:id,name:$("#name2").val(),money:$("#money2").val(),time:$("#time2").val(),integral:$("#integral2").val(),number:$("#number2").val()
+							        					},  
+							        					success : function(da) {  
+							        						layer.close(index2);
+															layer.close(index1);
+															$('#demo2').attr('src', '');
+													      	count2=0;
+													      	$("#name2").val("");
+													      	$("#money2").val("");
+													      	$("#integral2").val("");
+													      	$("#time2").val("");
+													      	$("#number2").val("");
+															table.reload('activitis', {
+															});
+							        					}   
+							        				});
+												});
+						        			}
+				        			}else{
+				        				layer.msg("礼包数量应为整数");
+				        			}
+				        		}else{
+				        			layer.msg("有效时间应为大于0的整数");
+				        		}
+			        		}else{
+			        			layer.msg("请输入正确的象币数量");
+			        		}
+			        	}else{
+			        		layer.msg("请输入正确的金额");
+			        	}
+		        	}else{
+		        		layer.msg("请输入活动名称");
+		        	}
+		        }
+		        ,btn2: function(){
+		        	$('#demo2').attr('src', '');
+			      	count2=0;
+			      	$("#name2").val("");
+			      	$("#money2").val("");
+			      	$("#integral2").val("");
+			      	$("#time2").val("");
+			      	$("#number2").val("");
+					layer.close();
+		        }
+		        ,cancel: function(index, layero){ 
+		        	$('#demo2').attr('src', '');
+			      	count2=0;
+			      	$("#name2").val("");
+			      	$("#money2").val("");
+			      	$("#integral2").val("");
+			      	$("#time2").val("");
+		        	layer.close(index)
+		        	return false; 
+		        }  
+			});
+		}else if(layEvent === 'countManage'){//数量控制
+			window.location.href="/experience/toCountManage?acId="+data.EEACID;
+		}
+	});
+	//监听开关操作
+	form.on('switch(sexDemo)', function(obj){
+		layer.confirm('确定修改?', {icon: 3, title:'提示'}, function(index){
+			var value;
+			if(obj.elem.checked==true){
+				value=1;
+			}else{
+				value=0;
+			}
+			$.ajax({   
+				type : "POST",
+				async:false,
+				url : "/experience/turn",   
+				data : {   
+					id:obj.elem.id,value:value
+				},  
+				success : function(da) {  
+				}   
+			});
+			layer.close(index);
+		},function(){
+			table.reload('activitis', {
+			});
+		});
+	});
+});
+function showPhoto(t) {
+	layer.open({
+		type : 1,
+		title : false,
+		area : 'auto',
+		maxWidth : '750px',
+		anim : 0,
+		skin : 'layui-layer-nobg', //没有背景色
+		shadeClose : true,
+		content : '<img src="'+t.src+'" width="750px"/>'
+	});
+}
+function getUuid(){
+	  var len=32;//32长度
+	  var radix=16;//16进制
+	  var chars='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');var uuid=[],i;radix=radix||chars.length;if(len){for(i=0;i<len;i++)uuid[i]=chars[0|Math.random()*radix];}else{var r;uuid[8]=uuid[13]=uuid[18]=uuid[23]='-';uuid[14]='4';for(i=0;i<36;i++){if(!uuid[i]){r=0|Math.random()*16;uuid[i]=chars[(i==19)?(r&0x3)|0x8:r];}}}
+	  return uuid.join('');
+}
+/*]]>*/
+</script>
+<script type="text/html" id="toolbar">
+	<a class="layui-btn layui-btn-xs" lay-event="modify">修改</a>
+	<a class="layui-btn layui-btn-xs" lay-event="countManage">数量控制</a>
+	<a class="layui-btn layui-btn-xs" lay-event="goods">礼包商品管理</a>
+</script>
+<script type="text/html" id="is_photo">
+	<img src="{{d.PHOTO_URL}}" onclick="showPhoto(this)"/>
+</script>
+<script type="text/html" id="types">
+	{{# if(d.IS_PREFECTURE=='1'){ }}
+		体验专区
+	{{# }else if(d.IS_PREFECTURE=='2'){ }}
+		购买专区
+	{{# } }}
+</script>
+<!--  
+<script id="switch" type="text/html">
+	{{# if(d.IS_UP=='1'){ }}
+		<input type="checkbox" checked="" id="{{d.EEACID}}" lay-skin="switch" lay-text="开启|关闭" lay-filter="sexDemo"/>
+	{{# }else{ }}
+		<input type="checkbox" id="{{d.EEACID}}" lay-skin="switch" lay-text="开启|关闭" lay-filter="sexDemo"/>
+	{{# } }}
+</script>
+-->
+</body>
+</html>

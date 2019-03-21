@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>超级APP用户管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<style type="text/css">
+		.layui-table-cell{height:auto;line-height:auto;padding:0 15px;position:relative;overflow:visible;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box}
+</style>
+</head>
+<body>
+	<div id="search" class="layui-form layui-form-pane">
+		<div style="padding-bottom: 20px; border-bottom: 2px solid #5FB878">
+			<h2>
+				<a href="javascript:void(0)" onclick="location.reload()">超级APP用户管理</a>
+				<button id="export" class="layui-btn layui-btn-radius"
+					style="float: right" data-type="exports">导出列表</button>
+			</h2>
+		</div>
+		<div class="layui-form-item layui-inline"
+			style="margin-top: 15px; margin-left: 9px">
+			<label class="layui-form-label" style="width: 80px">手机号</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="phoneNumber" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline"
+			style="margin-top: 15px; margin-left: 9px">
+			<label class="layui-form-label" style="width: 120px">分享者手机号</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="invitation" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 120px">个人账户状态</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="userState">
+					<option value="">请选择</option>
+					<option value="1">正常</option>
+					<option value="0">冻结</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 120px">是否实名认证</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="isVerify">
+					<option value="">请选择</option>
+					<option value="1">是</option>
+					<option value="0">否</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label">注册时间</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="start" type="text" placeholder="起始时间" />
+			</div>
+			<div class="layui-form-mid">至</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="end" type="text" placeholder="结束时间" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 150px">实名认证通过时间</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="start2" type="text" placeholder="起始时间" />
+			</div>
+			<div class="layui-form-mid">至</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="end2" type="text" placeholder="结束时间" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label">选择地区</label>
+			<div class="layui-input-inline">
+				<select name="province" id="province" lay-filter="changeProvince"
+					lay-verify="required">
+					<option value="0">请选择省</option>
+					<option th:each="province:${province}"
+						th:value="${province.CITY_CODE}" th:text="${province.CITY_NAME}"></option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select name="city" id="city" lay-filter="changeCity"
+					lay-verify="required">
+					<option value="0">请选择市</option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select name="area" id="area" lay-verify="required">
+					<option value="0">请选择区</option>
+				</select>
+			</div>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+	</div>
+
+	<table id="appUserList" lay-filter="operation"></table>
+	<div id="laypage"></div>
+
+	<script th:src="@{/layui/layui.js}"></script>
+	<script type="text/javascript">
+/*<![CDATA[*/
+var page = 1;
+var limit = 10;
+layui.use(['table','jquery','form','laydate','layer','laypage'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	var layer = layui.layer;
+	var laydate = layui.laydate;
+	var laypage = layui.laypage;
+	laydate.render({
+		elem: '#start'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#end'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#start2'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#end2'
+		,type: 'datetime'
+	});
+	
+	$(function(){
+		page = localStorage.getItem("page");
+		limit = localStorage.getItem("limit");
+	});
+	
+	var phoneNumber = $('#phoneNumber');
+	var userState = $('#userState');
+	var start = $('#start');
+	var end = $('#end');
+	var start2 = $('#start2');
+	var end2 = $('#end2');
+	var invitation = $("#invitation");
+	var isVerify = $("#isVerify");
+	var province = $("#province");
+	var city = $("#city");
+	var area = $("#area");
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#appUserList'
+		,url: '/appUser/getAppUserList'
+		,height:600
+		,page: false
+		,cols:[[
+			{title:'序号',align:'center',templet: '#indexTpl'}
+			,{field:'PHONE',align:'center',title:'手机号',width:120}
+			,{field:'PASSWORD',align:'center',title:'密码',width:120}
+			,{field:'NICKNAME',align:'center',title:'昵称'}
+			,{field:'REGISTERED_TIME',align:'center',title:'注册时间',width:170}
+			,{field:'userState',align:'center',title:'账号状态',templet:"#state"}
+			,{title:'会员等级',align:'center',templet:"#membershipGrade",width:120}
+			,{field:'MONEYS',align:'center',title:'余额'}
+			,{field:'POCKETMONEY',align:'center',title:'零花钱'}
+			,{field:'CONSUMPTION_VOLUME',align:'center',title:'消费券'}
+			,{field:'INTEGRAL',title:'积分',align:'center'}
+			,{field:'STATE',title:'是否实名认证',templet:'#verify',align:'center',width:120}
+			,{field:'TO_APPLY_FOR_TIME',align:'center',title:'通过时间',templet:'#verifyTime',width:170}
+			,{field:'UC_NAMES',title:'真实姓名',align:'center'}
+			,{field:'area',title:'地区',align:'center',width:200}
+			,{field:'INVITATION',title:'分享者',align:'center',width:120,edit:'text'}
+			,{align:'center', toolbar: '#toolbar',width:250,title:'操作'}
+		]]
+		,where:{
+			phoneNumber: localStorage.getItem("phoneNumber")
+			,userState: localStorage.getItem("userState")
+			,start: localStorage.getItem("start")
+			,end: localStorage.getItem("end")
+			,start2: localStorage.getItem("start2")
+			,end2: localStorage.getItem("end2")
+			,invitation: localStorage.getItem("invitation")
+			,isVerify: localStorage.getItem("isVerify")
+			,province: localStorage.getItem("province")
+			,city: localStorage.getItem("city")
+			,area: localStorage.getItem("area")
+			,page: localStorage.getItem("page")
+			,limit: localStorage.getItem("limit")
+		}
+		,done :function(res,curr,count){
+			laypage.render({  
+	            elem:'laypage'  
+	            ,count:count  
+	            ,curr:page  
+	            ,limit:limit  
+	            ,layout: ['prev', 'page', 'next', 'skip','count','limit']  
+	            ,jump:function (obj,first) {  
+	                if(!first){  
+	                   page = obj.curr;  
+	                   limit = obj.limit;  
+	                   table.reload('appUserList', {
+	           			where: {
+	           				page: page
+	           				,limit: limit
+	           			}
+	           		   }); 
+	                }  
+	            }  
+	        })
+		}
+	});
+	
+	//判断对象是不是手机号
+	var p = /^1[34578]\d{9}$/;　　//手机号
+	//监听单元格编辑
+	table.on('edit(operation)', function(obj){
+		//console.log(obj.value); //得到修改后的值
+		//console.log(obj.field); //当前编辑的字段名
+		//console.log(obj.data); //所在行的所有相关数据 
+		if(p.test(obj.value)==true)//正确的手机号
+		{
+			$.ajax({   
+				type : "POST",
+				async:false,
+				url : "/appUser/userExist",   
+				data : {   
+					userPhone:obj.value
+				},  
+				success : function(da) { 
+					if(da=="ok"){
+						layer.confirm('确定修改?', {icon: 3, title:'提示'}, function(index){
+							$.ajax({   
+								type : "POST",
+								async:false,
+								url : "/appUser/changeInvitation",   
+								data : {   
+									userId:obj.data.USERS_ID,invitation:obj.value
+								},  
+								success : function(da) { 
+									layer.msg("修改成功");
+								}   
+							});  
+							layer.close(index);
+						});
+					}else{
+						layer.msg("此用户不存在");
+						table.reload('appUserList', {
+						});
+					}
+				}   
+			});  
+		}else if(obj.value==""){
+			layer.confirm('确定修改?', {icon: 3, title:'提示'}, function(index){
+				$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/appUser/changeInvitation",   
+					data : {   
+						userId:obj.data.USERS_ID,invitation:obj.value
+					},  
+					success : function(da) { 
+						layer.msg("修改成功");
+					}   
+				});  
+				layer.close(index);
+			});
+		}
+		else
+		{
+			layer.msg("请输入正确的手机号");
+			table.reload('appUserList', {
+			});
+		}
+	});
+	
+	//页面加载时执行
+	$(function(){
+		$('#phoneNumber').val(localStorage.getItem("phoneNumber"));
+		$('#start').val(localStorage.getItem("start"));
+		$('#end').val(localStorage.getItem("end"));
+		$('#start2').val(localStorage.getItem("start2"));
+		$('#end2').val(localStorage.getItem("end2"));
+		$('#invitation').val(localStorage.getItem("invitation"));
+		$("#userState").find("option[value='"+localStorage.getItem("userState")+"']").attr("selected",true);
+		$("#isVerify").find("option[value='"+localStorage.getItem("isVerify")+"']").attr("selected",true);
+		$("#province").find("option[value='"+localStorage.getItem("province")+"']").attr("selected",true);
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/storeVerify/getSubordinateArea",   
+			data : {   
+				pId:localStorage.getItem("province")
+			},  
+			success : function(da) {//返回数据根据结果进行相应的处理   
+				var city = eval(da);
+				$("#city").empty();
+				$("#area").empty();
+				$("#city").append("<option value='0'>请选择市</option>");
+				$("#area").append("<option value='0'>请选择区</option>");
+				for (var i = 0; i < city.length; i++) {
+					$("#city").append(
+							"<option value='"+city[i].CITY_CODE+"'>"
+									+ city[i].CITY_NAME
+									+ "</option>");
+				}
+				form.render('select');
+			}   
+		});
+		$("#city").find("option[value='"+localStorage.getItem("city")+"']").attr("selected",true);
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/storeVerify/getSubordinateArea",   
+			data : {   
+				pId:localStorage.getItem("city")
+			},  
+			success : function(da) {//返回数据根据结果进行相应的处理   
+				var area = eval(da);
+				$("#area").empty();
+				$("#area").append("<option value='0'>请选择县/区</option>");
+				for (var i = 0; i < area.length; i++) {
+					$("#area").append(
+							"<option value='"+area[i].CITY_CODE+"'>"
+									+ area[i].CITY_NAME
+									+ "</option>");
+				}
+				form.render('select');
+			}   
+		});
+		$("#area").find("option[value='"+localStorage.getItem("area")+"']").attr("selected",true);
+		form.render('select');
+		localStorage.clear();
+	});
+	
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'detail'){ //查看
+			localStorage.setItem("phoneNumber",phoneNumber.val());
+			localStorage.setItem("userState",userState.val());
+			localStorage.setItem("start",start.val());
+			localStorage.setItem("end",end.val());
+			localStorage.setItem("start2",start2.val());
+			localStorage.setItem("end2",end2.val());
+			localStorage.setItem("invitation",invitation.val());
+			localStorage.setItem("isVerify",isVerify.val());
+			localStorage.setItem("province",province.val());
+			localStorage.setItem("city",city.val());
+			localStorage.setItem("area",area.val());
+			localStorage.setItem("page",page);
+			localStorage.setItem("limit",limit);
+			window.location.href='/appUser/details?userId='+data.USERS_ID;
+		}else if(layEvent === 'freeze'){//冻结
+			layer.confirm('确定冻结次账号吗?', {icon: 3, title:'提示'}, function(index){
+				$.post("/appUser/forbidden",{userId:data.USERS_ID},function(da){
+					table.reload('appUserList', {//冻结后重载
+					});
+					layer.msg("已冻结");
+				});
+				layer.close(index);
+			});
+		}else if(layEvent === 'unfreeze'){//启用
+			$.post("/appUser/startUsing",{userId:data.USERS_ID},function(da){
+				table.reload('appUserList', {//启用后重载
+				});
+				layer.msg("已启用");
+			});
+		}else if(layEvent === 'export'){//导出个人流水
+			layer.confirm('确定导出'+data.PHONE+'的个人流水数据吗?', {icon: 3, title:'提示'}, function(index){
+				window.location.href="/appUser/export?userId="+data.USERS_ID;
+				layer.close(index);
+			});
+		}
+	});
+	//监听省份选择
+	form.on('select(changeProvince)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var city = eval(da);
+			$("#city").empty();
+			$("#area").empty();
+			$("#city").append("<option value='0'>请选择市</option>");
+			$("#area").append("<option value='0'>请选择区</option>");
+			for (var i = 0; i < city.length; i++) {
+				$("#city").append(
+						"<option value='"+city[i].CITY_CODE+"'>"
+								+ city[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	//监听城市选择
+	form.on('select(changeCity)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var area = eval(da);
+			$("#area").empty();
+			$("#area").append("<option value='0'>请选择县/区</option>");
+			for (var i = 0; i < area.length; i++) {
+				$("#area").append(
+						"<option value='"+area[i].CITY_CODE+"'>"
+								+ area[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	<!-- 监听搜索按钮 -->
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索时执行重载-->
+	var $ = layui.$, active = {
+		reload: function(){
+			//执行重载
+			page=1;
+			table.reload('appUserList', {
+				where: {
+					phoneNumber: phoneNumber.val()
+					,userState: userState.val()
+					,start: start.val()
+					,end: end.val()
+					,start2: start2.val()
+					,end2: end2.val()
+					,invitation:invitation.val()
+					,isVerify:isVerify.val()
+					,province:province.val()
+					,city:city.val()
+					,area:area.val()
+					,page:page
+					,limit:limit
+				}
+				,page :false
+			});
+		}
+		,exports: function(){
+			layer.confirm('确定导出用户列表吗?', {icon: 3, title:'提示'}, function(index){
+				window.location.href="/appUser/exportAppUserList2?phoneNumber="+phoneNumber.val()+"&userState="
+					+userState.val()+"&start="+start.val()+"&end="+end.val()+"&invitation="+invitation.val()+
+					"&isVerify="+isVerify.val()+"&province="+province.val()+"&city="+city.val()+
+					"&area="+area.val()+"&start2="+start2.val()+"&end2="+end2.val();
+				layer.close(index);
+			});
+		}
+	};
+	//监听修改会员等级
+	form.on('select(changeGrade)', function(obj){
+		//alert(obj.value);
+		//alert(obj.elem.name);
+		layer.confirm('确定改变会员等级吗?', {icon: 3, title:'提示'}, function(index){
+			$.ajax({   
+				type : "POST",
+				async:false,
+				url : "/appUser/changeGrade",   
+				data : {   
+					userId:obj.elem.name,grade:obj.value
+				},  
+				success : function(da) {
+					layer.msg("已修改");
+				}   
+			});
+			layer.close(index);
+		}, function(index){
+			layer.close(index);
+			table.reload('appUserList', {
+			});
+		});
+	});
+
+	//查询权限
+	function permissions(){
+		$.post("/permissions/queryPermissions",{permissioinCode:'exportAppUserData'},function(d){
+			if(d){
+				$("#export").show();
+			}else{
+				$("#export").hide();
+			}
+		});
+	}
+	//页面加载时执行
+	permissions();
+});
+/*]]>*/
+</script>
+<script type="text/html" id="toolbar">
+	<a class="layui-btn layui-btn-xs" lay-event="detail">查看/修改</a>
+	<a th:if="${exportAppUserWater}" class="layui-btn layui-btn-xs" lay-event="export">导出个人流水</a>
+	{{# if(d.userState=='USER_STATE_NORMAL'){ }}
+		<a th:if="${changeVerifytate}" class="layui-btn layui-btn-xs" lay-event="freeze">冻结</a>
+	{{# }else if(d.userState=='USER_STATE_DISABLE'){ }}
+		<a th:if="${changeVerifytate}" class="layui-btn layui-btn-xs" lay-event="unfreeze">启用</a>
+	{{# } }}
+</script>
+<!-- 是否冻结 -->
+<script type="text/html" id="state">
+	{{# if(d.userState=='USER_STATE_NORMAL'){ }}
+		<span>正常</span>
+	{{# }else if(d.userState=='USER_STATE_DISABLE'){ }}
+		<span style="color:blue">冻结</span>
+	{{# } }}
+</script>
+<script type="text/html" id="verify">
+	{{# if(d.STATE=='USER_AUTHENTICATION_PASS'){ }}
+		是
+	{{# }else{ }}
+		否
+	{{# } }}
+</script>
+<script type="text/html" id="verifyTime">
+	{{# if(d.STATE=='USER_AUTHENTICATION_PASS'){ }}
+		{{d.TO_APPLY_FOR_TIME}}
+	{{# }else{ }}
+		
+	{{# } }}
+</script>
+<!-- 会员等级 -->
+<script type="text/html" id="membershipGrade">
+{{# if(d.membershipGrade!=''){ }}
+<select name="{{d.USERS_ID}}" lay-filter="changeGrade">
+	{{# if(d.membershipGrade=='USER_DJ_SENIOR'){ }}
+		<option value="USER_DJ_SENIOR" selected="">高级</option>
+		<option value="USER_DJ_INTERMEDIATE">中级</option>
+		<option value="USER_DJ_PRIMARY">初级</option>
+	{{# }else if(d.membershipGrade=='USER_DJ_INTERMEDIATE'){ }}
+		<option value="USER_DJ_SENIOR">高级</option>
+		<option value="USER_DJ_INTERMEDIATE" selected="">中级</option>
+		<option value="USER_DJ_PRIMARY">初级</option>
+	{{# }else{ }}
+		<option value="USER_DJ_SENIOR">高级</option>
+		<option value="USER_DJ_INTERMEDIATE">中级</option>
+		<option value="USER_DJ_PRIMARY" selected="">初级</option>
+	{{# } }}
+</select>
+{{# } }}
+</script>
+<!-- 序号 -->
+<script type="text/html" id="indexTpl">
+    {{d.LAY_TABLE_INDEX+1}}
+</script>
+</body>
+</html>

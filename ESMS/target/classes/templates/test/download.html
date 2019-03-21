@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="utf-8" />
+		<title>象本下载页面</title>
+		<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+		<style type="text/css">
+			html,
+			body {
+				height: 100%;
+				width: 100%;
+				margin: 0;
+				padding: 0;
+			}
+			
+			.layui-box {
+				margin: 0 auto;
+				width: 100%;
+				max-width: 980px;
+				height: 1743px;
+				background-image: url("../img/down.png");
+				background-size: 100% 100%;
+				text-align: center;
+			}
+			
+			.layui-row {
+				width: 100%;
+				margin: 0;
+				height: auto;
+				position: relative;
+				top: 82%;
+			}
+			
+			img {
+				width: 60%;
+				height: auto;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div  class="layui-box">
+			<div class="layui-row">
+				<div class="layui-col-xs6">
+					<div class="grid-demo">
+						<a href="https://itunes.apple.com/cn/app/id1364788034?mt=8">
+							<img th:src="@{../img/iosDown.png}" />
+						</a>
+					</div>
+				</div>
+				<div class="layui-col-xs6">
+					<div class="grid-demo">
+						<a href="http://39.107.76.196:8082/versionUpdate/getApk?dType=0"><img th:src="@{../img/androidDown.png}" /></a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

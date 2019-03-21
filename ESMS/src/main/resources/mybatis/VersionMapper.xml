@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.systemManage.VersionDao">
+	<!-- 未分页的版本数据 -->
+	<select id="getVersionList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		*
+		FROM 
+		es_version_management
+	</select>
+	<!-- 已分页的版本数据 -->
+	<select id="getVersionListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		*
+		FROM 
+		es_version_management
+		ORDER BY ADDTIME DESC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 修改版本数据 -->
+	<update id="modify" parameterType="java.util.Map">
+		update
+		  `es_version_management`
+		set
+		<if test="androidNumber!=null">
+		  ANDROID_SERIAL_NUMBER = #{androidNumber}
+		</if>
+		<if test="androidCode!=null">
+		  ANDROID_CODE = #{androidCode}
+		</if>
+		<if test="url!=null">
+		  URL = #{url}
+		</if>
+		<if test="describes!=null">
+		  VERSION_DESCRIBED = #{describes}
+		</if>
+		<if test="update!=null">
+		  IS_UPDATE = #{update}
+		</if>
+		<if test="iosNumber!=null">
+		  IOS_SERIAL_NUMBER = #{iosNumber}
+		</if>
+		<if test="iosCode!=null">
+		  IOS_CODE = #{iosCode}
+		</if>
+		where EVMID = #{versionId}
+	</update>
+	<!-- 添加版本 -->
+	<insert id="addVersion" parameterType="java.util.Map">
+		INSERT INTO es_version_management VALUES(#{id},#{androidNumber},#{androidCode},#{url},NOW(),#{describes},#{update},#{iosNumber},#{iosCode})
+	</insert>
+</mapper>

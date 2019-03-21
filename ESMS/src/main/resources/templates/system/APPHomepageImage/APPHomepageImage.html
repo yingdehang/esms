@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>APP首页BANNER</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<!-- 活动管理顶部 -->
+	<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label>APP首页BANNER管理</label>
+		</div>
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			<button class="layui-btn layui-btn-xs" data-type="addPhoto">
+				<i class="layui-icon" style="font-size: 14px;">&#xe61f;</i>添加首页BANNER图片
+			</button>
+		</div>
+	</div>
+	<table class="layui-hide" id="photolist" lay-filter="image"></table>
+	<script type="text/html" id="indexTpl">
+    	{{d.LAY_TABLE_INDEX+1}}
+	</script>
+	<script type="text/html" id="showimg">
+    	<a lay-event="seephoto"><img src="{{d.PHOTO_URL}}" width="220px" heigth="110px"/></a>
+	</script>
+	<script id="barDemo" type="text/html">
+		<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="deletephoto">删除</a>
+	</script>
+	<div class="layui-form layui-form-pane" id="addbox"
+		style="padding: 15px 15px 0px 15px; text-align: center; display: none;">
+		<div class="layui-form-item" id="updatehide1">
+			<label class="layui-form-label">图片名称</label>
+			<div class="layui-input-block">
+				<input id="PHOTO_NAME" class="layui-input" type="text"
+					placeholder="请输入图片名称" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item" id="updatehide2">
+			<label class="layui-form-label">点击地址</label>
+			<div class="layui-input-block">
+				<input id="CLICK_URL" class="layui-input" type="text"
+					placeholder="请输入BANNER点击地址" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item" id="updatebox">
+			<label class="layui-form-label">BANNER</label>
+			<div class="layui-input-inline" style="width: 110px">
+				<button class="layui-btn layui-btn-primary" id="test1" type="button">
+					<i class="layui-icon"></i>上传BANNER
+				</button>
+			</div>
+			<div class="layui-input-inline"
+				style="line-height: 40px; width: 90px">
+				<p id="demoText"></p>
+			</div>
+		</div>
+		<input type="hidden" id="activityBANNER" />
+	</div>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script>
+	/* <![CDATA[ */
+	layui
+			.use(
+					[ 'element', 'table', 'upload' ],
+					function() {
+						var element = layui.element, table = layui.table;
+						var upload = layui.upload, $ = layui.$;
+						var uploadInst = upload
+								.render({
+									elem : '#test1',
+									url : '/activity/uploadBanner',
+									done : function(res) {
+										//如果上传失败
+										if (res.code > 0) {
+											return layer.msg('上传失败');
+										}
+										//上传成功
+										$('#demoText')
+												.html(
+														"<span id='demoText'><i class='layui-icon' style='font-size: 30px; color: green;'>&#xe616;</i></span>");
+										$("#activityBANNER").val(res.data.src);
+									},
+									error : function() {
+										//演示失败状态，并实现重传
+										var demoText = $('#demoText');
+										demoText
+												.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+										demoText.find('.demo-reload').on(
+												'click', function() {
+													uploadInst.upload();
+												});
+									}
+								});
+
+						table.render({
+							elem : '#photolist',
+							url : '/image/getImageList/',
+							where : {
+								PHOTO_TYPE : 'PHOTO_TYPE_BANNER'
+							},
+							cols : [ [ {
+								fixed : 'left',
+								title : '序号',
+								templet : '#indexTpl',
+								align : 'center',
+								width : '5%'
+							}, {
+								field : 'PHOTO_NAME',
+								event : 'updatePHOTONAME',
+								title : '图片名',
+								align : 'center'
+							}, {
+								title : '图片',
+								toolbar : '#showimg',
+								align : 'center'
+							}, {
+								title : '图片点击地址',
+								field : 'CLICK_URL',
+								event : 'updateClickUrl',
+								align : 'center'
+							}, {
+								fixed : 'right',
+								title : '操作',
+								align : 'center',
+								toolbar : '#barDemo'
+							} ] ],
+							id : 'photolist',
+							page : true
+						});
+
+						//监听工具条
+						table
+								.on(
+										'tool(image)',
+										function(obj) {
+											var data = obj.data;
+											//活动设置
+											if (obj.event === 'deletephoto') {
+												layer
+														.confirm(
+																'真的删除这张图片吗？',
+																function(index) {
+																	$
+																			.post(
+																					"/image/deleteImageById",
+																					{
+																						PHOTO_ID : data.PHOTO_ID,
+																						PHOTO_URL : data.PHOTO_URL
+																					},
+																					function(
+																							d) {
+																						if (d > 0) {
+																							layer
+																									.msg("操作成功！");
+																							obj
+																									.del();
+																							layer
+																									.close(index);
+																						} else {
+																							layer
+																									.msg("操作失败！");
+																						}
+																					});
+																});
+											} else if (obj.event === 'seephoto') {
+												layer
+														.open({
+															type : 0,
+															content : '请点击查看图片还是修改图片？',
+															btn : [ '查看图片',
+																	'修改图片' ],
+															btnAlign : 'c',
+															yes : function() {
+																layer
+																		.closeAll();
+																layer
+																		.open({
+																			type : 1,
+																			title : false,
+																			maxWidth : '760px',
+																			anim : 0,
+																			skin : 'layui-layer-nobg', //没有背景色
+																			shadeClose : true,
+																			offset : 'auto',
+																			content : '<img src="'+data.PHOTO_URL+'" width="750px" />'
+																		});
+															},
+															btn2 : function() {
+																layer
+																		.closeAll();
+																$(
+																		'#updatehide1')
+																		.hide();
+																$(
+																		'#updatehide2')
+																		.hide();
+																$('#demoText')
+																		.html(
+																				'<img id="demoText" src="'
+																				+ data.PHOTO_URL
+																				+ '" width="40px" height="40px" />');
+																layer
+																		.open({
+																			type : 1,
+																			title : '修改APP首页BANNER图片',
+																			content : $('#addbox'),
+																			area : [
+																					'375px',
+																					'175px' ],
+																			btn : [
+																					'确定修改',
+																					'取消修改' ],
+																			btnAlign : 'c',
+																			yes : function() {
+																				var activityBANNER = $(
+																						"#activityBANNER")
+																						.val();
+																				if (null != activityBANNER
+																						& activityBANNER != "") {
+																					$
+																							.post(
+																									"/image/updateImage",
+																									{
+																										PHOTO_URL : activityBANNER,
+																										PHOTO_ID : data.PHOTO_ID
+																									},
+																									function(
+																											d) {
+																										if (d > 0) {
+																											layer
+																													.msg("修改成功");
+																											table
+																													.reload(
+																															'photolist',
+																															{
+																																page : {
+																																	curr : 1
+																																}
+																															});
+																										} else {
+																											layer
+																													.msg("修改失败");
+																										}
+																									});
+																					layer
+																							.closeAll();
+																				} else {
+																					layer
+																							.msg("BANNER不能为空");
+																					return false;
+																				}
+																			},
+																			btn2 : function() {
+																				layer
+																						.closeAll();
+																			}
+																		});
+																$(
+																		"#activityBANNER")
+																		.val("");
+																$("#demoText")
+																		.html(
+																				"<p id='demoText'></p>");
+															}
+														});
+											} else if (obj.event === 'updatePHOTONAME') {
+												layer
+														.prompt(
+																{
+																	formType : 3,
+																	title : '修改图片名称',
+																	value : data.PHOTO_NAME
+																},
+																function(value,
+																		index) {
+																	layer
+																			.close(index);
+																	//这里一般是发送修改的Ajax请求
+																	$
+																			.post(
+																					"/image/updatePHOTONAME",
+																					{
+																						PHOTO_ID : data.PHOTO_ID,
+																						PHOTO_NAME : value
+																					},
+																					function(
+																							d) {
+																						if (d > 0) {
+																							layer
+																									.msg("修改成功");
+																							//同步更新表格和缓存对应的值
+																							table
+																									.reload(
+																											'photolist',
+																											{});
+																						} else {
+																							layer
+																									.msg("修改失败!");
+																						}
+																					});
+																});
+											} else if (obj.event === 'updateClickUrl') {
+												var CLICK_URL = data.CLICK_URL;
+												if (null == CLICK_URL
+														|| "" == CLICK_URL) {
+													layer
+															.prompt(
+																	{
+																		formType : 3,
+																		title : '添加点击链接地址',
+																		value : data.CLICK_URL
+																	},
+																	function(
+																			value,
+																			index) {
+																		layer
+																				.close(index);
+																		//这里一般是发送修改的Ajax请求
+																		$
+																				.post(
+																						"/image/updateClickUrl",
+																						{
+																							PHOTO_ID : data.PHOTO_ID,
+																							CLICK_URL : value
+																						},
+																						function(
+																								d) {
+																							if (d > 0) {
+																								layer
+																										.msg("修改成功");
+																								table
+																										.reload(
+																												'photolist',
+																												{});
+																							} else {
+																								layer
+																										.msg("修改失败!");
+																							}
+																						});
+																	});
+												} else {
+
+													layer
+															.open({
+																type : 0,
+																content : '请点击查看图片还是修改图片？',
+																btn : [ '修改链接',
+																		'清除链接' ],
+																btnAlign : 'c',
+																yes : function() {
+																	layer
+																			.prompt(
+																					{
+																						formType : 3,
+																						title : '修改点击链接地址',
+																						value : data.CLICK_URL
+																					},
+																					function(
+																							value,
+																							index) {
+																						layer
+																								.close(index);
+																						//这里一般是发送修改的Ajax请求
+																						$
+																								.post(
+																										"/image/updateClickUrl",
+																										{
+																											PHOTO_ID : data.PHOTO_ID,
+																											CLICK_URL : value
+																										},
+																										function(
+																												d) {
+																											if (d > 0) {
+																												layer
+																														.msg("修改成功");
+																												table
+																														.reload(
+																																'photolist',
+																																{});
+																											} else {
+																												layer
+																														.msg("修改失败!");
+																											}
+																										});
+																					});
+																},
+																btn2 : function() {
+																	//这里一般是发送修改的Ajax请求
+																	$
+																			.post(
+																					"/image/updateClickUrl",
+																					{
+																						PHOTO_ID : data.PHOTO_ID,
+																					},
+																					function(
+																							d) {
+																						if (d > 0) {
+																							layer
+																									.msg("修改成功");
+																							//同步更新表格和缓存对应的值
+																							table
+																									.reload(
+																											'photolist',
+																											{});
+																						} else {
+																							layer
+																									.msg("修改失败!");
+																						}
+																					});
+																	layer
+																			.closeAll();
+																}
+															});
+												}
+											}
+										});
+
+						var active = {
+							addPhoto : function() {
+								$('#updatehide1').show();
+								$('#updatehide2').show();
+								layer
+										.open({
+											type : 1,
+											title : '添加APP首页BANNER图片',
+											area : [ '375px', '285px' ],
+											content : $('#addbox'),
+											btn : [ '确定添加', '取消添加' ],
+											btnAlign : 'c',
+											yes : function() {
+												var PHOTO_NAME = $(
+														"#PHOTO_NAME").val();
+												var CLICK_URL = $("#CLICK_URL")
+														.val();
+												var activityBANNER = $(
+														"#activityBANNER")
+														.val();
+												if (null != PHOTO_NAME
+														& PHOTO_NAME != "") {
+													if (null != activityBANNER
+															& activityBANNER != "") {
+														$
+																.post(
+																		"/image/addImage",
+																		{
+																			PHOTO_NAME : PHOTO_NAME,
+																			CLICK_URL : CLICK_URL,
+																			PHOTO_URL : activityBANNER,
+																			PHOTO_TYPE : 'PHOTO_TYPE_BANNER'
+																		},
+																		function(
+																				d) {
+																			if (d > 0) {
+																				table
+																						.reload(
+																								'photolist',
+																								{
+																									page : {
+																										curr : 1
+																									}
+																								});
+																			} else {
+																				layer
+																						.msg("添加失败");
+																			}
+																		});
+														layer.closeAll();
+													} else {
+														layer.msg("BANNER不能为空");
+														return false;
+													}
+												} else {
+													layer.msg("图片名称不能为空");
+													return false;
+												}
+												$("#PHOTO_NAME").val("");
+												$("#activityBANNER").val("");
+												$("#demoText")
+														.html(
+																"<p id='demoText'></p>");
+											},
+											btn2 : function() {
+												layer.closeAll();
+											}
+										});
+								$("#PHOTO_NAME").val("");
+								$("#activityBANNER").val("");
+								$("#CLICK_URL").val("");
+								$("#demoText").html("<p id='demoText'></p>");
+							}
+						};
+
+						$('.demoTable .layui-btn').on('click', function() {
+							var type = $(this).data('type');
+							active[type] ? active[type].call(this) : '';
+						});
+					});
+	/* ]]> */
+</script>
+</html>

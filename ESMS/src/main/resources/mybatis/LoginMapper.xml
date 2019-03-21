@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.LoginDao">
+	<!-- 验证用户登录 -->
+	<select id="userlogin" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT(*) FROM `es_users` WHERE `PHONE`=#{PHONE} AND
+		`PASSWORD`=#{PASSWORD} AND `STATE`='USER_STATE_NORMAL' AND
+		`IS_SYSTEM`='USER_LEVEL_SYSTEM'
+	</select>
+	<!-- 获取菜单 -->
+	<select id="getMenu" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT DISTINCT esm.*,eu.USERS_ID FROM
+		`es_users` eu,
+		`es_system_role_user` esru,
+		`es_system_role` esr,
+		`es_permissions_role`
+		epr,
+		`es_system_permissions` esp,
+		`es_system_menu` esm
+		WHERE
+		eu.PHONE=#{PHONE}
+		AND eu.IS_SYSTEM='USER_LEVEL_SYSTEM'
+		AND eu.USERS_ID =
+		esru.USERS_ID
+		AND esru.ROLE_ID = esr.ROLE_ID
+		AND esr.ROLE_ID =
+		epr.ROLE_ID
+		AND epr.PERMISSIONS_ID = esp.PERMISSIONS_ID
+		AND esp.MENU_ID
+		= esm.MENU_ID
+		AND esp.PERMISSIONS_CODE='MENU_SHOW'
+		ORDER BY
+		esm.MENU_SORT ASC
+	</select>
+	<!-- 查询用户 -->
+	<select id="getUserInfo" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM `es_users` WHERE `PHONE`=#{PHONE} AND
+		`STATE`='USER_STATE_NORMAL' AND
+		`IS_SYSTEM`='USER_LEVEL_SYSTEM'
+	</select>
+	<!-- 获取用户头像 -->
+	<select id="getUserHead" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT PHOTO_URL FROM `es_photo` WHERE PID=#{USERS_ID} AND
+		PHOTO_TYPE='PHOTO_TYPE_HEAD'
+	</select>
+	<!-- 查询用户权限 -->
+	<select id="getUserPermission" parameterType="java.lang.String"
+		resultType="java.util.Map">
+		SELECT * FROM `es_system_permissions` WHERE PERMISSIONS_ID
+		IN (SELECT
+		PERMISSIONS_ID
+		FROM
+		`es_permissions_role`
+		WHERE ROLE_ID IN
+		(SELECT
+		ROLE_ID
+		FROM
+		`es_system_role`
+		WHERE ROLE_ID IN
+		(SELECT
+		ROLE_ID
+		FROM
+		`es_system_role_user`
+		WHERE USERS_ID =
+		(SELECT
+		USERS_ID
+		FROM
+		`es_users`
+		WHERE PHONE = #{phone}))))
+	</select>
+</mapper>

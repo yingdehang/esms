@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>象本人气王大赛</title>
+<style type="text/css">
+body {
+	margin: 0px;
+	padding: 0px;
+	background-color: #4bcfa8;
+}
+
+img {
+	width: 100%;
+	max-width: 780px;
+	height: auto;
+	margin-bottom: 0px;
+	float: left;
+}
+
+a {
+	margin: 0px;
+	padding: 0px;
+	text-decoration: none;
+}
+</style>
+</head>
+<body>
+	<div
+		style="width: 100%; max-width: 540px; height: auto; margin: 0px auto; padding: 0px;">
+		<img th:src="@{/img/rqwztym/rqwztym_01.jpg}" /> <a
+			href="/activityclick/activityPage?name=renqidasai"> <img
+			id="clickpaihangbang" th:src="@{/img/rqwztym/rqwztym_02.jpg}" />
+		</a> <img th:src="@{/img/rqwztym/rqwztym_03.jpg}" /> <a
+			th:href="@{/activityclick/activityPage(name=xingyundazhuanpan,userId=${userId})}">
+			<img th:src="@{/img/rqwztym/rqwztym_04.jpg}" />
+		</a> <img th:src="@{/img/rqwztym/rqwztym_05.jpg}" />
+	</div>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>线下店铺内容审核</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<style type="text/css">
+.photobox {
+	width: 100%;
+	height: auto;
+}
+
+.photobox img {
+	float: left;
+	width: 418px;
+	height: 390px;
+	margin: 10px;
+}
+</style>
+</head>
+<body>
+	<div style="padding-bottom: 10px; border-bottom: 2px solid #5FB878">
+		<h2>
+			<a href="javascript:history.back(-1)">线下店铺审核列表</a>>线下店铺内容审核
+		</h2>
+	</div>
+	<div id="audit" style="margin: 20px;">
+		<button class="layui-btn" data-type="agree">同意</button>
+		<button class="layui-btn" data-type="refuse">拒绝</button>
+	</div>
+	<form class="layui-form layui-form-pane" action="">
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺名称<input type="hidden"
+				id="esxid" th:value="${storeInfo.ESXID}" /></label>
+			<div class="layui-input-block">
+				<input name="title" class="layui-input" type="text"
+					th:value="${storeInfo.STORE_NAME}" placeholder="请输入标题"
+					autocomplete="off" disabled="disabled" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">商家信息</label>
+			<div class="layui-input-block">
+				<input name="title" class="layui-input" type="text"
+					th:value="${storeInfo.nameAndPhone}" placeholder="请输入标题"
+					autocomplete="off" disabled="disabled" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">店铺区域</label>
+			<div class="layui-input-block">
+				<input name="title" class="layui-input" type="text"
+					th:value="${storeInfo.address}" placeholder="请输入标题"
+					autocomplete="off" disabled="disabled" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-form-text">
+			<label class="layui-form-label">店铺简介</label>
+			<div class="layui-input-block">
+				<textarea class="layui-textarea" disabled="disabled"
+					th:text="${storeInfo.STORE_INFO}"></textarea>
+			</div>
+		</div>
+	</form>
+	<div class="photobox">
+		<img th:each="imglist:${storeInfo.photos}" alt="店铺图片"
+			th:src="${imglist}" />
+	</div>
+
+	<script th:src="@{/layui/layui.js}"></script>
+	<script type="text/javascript">
+		layui.use(['table','element','layer'], function() {
+			var table = layui.table;
+			var $ = layui.jquery;
+			var layer=layui.layer;
+			var active = {
+				<!-- 搜索时执行重载-->
+				agree: function(){
+					var esxid=$("#esxid").val();
+					$.post("/xxstore/updateStoreInfoState",{
+						ESXID:esxid,
+						infoState:"4"
+					},function(d){
+						if(d>0){
+							window.location.href="/xxstore/toXxStoreinfolist"
+						}else{
+							layer.msg("操作失败！");
+						}
+					});
+				},
+				refuse:function(){
+					layer.prompt({
+				        formType: 2
+				        ,title: '请输入拒绝理由'
+				      }, function(value, index){
+				        layer.close(index);
+				        var esxid=$("#esxid").val();
+						$.post("/xxstore/updateStoreInfoState",{
+							ESXID:esxid,
+							infoState:"3",
+							content:value
+						},function(d){
+							if(d>0){
+								window.location.href="/xxstore/toXxStoreinfolist"
+							}else{
+								layer.msg("操作失败！");
+							}
+						});
+				      });
+				}
+			};
+			<!-- 监听搜索按钮 -->
+			$('#audit .layui-btn').on('click', function(){
+				var type = $(this).data('type');
+				active[type] ? active[type].call(this) : '';
+			});
+		});
+	</script>
+</body>
+</html>

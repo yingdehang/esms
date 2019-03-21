@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>统计系统</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<script th:src="@{/js/echarts.common.min.js}"></script>
+<style type="text/css">
+.headbox {
+	heigth: 40px;
+	text-align: 20px;
+	line-height: 40px;
+	padding: 0 5% 0 10px;
+	min-width: 800px;
+}
+
+.medilbox {
+	width: 100%;
+	min-width: 800px;
+	height: 140px;
+}
+
+.tablebox {
+	font-size: 14px;
+	text-align: left;
+	padding: 10px;
+}
+
+.tablebox td {
+	line-height: 30px;
+	padding-right: 80px;
+}
+
+.huisezi {
+	color: #999999;
+}
+
+.zanzhangyue {
+	font-size: 20px;
+	line-height: 100%;
+}
+
+.tubiao {
+	float: left;
+	width: 48%;
+	height: 450px;
+	margin: 5px 5px;
+	border: 1px double #C5DAF3;
+}
+
+.tupbiaobox {
+	width: 100%;
+	min-width: 800px;
+}
+</style>
+</head>
+<body>
+	<div class="headbox">
+		<div class="layui-form layui-form-pane"
+			style="float: left; line-height: 40px;">
+			<div class="layui-form-item">
+				<label class="layui-form-label">选择区域</label>
+				<div class="layui-input-inline">
+					<select id="allorarea" lay-filter="allorarea">
+						<option value="0">全部</option>
+						<option value="1">按区域统计</option>
+					</select>
+				</div>
+				<div id="province1" class="layui-input-inline">
+					<select id="province" lay-filter="province">
+						<option value="0">请选择省</option>
+						<option th:each="list:${provincelist}"
+							th:value="${list.CITY_CODE}" th:text="${list.CITY_NAME}">请选省</option>
+					</select>
+				</div>
+				<div id="city1" class="layui-input-inline">
+					<select id="city" lay-filter="city">
+						<option value="0">请选择城市</option>
+					</select>
+				</div>
+				<div id="area1" class="layui-input-inline">
+					<select id="area" lay-filter="area">
+						<option value="0">请选择县/区</option>
+					</select>
+				</div>
+				<div id="area1" class="layui-input-inline">
+					<button class="layui-btn" id="relocad">查询</button>
+				</div>
+			</div>
+		</div>
+		<div style="float: right;">
+			<label style="color: #EB4849; font-size: 14px; margin-top: 20px;">注意：数据统计里统计是前一天的数据</label>
+		</div>
+	</div>
+	<hr />
+	<div class="medilbox">
+		<div>
+			<div style="float: left; width: 26%; padding-left: 20px;">
+				总用户数：<span class="usersCount"></span>
+			</div>
+			<div style="float: left; width: 26%; padding-left: 20px;">
+				总实名注册用户数：<span id="userPassCount"></span>
+			</div>
+			<div style="float: left; width: 26%; padding-left: 20px;">
+				当前总积分：<span id="totalScore"></span>
+			</div>
+			<div style="float: left; width: 10%; padding-left: 20px;">
+				<button class="layui-btn" id="seemore">更多</button>
+			</div>
+		</div>
+		<div style="float: left; width: 40%; padding: 15px;">
+			<table class="tablebox">
+				<tr>
+					<td>普通用户：<span class="usersCount"></span></td>
+					<td class="huisezi">7天新增：<span id="newUserCount"></span></td>
+					<td class="huisezi">新增实名认证：<span id="newUserPasscount"></span></td>
+				</tr>
+				<tr>
+					<td>线上店铺：<span id="xsStoreCount"></span></td>
+					<td class="huisezi">7天新增：<span id="newXsStoreCount"></span></td>
+				</tr>
+				<tr>
+					<td>线下店铺：<span id="xxStoreCount"></span></td>
+					<td class="huisezi">7天新增：<span id="newXxStoreCount"></span></td>
+				</tr>
+			</table>
+		</div>
+		<div
+			style="float: left; width: 50%; padding: 15px; border-left: 1px solid #443F3F;">
+			<div style="float: left;">
+				<table class="tablebox">
+					<tr>
+						<td style="width: 80px; padding-right: 10px;">昨日>>></td>
+						<td style="width: 150px;">佣金 ：<span id="commission"></span></td>
+						<td style="width: 150px;">奖励金支出：<span id="incentivePayments"></span></td>
+						<td style="width: 150px;">积分赠送：<span id="integralPresent"></span></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td style="width: 150px;">积分变化：<span id="integralChange"></span></td>
+						<td style="width: 150px;">充值金额：<span id="rechargeAmount"></span></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td></td>
+						<td class="huisezi"></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+	<hr />
+	<div class="tupbiaobox">
+		<div class="tubiao">
+			<div style="height: 70px; width: 90%;">
+				<select style="float: right; position: relative; top: 20px;"
+					onchange="getData(this)">
+					<option value="qitian">最近七天</option>
+					<option value="onemonth">最近一月</option>
+					<option value="tweyear">最近一年</option>
+				</select>
+			</div>
+			<div style="height: 380px; width: 100%;">
+				<div id="earningsTrend" style="height: 380px; width: 95%;"></div>
+			</div>
+		</div>
+		<div class="tubiao">
+			<span
+				style="float: left; font-size: 20px; position: relative; top: 86%; left: 22%;">线上</span><span
+				style="float: left; font-size: 20px; position: relative; top: 86%; left: 67%;">线下</span>
+			<div id="shopGradeDistribution" style="height: 450px; width: 95%;"></div>
+		</div>
+		<div class="tubiao">
+			<div id="membershipRechargeAmount" style="height: 450px; width: 95%;"></div>
+		</div>
+		<div class="tubiao">
+			<div id="membershipistribution" style="height: 360px; width: 95%;"></div>
+			<div style="height: 90px; width: 100%;">
+				<table
+					style="text-align: center; margin: 10px auto; width: 60%; height: 70px;"
+					border="1">
+					<tr>
+						<th>初级</th>
+						<th>中级</th>
+						<th>高级</th>
+					</tr>
+					<tr>
+						<td><span id="onechuji">0</span></td>
+						<td><span id="twozhongji">0</span></td>
+						<td><span id="threegaoji">0</span></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript" th:src="@{/js/jquery-1.4.4.min.js}"></script>
+<script
+	th:src="@{/js/operationsManageJsFile/statisticalSystem/statisticalSystem.js}"></script>
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+	/* <![CDATA[ */
+	layui.use('form', function() {
+		var form = layui.form;
+		form.on('select(allorarea)', function(data) {
+			var value = data.value;
+			if (value == '0') {
+				clearAreaSelect();
+				form.render('select');
+			} else {
+				showAreaSelect();
+			}
+		});
+		form.on('select(province)', function(data) {
+			$("#city").empty();
+			$("#area").empty();
+			$("#city").prepend('<option value="0">请选择城市</option>');
+			$("#area").prepend('<option value="0">请选择县/区</option>');
+			$.post("/statisticalSystem/queryAreaList", {
+				pid : data.value
+			}, function(list) {
+				var l = eval(list);
+				for (var i = 0; i < l.length; i++) {
+					$("#city").append(
+							"<option value='" + l[i].CITY_CODE + "'>"
+									+ l[i].CITY_NAME + "</option>");
+				}
+				form.render('select');
+			});
+		});
+		form.on('select(city)', function(data) {
+			$("#area").empty();
+			$("#area").append("<option value=''>请选择县/区</option>");
+			$.post("/statisticalSystem/queryAreaList", {
+				pid : data.value
+			}, function(list) {
+				var l = eval(list);
+				for (var i = 0; i < l.length; i++) {
+					$("#area").append(
+							"<option value='" + l[i].CITY_CODE + "'>"
+									+ l[i].CITY_NAME + "</option>");
+				}
+				form.render('select');
+			});
+		});
+	});
+	/* ]]>*/
+</script>
+</html>

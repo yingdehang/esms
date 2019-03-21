@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>首页活动类型2</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<script th:src="@{/layui/layui.js}"></script>
+<style>
+#activityImage {
+	height: 199px;
+	float: left;
+}
+
+.layui-upload-drag {
+	width: 258px;
+	height: 137px;
+}
+
+#pictureradio {
+	height: 199px;
+	float: left;
+	margin-left: 60px;
+}
+
+.picRadio {
+	width: 120px !important;
+	padding-left: 20px;
+}
+
+.pictureAddr {
+	display: none;
+}
+</style>
+</head>
+<body>
+	<!-- 活动管理顶部 -->
+	<div class="layui-tab layui-tab-card" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label><a href="javascript:history.back(-1)">首页弹窗管理</a>
+				>>弹窗信息修改</label>
+		</div>
+	</div>
+	<form class="layui-form layui-form-pane" id="typethreeform"
+		style="padding: 15px 15px 0px 15px;"
+		action="/activity/submitAlertUpdate">
+		<div class="layui-form-item">
+			<label class="layui-form-label">活动标题</label> <input type="hidden"
+				name="TID" th:value="${alertInfo.TID}" />
+			<div class="layui-input-block">
+				<input name="TITLE" class="layui-input" type="text"
+					th:value="${alertInfo.TITLE}" placeholder="请输入标题"
+					autocomplete="off" />
+			</div>
+		</div>
+		<input type="hidden" name="PICTURE_ADDR" id="PICTURE_ADDR"
+			th:value="${alertInfo.PICTURE_ADDR}" />
+		<div style="height: 200px; border: 1px solid #f6f6f6; padding: 10px;">
+			<div id="activityImage">
+				<div th:if="${alertInfo.PICTURE == '0'}" class="layui-upload-drag"
+					style="">
+					<div id="djsc" style="margin-top: 20px;">
+						<i class="layui-icon"></i>
+						<p>点击上传，或将文件拖拽到此处</p>
+					</div>
+					<img th:unless="${alertInfo.PICTURE == '0'}"
+						th:src="${alertInfo.PICTURE}" width="100%" height="100%"
+						id="image" />
+				</div>
+				<div th:unless="${alertInfo.PICTURE == '0'}"
+					class="layui-upload-drag">
+					<img th:src="${alertInfo.PICTURE}" width="100%" height="100%"
+						id="image" />
+				</div>
+			</div>
+			<input type="hidden" id="PICTURE" name="PICTURE"
+				th:value="${alertInfo.PICTURE}" />
+			<div id="pictureradio">
+				<div class="layui-form-item">
+					<div class="layui-input-inline picRadio">
+						<input name="PICTURE_TYPE" title="商品" type="radio"
+							lay-filter="PICTURE_TYPE"
+							th:checked="${alertInfo.PICTURE_TYPE=='1'}" value="1" />
+					</div>
+					<div class="layui-input-inline pictureAddr type_one">
+						<select lay-search="" lay-filter="store">
+							<option value="">请选择店铺</option>
+							<option th:each="slist:${storelist}" th:value="${slist.storeId}"
+								th:text="${slist.storeName}"
+								th:selected="${alertInfo.PICTURE_TYPE=='1' and alertInfo.storeId == slist.storeId}"></option>
+						</select>
+					</div>
+					<div class="layui-input-inline pictureAddr type_one">
+						<select name="goodsId" id="goods" lay-search="">
+							<option value="">请选择商品</option>
+							<option th:each="glist:${alertInfo.goodslist}"
+								th:value="${glist.GOODSID}" th:text="${glist.GOODS_NAME}"
+								th:selected="${alertInfo.PICTURE_TYPE=='1'} and ${alertInfo.PICTURE_ADDR==glist.GOODSID}"></option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<div class="layui-input-inline picRadio">
+						<input name="PICTURE_TYPE" title="活动页面" type="radio"
+							lay-filter="PICTURE_TYPE"
+							th:checked="${alertInfo.PICTURE_TYPE=='2'}" value="2" />
+					</div>
+					<div class="layui-input-inline pictureAddr type_two"
+						style="width: 390px;">
+						<input th:if="${alertInfo.PICTURE_TYPE=='2'}" name="activityUrl"
+							class="layui-input" type="text"
+							th:value="${alertInfo.PICTURE_ADDR}" placeholder="请输入活动链接"
+							autocomplete="off" /> <input
+							th:unless="${alertInfo.PICTURE_TYPE=='2'}" name="activityUrl"
+							class="layui-input" type="text" placeholder="请输入活动链接"
+							autocomplete="off" />
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<div class="layui-input-inline picRadio">
+						<input name="PICTURE_TYPE" title="店铺" type="radio"
+							lay-filter="PICTURE_TYPE"
+							th:checked="${alertInfo.PICTURE_TYPE=='3'}" value="3" />
+					</div>
+					<div class="layui-input-inline pictureAddr type_three">
+						<select name="storeId" lay-search="">
+							<option value="">请选择店铺</option>
+							<option th:each="slist:${storelist}" th:value="${slist.storeId}"
+								th:text="${slist.storeName}"
+								th:selected="${alertInfo.PICTURE_TYPE=='3' and alertInfo.PICTURE_ADDR == slist.storeId}"></option>
+						</select>
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<div class="layui-input-inline picRadio">
+						<input name="PICTURE_TYPE" title="无跳转" type="radio"
+							lay-filter="PICTURE_TYPE"
+							th:checked="${alertInfo.PICTURE_TYPE=='4'}" value="4" />
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<button class="layui-btn" lay-filter="submitform" lay-submit="">立即提交</button>
+			<a href="javascript:history.back(-1)" class="layui-btn">取消编辑</a>
+		</div>
+	</form>
+</body>
+<script>
+	/* <![CDATA[ */
+	layui.use([ 'element', 'upload', 'form' ],
+			function() {
+				var element = layui.element, $ = layui.$;
+				var upload = layui.upload, form = layui.form;
+
+				//拖拽上传
+				upload.render({
+					elem : '#activityImage',
+					url : '/activity/uploadBanner',
+					done : function(res) {
+						var src = res.data.src;
+						var parent = $(".layui-upload-drag");
+						var picture = $("#PICTURE");
+						if (picture.val() != 0) {
+							picture.val(src);
+							$("#image").attr("src", src);
+						} else {
+							var img = $('<img/>');
+							img.attr("src", src);
+							img.css({
+								"width" : "100%",
+								"height" : "100%"
+							});
+							img.attr("id", "image");
+							parent.html(img);
+							picture.val(src);
+						}
+					}
+				});
+
+				var PICTURE_TYPE = $(
+						'#pictureradio input[name="PICTURE_TYPE"]:checked')
+						.val();
+				if (PICTURE_TYPE == '1') {
+					$(".type_one").show();
+
+				} else if (PICTURE_TYPE == '2') {
+					$(".type_two").show();
+
+				} else if (PICTURE_TYPE == '3') {
+					$(".type_three").show();
+
+				}
+
+				form.on('radio(PICTURE_TYPE)', function(data) {
+					var value = data.value;
+					$(".pictureAddr").hide();
+					if (value == '1') {
+						$(".type_one").show();
+					} else if (value == '2') {
+						$(".type_two").show();
+					} else if (value == '3') {
+						$(".type_three").show();
+					}
+				});
+				form.on('select(store)', function(data) {
+					$("#goods").empty();
+					$("#goods").append('<option value="">请选择商品</option>');
+					$.post("/activity/querygoodslistByStoreId", {
+						storeId : data.value
+					}, function(list) {
+						var l = eval(list);
+						for (var i = 0; i < l.length; i++) {
+							$("#goods").append(
+									"<option value='" + l[i].GOODSID + "'>"
+											+ l[i].GOODS_NAME + "</option>");
+						}
+						form.render('select');
+					});
+				});
+				form.on('submit(submitform)', function(data) {
+					var TITLE = data.field.TITLE;
+					if (TITLE == null || TITLE == "") {
+						layer.msg("请输入活动标题");
+						return false;
+					}
+					var PICTURE = data.field.PICTURE;
+					if (PICTURE == "0" || PICTURE == "") {
+						layer.msg("请上传活动图片");
+						return false;
+					}
+					var PICTURE_TYPE = data.field.PICTURE_TYPE;
+					var goodsId = data.field.goodsId;
+					var activityUrl = data.field.activityUrl;
+					var storeId = data.field.storeId;
+					if (PICTURE_TYPE == null || PICTURE_TYPE == "") {
+						layer.msg("请选项图片类型");
+						return false;
+					}
+
+					else if (PICTURE_TYPE == '1'
+							&& (goodsId == "" || goodsId == null)) {
+						layer.msg("请选择一个图片链接商品");
+						return false;
+					}
+
+					else if (PICTURE_TYPE == '2'
+							&& (activityUrl == "" || activityUrl == null)) {
+						layer.msg("请填写活动链接");
+						return false;
+					}
+
+					else if (PICTURE_TYPE == '3'
+							&& (storeId == "" || storeId == null)) {
+						layer.msg("请选择一个图片链接店铺");
+						return false;
+					}
+					if (PICTURE_TYPE == '1') {
+						$("#PICTURE_ADDR").val(goodsId);
+					} else if (PICTURE_TYPE == '2') {
+						$("#PICTURE_ADDR").val(activityUrl);
+					} else if (PICTURE_TYPE == '3') {
+						$("#PICTURE_ADDR").val(storeId);
+					}
+					$("#typethreeform").submit();
+					return false;
+				});
+
+			});
+	/* ]]> */
+</script>
+</html>

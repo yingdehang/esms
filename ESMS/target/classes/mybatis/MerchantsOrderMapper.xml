@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.merchants.MerchantsOrderDao">
+	<!-- 获取/查询未分页订单列表 -->
+	<select id="getOrderList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		o.*,
+		u.`NICKNAME`,
+		u.`PHONE`,
+		d.`DESCRIBES`,
+		u2.`USERS_ID` as storeUser,
+		ea1.CITY_NAME AS a,
+		ea2.CITY_NAME AS c,
+		ea3.CITY_NAME AS p
+		FROM
+		es_order o,
+		es_users u,
+		es_dictionary d,
+		es_goods g,
+		es_store s,
+		es_users u2,
+		es_area ea1,
+		es_area ea2,
+		es_area ea3
+		WHERE 
+		o.`USERS_ID`=u.`USERS_ID` 
+		AND o.ORDER_STATE=d.DICTIONARY_VALUE
+		and o.`GOODSID`=g.`GOODSID`
+		and g.`STORE_ID`=s.`STORE_ID`
+		and s.`USERS_ID`=u2.`USERS_ID`
+		and u2.`USERS_ID`=#{userId}
+		and o.`AREA` = ea1.CITY_CODE
+		and ea1.PID=ea2.CITY_CODE
+		and ea2.PID=ea3.CITY_CODE
+		<if test="contact != null and contact !=''">
+			AND o.CONTACT = #{contact}
+		</if>
+		<if test="orderNumber != null and orderNumber !=''">
+			AND o.ORDER_NUMBER = #{orderNumber}
+		</if>
+		<if test="the_awb != null and the_awb !=''">
+			AND o.THE_AWB = #{the_awb}
+		</if>
+		<if test="phone != null and phone !=''">
+			AND u.PHONE = #{phone}
+		</if>
+		<if test="time != null and time !=''">
+			AND o.ORDER_TIME BETWEEN #{orderTimeStart} AND #{orderTimeEnd}
+		</if>
+		<if test="orderId != null and orderId !=''">
+			AND o.ORDER_ID = #{orderId}
+		</if>
+		<if test="state!=null and state!=''">
+			<if test="state == 'a'.toString()">
+				AND o.ORDER_STATE='ORDER_STATE_PAY'
+			</if>
+			<if test="state == 'b'.toString()">
+				AND o.ORDER_STATE='ORDER_STATE_SQQX'
+			</if>
+			<if test="state == 'c'.toString()">
+				AND o.ORDER_STATE='ORDER_STATE_NO_GOODS'
+			</if>
+			<if test="state == 'd'.toString()">
+				AND (o.ORDER_STATE='ORDER_STATE_PAY' AND (o.BIGSTATE='1' OR o.BIGSTATE='3' OR o.BIGSTATE IS NULL))
+			</if>
+			<if test="state == 'e'.toString()">
+				AND (o.ORDER_STATE='ORDER_STATE_NO_EVALUATION' OR o.ORDER_STATE='ORDER_STATE_AFTER-SALES' OR o.ORDER_STATE='ORDER_STATE_COMPLETE' OR o.ORDER_STATE='ORDER_STATE_YCX')
+			</if>
+		</if>
+		GROUP BY ORDER_NUMBER
+		ORDER BY o.ORDER_TIME DESC
+	</select>
+	<!-- 获取/查询已分页订单列表 -->
+	<select id="getOrderListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		o.*,
+		u.`NICKNAME`,
+		u.`PHONE`,
+		d.`DESCRIBES`,
+		u2.`USERS_ID` as storeUser,
+		ea1.CITY_NAME AS a,
+		ea2.CITY_NAME AS c,
+		ea3.CITY_NAME AS p
+		FROM
+		es_order o,
+		es_users u,
+		es_dictionary d,
+		es_goods g,
+		es_store s,
+		es_users u2,
+		es_area ea1,
+		es_area ea2,
+		es_area ea3
+		WHERE 
+		o.`USERS_ID`=u.`USERS_ID` 
+		AND o.ORDER_STATE=d.DICTIONARY_VALUE
+		and o.`GOODSID`=g.`GOODSID`
+		and g.`STORE_ID`=s.`STORE_ID`
+		and s.`USERS_ID`=u2.`USERS_ID`
+		and u2.`USERS_ID`=#{userId}
+		and o.`AREA` = ea1.CITY_CODE
+		and ea1.PID=ea2.CITY_CODE
+		and ea2.PID=ea3.CITY_CODE
+		<if test="contact != null and contact !=''">
+			AND o.CONTACT = #{contact}
+		</if>
+		<if test="orderNumber != null and orderNumber !=''">
+			AND o.ORDER_NUMBER = #{orderNumber}
+		</if>
+		<if test="the_awb != null and the_awb !=''">
+			AND o.THE_AWB = #{the_awb}
+		</if>
+		<if test="phone != null and phone !=''">
+			AND u.PHONE = #{phone}
+		</if>
+		<if test="time != null and time !=''">
+			AND o.ORDER_TIME BETWEEN #{orderTimeStart} AND #{orderTimeEnd} 
+		</if>
+		<if test="orderId != null and orderId !=''">
+			AND o.ORDER_ID = #{orderId}
+		</if>
+		<if test="state!=null and state!=''">
+			<if test="state == 'a'.toString()">
+				AND o.ORDER_STATE='ORDER_STATE_PAY'
+			</if>
+			<if test="state == 'b'.toString()">
+				AND o.ORDER_STATE='ORDER_STATE_SQQX'
+			</if>
+			<if test="state == 'c'.toString()">
+				AND o.ORDER_STATE='ORDER_STATE_NO_GOODS'
+			</if>
+			<if test="state == 'd'.toString()">
+				AND (o.ORDER_STATE='ORDER_STATE_PAY' AND (o.BIGSTATE='1' OR o.BIGSTATE='3' OR o.BIGSTATE IS NULL))
+			</if>
+			<if test="state == 'e'.toString()">
+				AND (o.ORDER_STATE='ORDER_STATE_NO_EVALUATION' OR o.ORDER_STATE='ORDER_STATE_AFTER-SALES' OR o.ORDER_STATE='ORDER_STATE_COMPLETE' OR o.ORDER_STATE='ORDER_STATE_YCX')
+			</if>
+		</if>
+		GROUP BY ORDER_NUMBER
+		ORDER BY o.ORDER_TIME DESC
+	</select>
+	<!-- 根据订单编号取出每个订单包含的商品List -->
+	<select id="getOrderGoods" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_order WHERE ORDER_NUMBER=#{orderNumber}
+	</select>
+	<!-- 获取物流公司 -->
+	<select id="getLogistics" resultType="java.util.Map">
+		SELECT * FROM es_logistics
+	</select>
+	<!-- 修改订单状态为发货 -->
+	<update id="sendGoods" parameterType="java.util.Map">
+		UPDATE
+		  es_order
+		SET
+		  THE_AWB = #{awb},
+		  COURIER_COMPANY = #{logistics},
+		  DELIVERY_TIME = NOW(),
+		  ORDER_STATE = 'ORDER_STATE_NO_GOODS'
+		WHERE ORDER_ID = #{orderId}
+	</update>
+	<!-- 取消订单 -->
+	<update id="cancelOrder" parameterType="java.lang.String">
+		update es_order set ORDER_STATE='ORDER_STATE_QX',CANCEL_TIME=NOW() where ORDER_ID=#{orderId}
+	</update>
+	<!-- 查询订单的物流信息 -->
+	<select id="getOrderLogisticsList" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT eo.*,el.COMPANY_NAME,el.COMPANY_CODE FROM es_order eo,es_logistics el WHERE ORDER_NUMBER=#{orderNumber} and eo.COURIER_COMPANY=el.COMPANY_CODE GROUP BY THE_AWB
+	</select>
+	<!-- 根据运单号取出订单包含的商品List -->
+	<select id="getOrderByAWB" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_order WHERE THE_AWB=#{awb}
+	</select>
+	<!-- 通过Id获取订单信息 -->
+	<select id="getOrderById" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT o.*,u.`NICKNAME`,u.`PHONE`,d.`DESCRIBES`,ea1.CITY_NAME AS a,
+		ea2.CITY_NAME AS c,
+		ea3.CITY_NAME AS p
+		FROM es_order o,es_users u,es_dictionary d,es_area ea1,
+		es_area ea2,
+		es_area ea3
+		WHERE 
+		o.`USERS_ID`=u.`USERS_ID` AND o.ORDER_STATE=d.DICTIONARY_VALUE AND o.ORDER_ID=#{orderId} and o.`AREA` = ea1.CITY_CODE
+		and ea1.PID=ea2.CITY_CODE
+		and ea2.PID=ea3.CITY_CODE
+	</select>
+	<!-- 通过订单编号获取订单列表 -->
+	<select id="getOrderByOrderNumber" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT 
+		o.*,
+		u.`NICKNAME`,
+		u.`PHONE`,
+		d.`DESCRIBES`,
+		ea1.CITY_NAME AS a,
+		ea2.CITY_NAME AS c,
+		ea3.CITY_NAME AS p
+		FROM
+		es_order o,
+		es_users u,
+		es_dictionary d,
+		es_area ea1,
+		es_area ea2,
+		es_area ea3
+		WHERE 
+		o.`USERS_ID`=u.`USERS_ID` 
+		AND o.ORDER_STATE=d.DICTIONARY_VALUE
+		AND o.ORDER_NUMBER=#{orderNumber}
+		and o.`AREA` = ea1.CITY_CODE
+		and ea1.PID=ea2.CITY_CODE
+		and ea2.PID=ea3.CITY_CODE
+		GROUP BY ORDER_NUMBER
+	</select>
+	<!-- 通过Id获取订单信息 -->
+	<select id="getOrders" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT o.*,u.`NICKNAME`,u.`PHONE`,d.`DESCRIBES`,ea1.CITY_NAME AS a,
+		ea2.CITY_NAME AS c,
+		ea3.CITY_NAME AS p
+		FROM es_order o,es_users u,es_dictionary d,es_area ea1,
+		es_area ea2,
+		es_area ea3
+		WHERE 
+		o.`USERS_ID`=u.`USERS_ID` AND o.ORDER_STATE=d.DICTIONARY_VALUE AND o.ORDER_ID=#{orderId}and o.`AREA` = ea1.CITY_CODE
+		and ea1.PID=ea2.CITY_CODE
+		and ea2.PID=ea3.CITY_CODE
+	</select>
+	<!-- 通过商品Id得到店铺Id -->
+	<select id="getStoreIdByGoodsId" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT STORE_ID FROM es_goods WHERE GOODSID=#{goodsId}
+	</select>
+	<!-- 减少商品库存 -->
+	<update id="changeGoodsINVENTORY" parameterType="java.util.Map">
+		UPDATE es_goods SET INVENTORY=INVENTORY-#{number} WHERE GOODSID=#{goodsId}
+	</update>
+	<!-- 增加商品购买数量 -->
+	<update id="addGoodsPURCHASE_QUANTITY" parameterType="java.util.Map">
+		UPDATE es_goods SET PURCHASE_QUANTITY=PURCHASE_QUANTITY+#{number} WHERE GOODSID=#{goodsId}
+	</update>
+	<!-- 增加店铺月销量 -->
+	<update id="addStoreMONTH_SALES" parameterType="java.util.Map">
+		UPDATE es_store SET MONTH_SALES=MONTH_SALES+#{number} WHERE STORE_ID=#{storeId}
+	</update>
+	<!-- 店铺今日订单数量加1 -->
+	<update id="addStoreSUM_BUY_NUMBER" parameterType="java.lang.String">
+		UPDATE es_store SET SUM_BUY_NUMBER=SUM_BUY_NUMBER+1 WHERE STORE_ID=#{storeId}
+	</update>
+	<!-- 取出此订单的交易凭证字段 -->
+	<select id="getTradingProof" parameterType="java.lang.String" resultType="java.lang.String">
+		select STATE_PHOTO from es_order where ORDER_NUMBER=#{orderNumber} GROUP BY ORDER_NUMBER
+	</select>
+	<!-- 将新的交易凭证信息保存到数据库，并修改审核状态为通过 -->
+	<update id="saveProofUrl" parameterType="java.util.Map">
+		update es_order set BIGSTATE='1',STATE_PHOTO=#{tradingProof},`ADDTIME`=NOW() where ORDER_NUMBER=#{orderNumber}
+	</update>
+	<!-- 得到订单状态 -->
+	<select id="getOrderState" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT ORDER_STATE FROM es_order WHERE ORDER_ID=#{orderId}
+	</select>
+	<!-- 得到订单状态 -->
+	<select id="getOrderStateByNumber" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT ORDER_STATE FROM es_order WHERE ORDER_NUMBER=#{orderNumber} GROUP BY ORDER_NUMBER
+	</select>
+	<!-- 得到某个订单的物流信息 -->
+	<select id="gerOrderLogistics" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_order WHERE ORDER_ID=#{orderId}
+	</select>
+	<!-- 修改订单物流信息 -->
+	<update id="changeOrderLogistics" parameterType="java.util.Map">
+		UPDATE es_order SET COURIER_COMPANY=#{company},THE_AWB=#{awb} WHERE ORDER_NUMBER=#{orderNumber}
+	</update>
+</mapper>

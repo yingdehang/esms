@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>线上店铺审核记录</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<input type="hidden" id="userId" th:value="${userId}"/>
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<h2><a href="javascript:history.back(-1)">线上店铺申请</a>><a href="javascript:void(0)" onclick="location.reload()">线上店铺审核记录</a></h2>
+	</div>
+	<div id="search" class="layui-form layui-form-pane">
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:120px">用户手机号</label>
+			<div class="layui-input-inline" style="width:160px">
+				<input class="layui-input" id="phone" autocomplete="off"/>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label">申请时间</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="start" type="text" placeholder="起始时间"/>
+			</div>
+			<div class="layui-form-mid">至</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="end" type="text" placeholder="结束时间"/>
+			</div>
+	    </div>
+		
+		<button class="layui-btn" data-type="reload">搜索</button>
+	</div>
+
+	<table id="onLineStoreApply" lay-filter="operation"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+layui.use(['table','jquery','form','laydate'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	var laydate = layui.laydate;
+	laydate.render({
+		elem: '#start'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#end'
+		,type: 'datetime'
+	});
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#onLineStoreApply'
+		,url: '/onLineStore/getOnLineStoreVerifyRecord'
+		,page: true
+		,cols:[[
+			{title:'序号',templet: '#indexTpl'}
+			,{field:'STORE_NAME',title:'申请店铺名称'}
+			,{field:'STORE_TYPE',title:'类型'}
+			,{field:'USER_PHONE',title:'店主手机号'}
+			,{field:'PHONE',title:'联系方式'}
+			,{field:'area',title:'店主区域'}
+			,{field:'AUDIT_STATE',title:'状态'}
+			,{field:'CTIME',title:'操作时间'}
+			//,{fixed: 'right', width:150, align:'center', toolbar: '#toolbar',title:'操作',width:400}
+		]]
+	});
+	<!-- 监听搜索按钮 -->
+	$('#search .layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索 -->
+	var phone = $("#phone");
+	var start = $("#start");
+	var end = $("#end");
+	var $ = layui.$, active = {
+		<!-- 搜索时执行重载-->
+		reload: function(){
+			//执行重载
+			table.reload('onLineStoreApply', {
+				where: {
+					phone:phone.val(),
+					start : start.val(),
+					end : end.val()
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+	};
+	var userId = $("#userId").val();
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'verify'){ //审核
+			window.location.href="/onLineStore/toOnLineStoreVerify?storeId="+data.STORE_ID+"&userId="+userId;
+		}
+	});
+});
+/* ]]> */
+</script>
+<script type="text/html" id="toolbar">
+	<a class="layui-btn layui-btn-xs" lay-event="verify">重新审核</a>
+</script>
+<!-- 序号 -->
+<script type="text/html" id="indexTpl">
+    {{d.LAY_TABLE_INDEX+1}}
+</script>
+</body>
+</html>

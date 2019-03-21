@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.example.elephantshopping.dao.operationsManage.StatisticalSystemDao">
+	<!-- 查询用户总数 -->
+	<select id="queryUserCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT count(*) FROM `es_users` u LEFT JOIN es_user_certification
+		uc ON
+		u.`USERS_ID`=uc.`USERS_ID` WHERE u.REGISTERED_TIME &lt; #{endTime}
+		<if test="null!=startTime and startTime!=''">
+			AND u.REGISTERED_TIME &gt; #{startTime}
+		</if>
+		<if test="null!=areaId and areaId!=''">
+			AND uc.`AREA`=#{areaId}
+		</if>
+	</select>
+	<!-- 查询实名注册用户总数 -->
+	<select id="queryUserPassCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT count(*) FROM `es_users` u LEFT JOIN es_user_certification
+		uc ON
+		u.`USERS_ID`=uc.`USERS_ID` WHERE uc.TO_APPLY_FOR_TIME &lt; #{endTime}
+		<if test="null!=startTime and startTime!=''">
+			AND uc.TO_APPLY_FOR_TIME &gt; #{startTime}
+		</if>
+		AND
+		uc.`STATE`='USER_AUTHENTICATION_PASS'
+		AND u.MEMBERSHIP_GRADE IN
+		('USER_DJ_PRIMARY','USER_DJ_INTERMEDIATE','USER_DJ_SENIOR')
+		<if test="null!=areaId and areaId!=''">
+			AND uc.`AREA`=#{areaId}
+		</if>
+	</select>
+	<!-- 查询当前总积分 -->
+	<select id="queryTotalScore" parameterType="java.util.Map"
+		resultType="java.lang.Double">
+		SELECT IFNULL(SUM(u.`INTEGRAL`),0.00) FROM `es_users` u LEFT JOIN
+		es_user_certification
+		uc ON
+		u.`USERS_ID`=uc.`USERS_ID` WHERE
+		u.REGISTERED_TIME &lt; #{endTime}
+		<if test="null!=areaId and areaId!=''">
+			AND uc.`AREA`=#{areaId}
+		</if>
+	</select>
+	<!-- 查询线上店铺总数 -->
+	<select id="getXsStoreCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM
+		es_store s
+		LEFT JOIN
+		es_store_certification sc
+		ON
+		s.`STORE_ID` = sc.`STORE_ID`
+		LEFT JOIN
+		es_user_certification uc
+		ON
+		s.`USERS_ID` = uc.`USERS_ID`
+		WHERE
+		sc.`AUDIT_STATE`='STORE_AUTHENTICATION_PASS'
+		AND
+		sc.`TYPES`='STORE_XS_XS'
+		AND s.`OPEN_SHOP_TIME` &lt; #{endTime}
+		<if test="null!=startTime and startTime!=''">
+			AND s.`OPEN_SHOP_TIME` &gt; #{startTime}
+		</if>
+		<if test="null!=areaId and areaId!=''">
+			AND uc.`AREA`=#{areaId}
+		</if>
+	</select>
+	<!-- 查询线下店铺总数 -->
+	<select id="getXxStoreCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM
+		es_store s
+		LEFT JOIN es_store_certification sc
+		ON
+		s.`STORE_ID` = sc.`STORE_ID`
+		WHERE
+		sc.`AUDIT_STATE`='STORE_AUTHENTICATION_PASS'
+		AND
+		sc.`TYPES`='STORE_XS_XX'
+		AND s.`OPEN_SHOP_TIME` &lt; #{endTime}
+		<if test="null!=startTime and startTime!=''">
+			AND s.`OPEN_SHOP_TIME` &gt; #{startTime}
+		</if>
+		<if test="null!=areaId and areaId!=''">
+			AND sc.`AREA`=#{areaId}
+		</if>
+	</select>
+	<!-- 昨日线上店铺佣金 -->
+	<select id="queryYesterdayXsCommission"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT
+		IFNULL(SUM(sw.`COMMISSION`),0.00)
+		FROM
+		es_store_water sw
+		LEFT JOIN
+		es_store_certification sc
+		ON
+		sc.`STORE_ID` = sw.`STORE_ID`
+		LEFT JOIN
+		es_store s
+		ON sw.`STORE_ID` =
+		s.`STORE_ID`
+		LEFT JOIN
+		es_user_certification uc
+		ON uc.`USERS_ID` =
+		s.`USERS_ID`
+		WHERE sw.`ETIME`
+		BETWEEN #{startTime}
+		AND #{endTime}
+		AND
+		sc.`TYPES` = 'STORE_XS_XS'
+		<if test="null!=areaId and areaId!=''">
+			AND uc.`AREA` = #{areaId}
+		</if>
+	</select>
+	<!-- 线下店铺扫码支付产生的佣金 -->
+	<select id="queryYesterdayXxSmCommission"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT
+		IFNULL(SUM(sw.`COMMISSION`),0.00)
+		FROM
+		es_store_water sw
+		LEFT JOIN
+		es_store_certification sc
+		ON sw.`STORE_ID` = sc.`STORE_ID`
+		WHERE
+		sw.`ETIME` BETWEEN #{startTime} AND #{endTime}
+		AND sc.`TYPES`
+		='STORE_XS_XX'
+		<if test="null!=areaId and areaId!=''">
+			AND sc.`AREA` = #{areaId}
+		</if>
+	</select>
+	<!-- 线下店铺报单产生的佣金 -->
+	<select id="queryYesterdayXxBdCommission"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT
+		IFNULL(SUM(`COMMISSION`), 0.00)
+		FROM
+		es_offline offline
+		LEFT JOIN
+		es_store s
+		ON offline.`USERS_ID` = s.`USERS_ID`
+		LEFT JOIN
+		es_store_certification sc
+		ON sc.`STORE_ID` = s.`STORE_ID`
+		WHERE
+		offline.`PASS_TIME` BETWEEN #{startTime} AND #{endTime}
+		<if test="null!=areaId and areaId!=''">
+			AND sc.`AREA`=#{areaId}
+		</if>
+	</select>
+	<!-- 奖励金支出 -->
+	<select id="queryYesterdayIncentivePayments"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT IFNULL(SUM(s.JF), 0.00) FROM es_sign s
+		LEFT JOIN
+		es_user_certification uc ON
+		s.`USERS_ID`=uc.`USERS_ID` WHERE
+		s.`SIGN_TIME` BETWEEN #{startTime} AND
+		#{endTime}
+		<if test="null!=areaId and areaId!=''">
+			AND uc.`AREA`=#{areaId}
+		</if>
+	</select>
+	<!-- 积分赠送 -->
+	<select id="queryYesterdayIntegralPresent"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT
+		IFNULL(SUM(i.`MONEY`), 0.00)
+		FROM
+		`es_integral` i
+		LEFT JOIN
+		es_user_certification uc
+		ON
+		i.`USERS_ID` = uc.`USERS_ID`
+		WHERE i.ETYPE
+		='1' AND i.`ADDTIME` BETWEEN
+		#{startTime} AND #{endTime}
+		<if test="null!=areaId and areaId!=''">
+			AND uc.`AREA`=#{areaId}
+		</if>
+	</select>
+	<!-- 积分变化 -->
+	<select id="queryYesterdayIntegralChange"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT
+		IFNULL(SUM(IF(i.`ETYPE`=1,i.`MONEY`,-i.`MONEY`)), 0.00)
+		FROM
+		`es_integral` i
+		LEFT JOIN
+		es_user_certification uc
+		ON
+		i.`USERS_ID` =
+		uc.`USERS_ID`
+		WHERE i.`ADDTIME` BETWEEN
+		#{startTime} AND
+		#{endTime}
+		<if test="null!=areaId and areaId!=''">
+			AND uc.`AREA`=#{areaId}
+		</if>
+	</select>
+	<!-- 充值金额 -->
+	<select id="queryYesterdayRechargeAmount"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT
+		IFNULL(SUM(mw.EMONEY),0.00) FROM `es_money_water` mw LEFT JOIN
+		es_user_certification uc ON mw.USERS_ID=uc.`USERS_ID` WHERE ENAME IN
+		('微信充值','支付宝充值') AND mw.ETIME BETWEEN #{startTime} AND #{endTime}
+		<if test="null!=areaId and areaId!=''">
+			AND uc.`AREA`=#{areaId}
+		</if>
+	</select>
+	<!-- 查询店铺等级分布 -->
+	<select id="getShopGradeDistributionData"
+		parameterType="java.util.Map" resultType="java.lang.Integer">
+		SELECT
+		COUNT(DISTINCT store.`STORE_ID`)
+		FROM
+		`es_store` AS store
+		LEFT JOIN
+		`es_store_certification` AS esc
+		ON store.`STORE_ID` = esc.`STORE_ID`
+		LEFT JOIN `es_store_water` AS esw ON esc.`STORE_ID`=esw.STORE_ID
+		LEFT
+		JOIN
+		`es_user_certification` euc ON euc.`USERS_ID`=store.`USERS_ID`
+		WHERE
+		esc.`TYPES`=#{TYPES}
+		AND
+		esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS'
+		AND store.`OPEN_SHOP_TIME`
+		&lt; #{endTime}
+		<if test="TYPES=='STORE_XS_XX' and null!=areaId and areaId!=''">
+			AND esc.`AREA`=#{areaId}
+		</if>
+		<if test="TYPES=='STORE_XS_XS' and null!=areaId and areaId!=''">
+			AND euc.`AREA`=#{areaId}
+		</if>
+		AND esc.`LEVELS`=#{LEVELS}
+	</select>
+	<!-- 会员充值占比 -->
+	<select id="getmembershipRechargeAmountData"
+		parameterType="java.util.Map" resultType="java.lang.Double">
+		SELECT IFNULL(SUM(emw.EMONEY),0.00) FROM
+		`es_money_water` AS emw
+		LEFT
+		JOIN `es_users`
+		AS eu ON
+		emw.USERS_ID=eu.USERS_ID
+		LEFT JOIN
+		`es_user_certification` AS uc
+		ON
+		emw.USERS_ID = uc.USERS_ID
+		WHERE
+		emw.ETYPE='1'
+		AND ENAME IN
+		('微信充值','支付宝充值')
+		AND
+		eu.MEMBERSHIP_GRADE=#{MEMBERSHIP_GRADE}
+		AND emw.ETIME &lt; #{endTime}
+		<if test="null!=areaId and areaId!=''">
+			AND uc.`AREA`=#{areaId}
+		</if>
+	</select>
+	<!-- 查询会员等级分布 -->
+	<select id="membershipistributionData"
+		parameterType="java.util.Map" resultType="int">
+		SELECT
+		COUNT(*)
+		FROM
+		`es_users` AS eu
+		LEFT JOIN
+		`es_user_certification` AS
+		euc
+		ON eu.USERS_ID = euc.USERS_ID
+		WHERE
+		euc.STATE='USER_AUTHENTICATION_PASS'
+		AND
+		eu.MEMBERSHIP_GRADE=#{MEMBERSHIP_GRADE}
+		AND euc.TO_APPLY_FOR_TIME &lt;
+		#{endTime}
+		<if test="null!=areaId and areaId!=''">
+			AND euc.AREA=#{areaId}
+		</if>
+	</select>
+	<!-- 查询店铺流水 -->
+	<select id="queryToreEvenue" parameterType="java.util.Map"
+		resultType="java.lang.Double">
+		SELECT
+		IFNULL(SUM(esw.MONEY),0.00)
+		FROM
+		`es_store_water` AS esw
+		LEFT
+		JOIN
+		`es_store_certification` esc
+		ON esw.`STORE_ID` = esc.`STORE_ID`
+		LEFT
+		JOIN `es_store` store ON store.`STORE_ID`=esw.`STORE_ID`
+		LEFT JOIN
+		`es_user_certification` euc ON euc.`USERS_ID`=store.`USERS_ID`
+		WHERE
+		esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS'
+		AND
+		esc.`TYPES`=#{types}
+		<if test="types=='STORE_XS_XX' and null!=areaId and areaId!=''">
+			AND esc.`AREA`=#{areaId}
+		</if>
+		<if test="types=='STORE_XS_XS' and null!=areaId and areaId!=''">
+			AND euc.`AREA`=#{areaId}
+		</if>
+		AND esw.ETYPE='1'
+		AND
+		esw.ETIME BETWEEN
+		#{startTime} AND #{endTime}
+	</select>
+	<!-- 插入数据记录表 -->
+	<insert id="insertDatatable" parameterType="java.util.Map">
+		INSERT INTO
+		`es_data`
+		(`EDID`, `DTYPE`, `DVALUE`, `DTIME`) VALUES
+		(#{uuid}, #{dtype},
+		#{dvalue}, #{endTime});
+	</insert>
+	<!-- 查询总积分记录表 -->
+	<select id="queryDataTable" parameterType="java.util.Map"
+		resultType="java.lang.Double">
+		SELECT IFNULL(SUM(DVALUE),0.00) FROM es_data WHERE
+		`DTYPE` =
+		#{dtype} AND `DTIME`= #{endTime}
+	</select>
+	<!-- 查询账户总积分，余额，消费券，零花钱 -->
+	<select id="queryMoneyData" resultType="java.util.Map">
+		SELECT
+		SUM(MONEYS) AS
+		`moneys`,
+		SUM(POCKETMONEY) AS `pocketmoney`,
+		SUM(CONSUMPTION_VOLUME) AS
+		`sonsumptionVolume`,
+		SUM(INTEGRAL) AS `interal`
+		FROM es_users
+	</select>
+	<!-- 查询订单数量 -->
+	<select id="queryOrderMumber" parameterType="java.util.Map"
+		resultType="int">
+		SELECT
+		COUNT(DISTINCT o.ORDER_NUMBER)
+		FROM
+		es_order o
+		LEFT JOIN es_goods g
+		ON o.`GOODSID` = g.`GOODSID`
+		LEFT JOIN es_store_certification s
+		ON
+		g.`STORE_ID` = s.`STORE_ID`
+		LEFT JOIN es_store store
+		ON s.`STORE_ID` =
+		store.`STORE_ID`
+		LEFT JOIN es_user_certification uc
+		ON store.`USERS_ID`
+		= uc.`USERS_ID`
+		WHERE
+		o.SHTIME IS NOT NULL
+		AND s.`TYPES` = 'STORE_XS_XS'
+		AND o.SHTIME &lt; #{endTime}
+		<if test="null!=startTime and startTime!=''">
+			AND o.SHTIME &gt; #{startTime}
+		</if>
+		<if test="null!=areaId and areaId!=''">
+			AND uc.`AREA`=#{areaId}
+		</if>
+	</select>
+</mapper>

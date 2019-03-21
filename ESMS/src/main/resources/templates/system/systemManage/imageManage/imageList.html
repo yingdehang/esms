@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>象本商城后台管理系统</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div class="layui-form layui-form-pane">
+		<div class="layui-form-item">
+			<label class="layui-form-label">图片类型</label>
+			<div class="layui-input-inline">
+				<select id="phototype">
+					<option value="">全部图片</option>
+					<option th:each="list:${typelist}"
+						th:value="${list.DICTIONARY_VALUE}" th:text="${list.DESCRIBES}">请选择图片类型</option>
+				</select>
+			</div>
+			<button class="layui-btn" data-type="reload">搜索</button>
+		</div>
+	</div>
+	<table class="layui-hide" id="LAY_table_user" lay-filter="user"></table>
+	<script id="photoshow" type="text/html">
+		<img src="{{d.PHOTO_URL}}" onclick="showPhoto(this)" />
+	</script>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script>
+	layui.use('table', function() {
+		var table = layui.table;
+		//方法级渲染
+		table.render({
+			elem : '#LAY_table_user',
+			url : '/image/getImageList/',
+			cols : [ [ {
+				title : '图片',
+				toolbar : '#photoshow',
+				width : 80,
+				height : 100,
+				fixed : 'left'
+			}, {
+				field : 'PHOTO_NAME',
+				title : '图片名'
+			}, {
+				field : 'PHOTO_URL',
+				title : '图片链接'
+			}, {
+				field : 'ADD_TIME',
+				title : '上传时间'
+			}, {
+				field : 'PID',
+				title : '所属ID'
+			}, {
+				field : 'PHOTO_TYPE',
+				title : '类型'
+			}, {
+				field : 'CLICK_URL',
+				title : '点击链接地址'
+			} ] ],
+			id : 'testReload',
+			page : true
+		});
+
+		var $ = layui.$, active = {
+			reload : function() {
+				var demoReload = $('#phototype').val();
+				//执行重载
+				table.reload('testReload', {
+					page : {
+						curr : 1
+					//重新从第 1 页开始
+					},
+					where : {
+						PHOTO_TYPE : demoReload
+					}
+				});
+			}
+		};
+
+		$('.layui-form-item .layui-btn').on('click', function() {
+			var type = $(this).data('type');
+			active[type] ? active[type].call(this) : '';
+		});
+	});
+	function showPhoto(t) {
+		layer.open({
+			type : 1,
+			title : false,
+			maxWidth : '760px',
+			anim : 0,
+			skin : 'layui-layer-nobg', //没有背景色
+			shadeClose : true,
+			content : '<img src="'+t.src+'" width="750px" />'
+		});
+	}
+</script>
+</html>

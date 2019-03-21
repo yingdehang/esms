@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.operationsManage.DeclarationDao">
+	<!-- 报单申请数据 -->
+	<select id="getDeclaration" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		ef.`EOID`,
+		ea1.`CITY_NAME` AS `PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		es.`STORE_NAME`,
+		eu.`PHONE`,
+		euc.`UC_NAMES`,
+		eu2.`NICKNAME`,
+		ef.`BUY_USERPHONE`,
+		ef.`MONEY`,
+		eu3.`PHONE` AS zzPhone,
+		euc2.`UC_NAMES` AS zzName,
+		ef.`APPLY_TIME`,
+		ef.CREDENTIALS,
+		ef.`USERS_ID` AS merchantId,
+		esc.`AREA` as areaId,
+		eu2.USERS_ID AS userId
+		FROM 
+		es_offline ef
+		LEFT OUTER JOIN es_store es ON ef.`USERS_ID`=es.`USERS_ID`
+		LEFT OUTER JOIN es_store_certification esc ON (es.`STORE_ID`=esc.`STORE_ID` AND esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS')
+		LEFT OUTER JOIN es_area ea1 ON esc.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea2 ON esc.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON esc.`AREA`=ea3.`CITY_CODE`
+		LEFT OUTER JOIN es_users eu ON es.`USERS_ID`=eu.`USERS_ID`
+		LEFT OUTER JOIN es_user_certification euc ON eu.`USERS_ID`=euc.`USERS_ID`
+		LEFT OUTER JOIN es_users eu2 ON ef.`BUY_USERPHONE`=eu2.`PHONE`
+		LEFT OUTER JOIN es_users eu3 ON (esc.`AREA`=eu3.`AREAID` AND eu3.`IS_ZZ`='1')
+		LEFT OUTER JOIN es_user_certification euc2 ON eu3.`USERS_ID`=euc2.`USERS_ID`
+		WHERE 
+		ef.`MONEY`>=2000
+		AND ef.`STATE`='0'
+		AND esc.`TYPES`='STORE_XS_XX'
+		<if test="name!=null and name!=''">
+			and euc.`UC_NAMES` LIKE #{name}
+		</if>
+		<if test="phone!=null and phone!=''">
+			and eu.PHONE=#{phone}
+		</if>
+		<if test="start!=null and start!='' and end!=null and end!=''">
+			AND ef.`APPLY_TIME` BETWEEN #{start} AND #{end}
+		</if>
+		<if test="province!=null and province!=0">
+			AND esc.`PROVINCE`=#{province}
+		</if>
+		<if test="city!=null and city!=0">
+			AND esc.`CITY`=#{city}
+		</if>
+		<if test="area!=null and area!=0">
+			AND esc.`AREA`=#{area}
+		</if>
+		ORDER BY ef.`APPLY_TIME` ASC
+	</select>
+	<!-- 报单申请数据分页 -->
+	<select id="getDeclarationPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		ef.`EOID`,
+		ea1.`CITY_NAME` AS `PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		es.`STORE_NAME`,
+		eu.`PHONE`,
+		euc.`UC_NAMES`,
+		eu2.`NICKNAME`,
+		ef.`BUY_USERPHONE`,
+		ef.`MONEY`,
+		eu3.`PHONE` AS zzPhone,
+		euc2.`UC_NAMES` AS zzName,
+		ef.`APPLY_TIME`,
+		ef.CREDENTIALS,
+		ef.`USERS_ID` AS merchantId,
+		esc.`AREA` as areaId,
+		eu2.USERS_ID AS userId
+		FROM 
+		es_offline ef
+		LEFT OUTER JOIN es_store es ON ef.`USERS_ID`=es.`USERS_ID`
+		LEFT OUTER JOIN es_store_certification esc ON (es.`STORE_ID`=esc.`STORE_ID` AND esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS')
+		LEFT OUTER JOIN es_area ea1 ON esc.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea2 ON esc.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON esc.`AREA`=ea3.`CITY_CODE`
+		LEFT OUTER JOIN es_users eu ON es.`USERS_ID`=eu.`USERS_ID`
+		LEFT OUTER JOIN es_user_certification euc ON eu.`USERS_ID`=euc.`USERS_ID`
+		LEFT OUTER JOIN es_users eu2 ON ef.`BUY_USERPHONE`=eu2.`PHONE`
+		LEFT OUTER JOIN es_users eu3 ON (esc.`AREA`=eu3.`AREAID` AND eu3.`IS_ZZ`='1')
+		LEFT OUTER JOIN es_user_certification euc2 ON eu3.`USERS_ID`=euc2.`USERS_ID`
+		WHERE 
+		ef.`MONEY`>=2000
+		AND ef.`STATE`='0'
+		AND esc.`TYPES`='STORE_XS_XX'
+		<if test="name!=null and name!=''">
+			and euc.`UC_NAMES` LIKE #{name}
+		</if>
+		<if test="phone!=null and phone!=''">
+			and eu.PHONE=#{phone}
+		</if>
+		<if test="start!=null and start!='' and end!=null and end!=''">
+			AND ef.`APPLY_TIME` BETWEEN #{start} AND #{end}
+		</if>
+		<if test="province!=null and province!=0">
+			AND esc.`PROVINCE`=#{province}
+		</if>
+		<if test="city!=null and city!=0">
+			AND esc.`CITY`=#{city}
+		</if>
+		<if test="area!=null and area!=0">
+			AND esc.`AREA`=#{area}
+		</if>
+		ORDER BY ef.`APPLY_TIME` ASC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 获取报单审核详情 -->
+	<select id="getDeclarationInfo" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT
+		ef.`EOID`,
+		ea1.`CITY_NAME` AS `PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		es.`STORE_NAME`,
+		eu.`PHONE`,
+		euc.`UC_NAMES`,
+		eu2.`NICKNAME`,
+		ef.`BUY_USERPHONE`,
+		ef.`MONEY`,
+		eu3.`PHONE` AS zzPhone,
+		euc2.`UC_NAMES` AS zzName,
+		ef.`APPLY_TIME`,
+		ef.`STATE`,
+		ef.`CONTENT`,
+		ef.`CREDENTIALS`,
+		ef.`USERS_ID` AS merchantId,
+		eu3.USERS_ID AS zzId,
+		eu2.USERS_ID AS userId,
+		esc.STORE_CERTIFICATION_ID,
+		eu3.MEMBERSHIP_GRADE AS memberGrade
+		FROM 
+		es_offline ef
+		LEFT OUTER JOIN es_store es ON ef.`USERS_ID`=es.`USERS_ID`
+		LEFT OUTER JOIN es_store_certification esc ON (es.`STORE_ID`=esc.`STORE_ID` AND esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS')
+		LEFT OUTER JOIN es_area ea1 ON esc.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea2 ON esc.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON esc.`AREA`=ea3.`CITY_CODE`
+		LEFT OUTER JOIN es_users eu ON es.`USERS_ID`=eu.`USERS_ID`
+		LEFT OUTER JOIN es_user_certification euc ON eu.`USERS_ID`=euc.`USERS_ID`
+		LEFT OUTER JOIN es_users eu2 ON ef.`BUY_USERPHONE`=eu2.`PHONE`
+		LEFT OUTER JOIN es_users eu3 ON (esc.`AREA`=eu3.`AREAID` AND eu3.`IS_ZZ`='1')
+		LEFT OUTER JOIN es_user_certification euc2 ON eu3.`USERS_ID`=euc2.`USERS_ID`
+		WHERE 
+		esc.`TYPES`='STORE_XS_XX'
+		AND ef.`EOID`=#{id}
+	</select>
+	<!-- 审核通过 -->
+	<update id="pass" parameterType="java.util.Map">
+		UPDATE es_offline SET STATE='1',PASS_TIME=NOW(),OPERATION=#{userId} WHERE EOID=#{id}
+	</update>
+	<!-- 审核失败 -->
+	<update id="refuse" parameterType="java.util.Map">
+		UPDATE es_offline SET STATE='2',PASS_TIME=NOW(),OPERATION=#{userId},CONTENT=#{content} WHERE EOID=#{id}
+	</update>
+	<!-- 报单明细数据 -->
+	<select id="getDeclarationRecord" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		ef.`EOID`,
+		ea1.`CITY_NAME` AS `PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		es.`STORE_NAME`,
+		eu.`PHONE`,
+		euc.`UC_NAMES`,
+		eu2.`NICKNAME`,
+		ef.`BUY_USERPHONE`,
+		ef.`MONEY`,
+		eu3.`PHONE` AS zzPhone,
+		euc2.`UC_NAMES` AS zzName,
+		ef.`APPLY_TIME`,
+		ef.PASS_TIME,
+		ef.STATE
+		FROM 
+		es_offline ef
+		LEFT OUTER JOIN es_store es ON ef.`USERS_ID`=es.`USERS_ID`
+		LEFT OUTER JOIN es_store_certification esc ON (es.`STORE_ID`=esc.`STORE_ID` AND esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS')
+		LEFT OUTER JOIN es_area ea1 ON esc.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea2 ON esc.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON esc.`AREA`=ea3.`CITY_CODE`
+		LEFT OUTER JOIN es_users eu ON es.`USERS_ID`=eu.`USERS_ID`
+		LEFT OUTER JOIN es_user_certification euc ON eu.`USERS_ID`=euc.`USERS_ID`
+		LEFT OUTER JOIN es_users eu2 ON ef.`BUY_USERPHONE`=eu2.`PHONE`
+		LEFT OUTER JOIN es_users eu3 ON (esc.`AREA`=eu3.`AREAID` AND eu3.`IS_ZZ`='1')
+		LEFT OUTER JOIN es_user_certification euc2 ON eu3.`USERS_ID`=euc2.`USERS_ID`
+		WHERE 
+		ef.`MONEY`>=2000
+		AND (ef.`STATE`='1' OR ef.`STATE`='2')
+		AND esc.`TYPES`='STORE_XS_XX'
+		<if test="name!=null and name!=''">
+			and euc.`UC_NAMES` LIKE #{name}
+		</if>
+		<if test="phone!=null and phone!=''">
+			and eu.PHONE=#{phone}
+		</if>
+		<if test="start!=null and start!='' and end!=null and end!=''">
+			AND ef.`APPLY_TIME` BETWEEN #{start} AND #{end}
+		</if>
+		<if test="province!=null and province!=0">
+			AND esc.`PROVINCE`=#{province}
+		</if>
+		<if test="city!=null and city!=0">
+			AND esc.`CITY`=#{city}
+		</if>
+		<if test="area!=null and area!=0">
+			AND esc.`AREA`=#{area}
+		</if>
+		ORDER BY ef.`PASS_TIME` DESC
+	</select>
+	<!-- 报单明细数据分页 -->
+	<select id="getDeclarationRecordPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		ef.`EOID`,
+		ea1.`CITY_NAME` AS `PROVINCE`,
+		ea2.`CITY_NAME` AS `CITY`,
+		ea3.`CITY_NAME` AS `AREA`,
+		es.`STORE_NAME`,
+		eu.`PHONE`,
+		euc.`UC_NAMES`,
+		eu2.`NICKNAME`,
+		ef.`BUY_USERPHONE`,
+		ef.`MONEY`,
+		eu3.`PHONE` AS zzPhone,
+		euc2.`UC_NAMES` AS zzName,
+		ef.`APPLY_TIME`,
+		ef.PASS_TIME,
+		ef.STATE
+		FROM 
+		es_offline ef
+		LEFT OUTER JOIN es_store es ON ef.`USERS_ID`=es.`USERS_ID`
+		LEFT OUTER JOIN es_store_certification esc ON (es.`STORE_ID`=esc.`STORE_ID` AND esc.AUDIT_STATE='STORE_AUTHENTICATION_PASS')
+		LEFT OUTER JOIN es_area ea1 ON esc.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea2 ON esc.`CITY`=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON esc.`AREA`=ea3.`CITY_CODE`
+		LEFT OUTER JOIN es_users eu ON es.`USERS_ID`=eu.`USERS_ID`
+		LEFT OUTER JOIN es_user_certification euc ON eu.`USERS_ID`=euc.`USERS_ID`
+		LEFT OUTER JOIN es_users eu2 ON ef.`BUY_USERPHONE`=eu2.`PHONE`
+		LEFT OUTER JOIN es_users eu3 ON (esc.`AREA`=eu3.`AREAID` AND eu3.`IS_ZZ`='1')
+		LEFT OUTER JOIN es_user_certification euc2 ON eu3.`USERS_ID`=euc2.`USERS_ID`
+		WHERE 
+		ef.`MONEY`>=2000
+		AND (ef.`STATE`='1' OR ef.`STATE`='2')
+		AND esc.`TYPES`='STORE_XS_XX'
+		<if test="name!=null and name!=''">
+			and euc.`UC_NAMES` LIKE #{name}
+		</if>
+		<if test="phone!=null and phone!=''">
+			and eu.PHONE=#{phone}
+		</if>
+		<if test="start!=null and start!='' and end!=null and end!=''">
+			AND ef.`APPLY_TIME` BETWEEN #{start} AND #{end}
+		</if>
+		<if test="province!=null and province!=0">
+			AND esc.`PROVINCE`=#{province}
+		</if>
+		<if test="city!=null and city!=0">
+			AND esc.`CITY`=#{city}
+		</if>
+		<if test="area!=null and area!=0">
+			AND esc.`AREA`=#{area}
+		</if>
+		ORDER BY ef.`PASS_TIME` DESC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 根据Id查出某个系数的值 -->
+	<select id="getCoefficientValue" parameterType="java.lang.String" resultType="java.lang.Double">
+		SELECT ER_VALUES FROM es_earnings_ratio WHERE EARNINGS_RATIO_ID=#{ERId}
+	</select>
+	<!-- 查出某个店铺的等级 -->
+	<select id="getStoreLevel" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT LEVELS FROM es_store_certification WHERE STORE_CERTIFICATION_ID=#{storeCertificationId}
+	</select>
+	<!-- 获得用户IS_ZZ字段判断是不是站长 -->
+	<select id="isZZ" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT IS_ZZ FROM es_users WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 清除用户邀请人 -->
+	<update id="clearInvitation" parameterType="java.lang.String">
+		UPDATE es_users SET INVITATION=NULL WHERE USERS_ID=#{userId}
+	</update>
+	<!-- 得到用户邀请人的信息 -->
+	<select id="getInviationId" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT eu2.* FROM es_users eu1,es_users eu2 WHERE eu1.INVITATION=eu2.PHONE AND eu1.USERS_ID=#{userId}
+	</select>
+	<!-- 得到用户所在区域站长 -->
+	<select id="getUserZZ" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_users WHERE AREAID=(SELECT `AREA` FROM es_user_certification WHERE USERS_ID=#{userId}) AND IS_ZZ=1
+	</select>
+	<!-- 查询报单状态 -->
+	<select id="getDeclarationState" parameterType="java.lang.String" resultType="java.lang.String">
+		select STATE FROM es_offline where EOID=#{id}
+	</select>
+</mapper>

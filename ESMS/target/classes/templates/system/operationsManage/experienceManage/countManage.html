@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>礼包数量管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<input type="hidden" id="acId" th:value="${acId}"/>
+	<div id="add" style="margin-left:50px;display:none;margin-right:50px">
+		<div class="layui-form layui-form-pane" style="margin-top:20px">
+			<div class="layui-form-item">
+				<label class="layui-form-label">动作时间</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="time"/>
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">固定值</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="fixed"/>
+				</div>
+			</div>
+		
+			<div class="layui-form-item">
+				<label class="layui-form-label">增减值</label>
+				<div class="layui-input-block">
+					<input class="layui-input" id="changed"/>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div style="padding-bottom: 5px; border-bottom: 2px solid #5FB878;margin-bottom:10px">
+		<h2>
+			<a href="/experience/toExperienceVerify">礼包审核</a>>
+			<a href="javascript:history.go(-1)">礼包管理</a>>
+			<a href="javascript:void(0)" onclick="location.reload()">礼包数量管理</a>
+		</h2>
+	</div>
+	<button class="layui-btn" data-method="add">添加定时任务</button>
+	<table id="actions" lay-filter="operation"></table>
+
+	<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+layui.use(['table','jquery','layer','form','upload','laydate'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var layer = layui.layer;
+	var form = layui.form;
+	var upload = layui.upload;
+	var laydate = layui.laydate;
+	
+	var acId = $("#acId").val();
+	
+	laydate.render({
+		elem: '#time'
+		,type: 'datetime'
+	});
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#actions'
+		,url: '/experience/getSetTimes'
+		,page: true
+		,cols:[[
+			{field:'ACTIVITY_NAME',title:'礼包名称'}
+			,{field:'TIME',title:'时间'}
+			,{field:'FIXED',title:'固定值'}
+			,{field:'CHANGED',title:'增减值'}
+			,{fixed:'right',align:'center', toolbar: '#toolbar',title:'操作'}
+		]]
+		,where:{acId:acId}
+	});
+	//判断对象是不是整数
+	var r = /^[-\+]?\d+$/;　　//整数  
+	var y = /^[+]?\d+$/;　　//非负整数 
+	
+	$('.layui-btn').on('click', function(){
+		var othis = $(this), method = othis.data('method');
+		active[method] ? active[method].call(this, othis) : '';
+	});
+	
+	var time = $("#time");
+	var fixed = $("#fixed");
+	var changed = $("#changed");
+	
+	var active = {
+			add: function(){
+				var index1 = layer.open({
+					type: 1
+					,id:'m1'
+			        ,title: '新增定时任务'
+			        ,area: ['700px', '350px']
+			        ,shade: 0
+			        ,maxmin: true
+			        ,content: $("#add")
+			        ,skin:'layui-layer-molv'
+			        ,btnAlign: 'c'
+			        ,btn: ['确定', '取消']
+			        ,yes: function(){
+			        	var datetime = new Date(Date.parse($("#time").val().replace(/-/g,"/")))
+			        	var nowtime = new Date();
+			        	if(time.val()==""){
+			        		layer.msg("请选择时间");
+			        	}else if(fixed.val()==""&&changed.val()==""){
+			        		layer.msg("请输入要修改的数量");
+			        	}else if(fixed.val()!=""&&changed.val()!=""){
+			        		layer.msg("固定值和增减值只能选择一个");
+			        	}else if(nowtime>=datetime){
+			        		layer.msg("不能选择过去的时间");
+			        	}else if(y.test(fixed.val())==false&&fixed.val()!=""){
+			        		layer.msg("固定值为大于0的整数");
+			        	}else if(r.test(changed.val())==false&&changed.val()!=""){
+			        		layer.msg("增减值为整数");
+			        	}else{
+			        		layer.confirm('确定?', {icon: 3, title:'提示'}, function(index2){
+			        			$.ajax({   
+			        				type : "POST",
+			        				async:false,
+			        				url : "/experience/addSetTime",   
+			        				data : {   
+			        					acId:acId,time:time.val(),fixed:fixed.val(),changed:changed.val()
+			        				},  
+			        				success : function(da) {  
+			        					layer.close(index2);
+										layer.close(index1);
+										time.val("");
+										fixed.val("");
+										changed.val("");
+										table.reload('actions', {
+										});
+			        				}   
+			        			});
+							});
+			        	}
+			        }
+			        ,btn2: function(){
+			        	time.val("");
+						fixed.val("");
+						changed.val("");
+						layer.close();
+			        }
+			        ,cancel: function(index, layero){ 
+			        	time.val("");
+						fixed.val("");
+						changed.val("");
+			        	layer.close(index)
+			        	return false; 
+			        }  
+				});
+			}
+	}
+	
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'stop'){ //停止
+			layer.confirm('确定?', {icon: 3, title:'提示'}, function(index2){
+				$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/experience/stopSetTime",   
+					data : {   
+						id:data.ID
+					},  
+					success : function(da) {  
+						layer.close(index2);
+						obj.del();
+					}   
+				});
+			});
+		}else if(layEvent === 'modify'){//修改
+			//赋值
+			$.ajax({   
+				type : "POST",
+				async:false,
+				url : "/experience/getSetTime",   
+				data : {   
+					id:data.ID
+				},  
+				success : function(da) {  
+					var d = eval(da);
+					time.val(d.TIME);
+					fixed.val(d.FIXED);
+					changed.val(d.CHANGED);
+				}   
+			});
+			
+			var index1 = layer.open({
+				type: 1
+				,id:'m'
+		        ,title: '修改定时设置'
+		        ,area: ['700px', '350px']
+		        ,shade: 0
+		        ,maxmin: true
+		        ,content: $("#add")
+		        ,skin:'layui-layer-molv'
+		        ,btnAlign: 'c'
+		        ,btn: ['确定', '取消']
+		        ,yes: function(){
+		        	var datetime = new Date(Date.parse($("#time").val().replace(/-/g,"/")))
+		        	var nowtime = new Date();
+		        	if(time.val()==""){
+		        		layer.msg("请选择时间");
+		        	}else if(fixed.val()==""&&changed.val()==""){
+		        		layer.msg("请输入要修改的数量");
+		        	}else if(fixed.val()!=""&&changed.val()!=""){
+		        		layer.msg("固定值和增减值只能选择一个");
+		        	}else if(nowtime>=datetime){
+		        		layer.msg("不能选择过去的时间");
+		        	}else if(y.test(fixed.val())==false&&fixed.val()!=""){
+		        		layer.msg("固定值为大于0的整数");
+		        	}else if(r.test(changed.val())==false&&changed.val()!=""){
+		        		layer.msg("增减值为整数");
+		        	}else{
+		        		layer.confirm('确定?', {icon: 3, title:'提示'}, function(index2){
+		        			$.ajax({   
+		        				type : "POST",
+		        				async:false,
+		        				url : "/experience/updateSetTime",   
+		        				data : {   
+		        					id:data.ID,time:time.val(),fixed:fixed.val(),changed:changed.val()
+		        				},  
+		        				success : function(da) {  
+		        					layer.close(index2);
+									layer.close(index1);
+									time.val("");
+									fixed.val("");
+									changed.val("");
+									table.reload('actions', {
+									});
+		        				}   
+		        			});
+						});
+		        	}
+		        }
+		        ,btn2: function(){
+		        	time.val("");
+					fixed.val("");
+					changed.val("");
+					layer.close();
+		        }
+		        ,cancel: function(index, layero){ 
+		        	time.val("");
+					fixed.val("");
+					changed.val("");
+					layer.close(index);
+		        	return false; 
+		        }  
+			});
+		}
+	});
+});
+/*]]>*/
+</script>
+<script type="text/html" id="toolbar">
+	<a class="layui-btn layui-btn-xs" lay-event="modify">修改</a>
+	<a class="layui-btn layui-btn-xs" lay-event="stop">终止</a>
+</script>
+</body>
+</html>

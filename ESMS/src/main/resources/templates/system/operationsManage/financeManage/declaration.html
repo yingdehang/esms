@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>报单管理</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<div class="layui-form layui-form-pane" id="verify" style="display:none;margin-left:50px;margin-top:20px">
+</div>
+<body>
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<h2><a href="javascript:void(0)" onclick="location.reload()">报单管理</a></h2>
+	</div>
+	<input type="hidden" id="userId" th:value="${userId}"/>
+	<div id="search" class="layui-form layui-form-pane">
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:120px">商家手机号</label>
+			<div class="layui-input-inline" style="width:160px">
+				<input class="layui-input" id="phone" autocomplete="off"/>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:120px">商家姓名</label>
+			<div class="layui-input-inline" style="width:160px">
+				<input class="layui-input" id="name" autocomplete="off"/>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label">申请时间</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="start" type="text" placeholder="起始时间"/>
+			</div>
+			<div class="layui-form-mid">至</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="end" type="text" placeholder="结束时间"/>
+			</div>
+	    </div>
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+	    	<label class="layui-form-label">选择地区</label>
+		    <div class="layui-input-inline">
+				<select name="province" id="province" lay-filter="changeProvince"  lay-verify="required">
+			        <option value="0">请选择省</option>
+			        <option th:each="province:${province}" th:value="${province.CITY_CODE}" th:text="${province.CITY_NAME}"></option>
+				</select>
+			</div>
+		    <div class="layui-input-inline">
+				<select name="city" id="city" lay-filter="changeCity"  lay-verify="required">
+					<option value="0">请选择市</option>
+				</select>
+		    </div>
+		    <div class="layui-input-inline">
+				<select name="area" id="area"  lay-verify="required">
+					<option value="0">请选择区</option>
+				</select>
+			</div>
+		</div>
+		<button class="layui-btn" data-type="search">搜索</button>
+		<button class="layui-btn" data-type="record">报单明细</button>
+	</div>
+	<table id="declaration" lay-filter="operation"></table>
+	<div id="laypage"></div>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+var page = 1;
+var limit = 10;
+layui.use(['table','jquery','layer','form','laydate','laypage'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var layer = layui.layer;
+	var form = layui.form;
+	var laydate = layui.laydate;
+	var laypage = layui.laypage;
+	laydate.render({
+		elem: '#start'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#end'
+		,type: 'datetime'
+	});
+	
+	$(function(){
+		page = localStorage.getItem("dePage");
+		limit = localStorage.getItem("deLimit");
+	});
+	
+	var phone = $("#phone");
+	var start = $("#start");
+	var end = $("#end");
+	var name = $("#name");
+	var province = $("#province");
+	var city = $("#city");
+	var area = $("#area");
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#declaration'
+		,url: '/declaration/getDeclarationList'
+		,page: false
+		,cols:[[
+			{field:'area',title:'报单区域'}
+			,{field:'STORE_NAME',title:'商家店铺名'}
+			,{title:'店主信息',templet:'#storeUser'}
+			,{title:'区域站长',templet:'#zz'}
+			,{title:'用户',templet:'#user'}
+			,{field:'MONEY',title:'报单金额'}
+			,{field:'APPLY_TIME',title:'申请时间'}
+			,{fixed: 'right', width:150, align:'center', toolbar: '#toolbar',title:'操作'}
+		]]
+		,where:{
+			phone: localStorage.getItem("dePhone")
+			,name: localStorage.getItem("deName")
+			,start: localStorage.getItem("deStart")
+			,end: localStorage.getItem("deEnd")
+			,province: localStorage.getItem("deProvince")
+			,city: localStorage.getItem("deCity")
+			,area: localStorage.getItem("deArea")
+			,page: localStorage.getItem("dePage")
+			,limit: localStorage.getItem("deLimit")
+		}
+		,done :function(res,curr,count){
+			laypage.render({  
+	            elem:'laypage'  
+	            ,count:count  
+	            ,curr:page  
+	            ,limit:limit  
+	            ,layout: ['prev', 'page', 'next', 'skip','count','limit']  
+	            ,jump:function (obj,first) {  
+	                if(!first){  
+	                   page = obj.curr;  
+	                   limit = obj.limit;  
+	                   table.reload('declaration', {
+	           			where: {
+	           				page: page
+	           				,limit: limit
+	           			}
+	           		   }); 
+	                }  
+	            }  
+	        })
+		}
+	});
+	
+	//页面加载时执行
+	$(function(){
+		$('#phone').val(localStorage.getItem("dePhone"));
+		$('#start').val(localStorage.getItem("deStart"));
+		$('#end').val(localStorage.getItem("deEnd"));
+		$('#name').val(localStorage.getItem("deName"));
+		$("#province").find("option[value='"+localStorage.getItem("deProvince")+"']").attr("selected",true);
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/storeVerify/getSubordinateArea",   
+			data : {   
+				pId:localStorage.getItem("deProvince")
+			},  
+			success : function(da) {//返回数据根据结果进行相应的处理   
+				var city = eval(da);
+				$("#city").empty();
+				$("#area").empty();
+				$("#city").append("<option value='0'>请选择市</option>");
+				$("#area").append("<option value='0'>请选择区</option>");
+				for (var i = 0; i < city.length; i++) {
+					$("#city").append(
+							"<option value='"+city[i].CITY_CODE+"'>"
+									+ city[i].CITY_NAME
+									+ "</option>");
+				}
+				form.render('select');
+			}   
+		});
+		$("#city").find("option[value='"+localStorage.getItem("deCity")+"']").attr("selected",true);
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/storeVerify/getSubordinateArea",   
+			data : {   
+				pId:localStorage.getItem("deCity")
+			},  
+			success : function(da) {//返回数据根据结果进行相应的处理   
+				var area = eval(da);
+				$("#area").empty();
+				$("#area").append("<option value='0'>请选择县/区</option>");
+				for (var i = 0; i < area.length; i++) {
+					$("#area").append(
+							"<option value='"+area[i].CITY_CODE+"'>"
+									+ area[i].CITY_NAME
+									+ "</option>");
+				}
+				form.render('select');
+			}   
+		});
+		$("#area").find("option[value='"+localStorage.getItem("deArea")+"']").attr("selected",true);
+		form.render('select');
+		localStorage.clear();
+	});
+	
+	//监听省份选择
+	form.on('select(changeProvince)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var city = eval(da);
+			$("#city").empty();
+			$("#area").empty();
+			$("#city").append("<option value='0'>请选择市</option>");
+			$("#area").append("<option value='0'>请选择区</option>");
+			for (var i = 0; i < city.length; i++) {
+				$("#city").append(
+						"<option value='"+city[i].CITY_CODE+"'>"
+								+ city[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	//监听城市选择
+	form.on('select(changeCity)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var area = eval(da);
+			$("#area").empty();
+			$("#area").append("<option value='0'>请选择县/区</option>");
+			for (var i = 0; i < area.length; i++) {
+				$("#area").append(
+						"<option value='"+area[i].CITY_CODE+"'>"
+								+ area[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	<!-- 监听搜索按钮 -->
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索 -->
+	var $ = layui.$, active = {
+		<!-- 搜索时执行重载-->
+		search: function(){
+			//执行重载
+			page=1;
+			table.reload('declaration', {
+				where: {
+					phone:phone.val(),
+					start : start.val(),
+					end : end.val(),
+					name : name.val(),
+					province:province.val(),
+					city:city.val(),
+					area:area.val(),
+					page:page,
+					limit:limit
+				}
+			});
+		}
+		//跳转到报单明细页面
+		,record: function()
+		{
+			window.location.href="/declaration/toDeclarationRecord";
+		}
+	};
+	<!-- 监听工具条操作 -->
+	var userId = $("#userId").val();
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'verify'){ //审核
+			localStorage.setItem("dePhone",phone.val());
+			localStorage.setItem("deName",name.val());
+			localStorage.setItem("deStart",start.val());
+			localStorage.setItem("deEnd",end.val());
+			localStorage.setItem("deProvince",province.val());
+			localStorage.setItem("deCity",city.val());
+			localStorage.setItem("deArea",area.val());
+			localStorage.setItem("dePage",page);
+			localStorage.setItem("deLimit",limit);
+			window.location.href="/declaration/toDeclarationVeirfy?id="+data.EOID+"&userId="+userId;
+		}
+	});
+});
+/*]]>*/
+</script>
+<script type="text/html" id="toolbar">
+	<a th:if="${declarationAudit}" class="layui-btn layui-btn-xs" lay-event="verify">报单审核</a>
+</script>
+<script type="text/javascript" id="storeUser">
+	{{d.UC_NAMES}}({{d.PHONE}})
+</script>
+<script type="text/javascript" id="zz">
+	{{# if(d.zzName!=null){ }}
+		{{d.zzName}}({{d.zzPhone}})
+	{{# }else{ }}
+	{{# } }}
+</script>
+<script type="text/javascript" id="user">
+	{{d.NICKNAME}}({{d.BUY_USERPHONE}})
+</script>
+</body>
+</html>

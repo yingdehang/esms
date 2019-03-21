@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>活动管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<script th:src="@{/layui/layui.js}"></script>
+</head>
+<body>
+	<!-- 活动管理顶部 -->
+	<div class="layui-tab layui-tab-card" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label><a href="/activity/toActivityHtml">活动管理</a> >>活动设置</label>
+		</div>
+	</div>
+	<div class="layui-form layui-form-pane demoTable"
+		style="padding: 15px 15px 0px 15px;">
+		<div class="layui-form-item">
+			<label class="layui-form-label">活动名称</label>
+			<div class="layui-input-block">
+				<input id="EANAME" class="layui-input" type="text"
+					th:value="${activity.EANAME}" placeholder="请输入活动名称"
+					autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">活动页地址</label>
+			<div class="layui-input-block">
+				<input id="EAURL" class="layui-input" type="text"
+					th:value="${activity.EAURL}" placeholder="请输入活动页地址"
+					autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">活动时间</label>
+			<div class="layui-input-block">
+				<input class="layui-input" id="activeTime" type="text"
+					th:value="${activity.activeTime}" placeholder="请选择活动时间段"
+					autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">BANNER</label>
+			<div class="layui-input-inline" style="width: 130px">
+				<button class="layui-btn layui-btn-primary" id="test1" type="button">
+					<i class="layui-icon"></i>上传图片
+				</button>
+			</div>
+			<div class="layui-input-inline" style="line-height: 40px;">
+				<p id="demoText"></p>
+				<button class="layui-btn layui-btn-xs layui-btn-warm"
+					data-type="seeBanner">点击查看banner</button>
+			</div>
+		</div>
+		<input type="hidden" id="activityBANNER"
+			th:value="${activity.EAPHOTO}" /> <input type="hidden" id="banners" />
+		<input type="hidden" id="ESID" th:value="${activity.ESID}" /><input
+			id="oldBanner" type="hidden" th:value="${activity.EAPHOTO}" />
+		<div>
+			<button class="layui-btn" data-type="submitSet">确认</button>
+			<button class="layui-btn layui-btn-primary" data-type="quxiaoSet">取消</button>
+		</div>
+	</div>
+</body>
+<script>
+	//JavaScript代码区域
+	/* <![CDATA[ */
+	layui
+			.use(
+					[ 'element', 'laydate', 'upload' ],
+					function() {
+						var element = layui.element, $ = layui.$;
+						var laydate = layui.laydate, upload = layui.upload;
+						var uploadInst = upload
+								.render({
+									elem : '#test1',
+									url : '/activity/uploadBanner',
+									done : function(res) {
+										//如果上传失败
+										if (res.code > 0) {
+											return layer.msg('上传失败');
+										}
+										//上传成功
+										$('#demoText')
+												.html(
+														"<span id='demoText'><i class='layui-icon' style='font-size: 30px; color: green;'>&#xe616;</i></span>");
+										$("#activityBANNER").val(res.data.src);
+										var banners = $("#banners").val();
+										$.post("/activity/deletebanner", {
+											deleteBanner : banners
+										}, function(d) {
+											if (d) {
+												layer.msg("操作成功");
+											}
+										});
+										$("#banners").val(res.data.src);
+									},
+									error : function() {
+										//演示失败状态，并实现重传
+										var demoText = $('#demoText');
+										demoText
+												.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-xs demo-reload">重试</a>');
+										demoText.find('.demo-reload').on(
+												'click', function() {
+													uploadInst.upload();
+												});
+									}
+								});
+
+						//日期时间范围
+						laydate.render({
+							elem : '#activeTime',
+							type : 'datetime',
+							range : true
+						});
+
+						active = {
+							seeBanner : function() {
+								var banner = $("#activityBANNER").val();
+								layer
+										.open({
+											type : 1,
+											title : false,
+											maxWidth : '760px',
+											anim : 0,
+											skin : 'layui-layer-nobg', //没有背景色
+											shadeClose : true,
+											offset : 'auto',
+											content : '<img src="'+banner+'" width="750px"/>'
+										});
+							},
+							submitSet : function() {
+								var EANAME = $("#EANAME").val();
+								var ESID = $("#ESID").val();
+								var EAURL = $("#EAURL").val();
+								var activeTime = $("#activeTime").val();
+								var oldBanner = $("#oldBanner").val();
+								var activityBANNER = $("#activityBANNER").val();
+								if (null != EANAME & EANAME != "") {
+									if (null != EAURL & EAURL != "") {
+										if (null != activeTime
+												& activeTime != "") {
+											if (null != activityBANNER
+													& activityBANNER != "") {
+												$
+														.post(
+																"/activity/addactivity",
+																{
+																	ESID : ESID,
+																	EANAME : EANAME,
+																	EAURL : EAURL,
+																	activeTime : activeTime,
+																	activityBANNER : activityBANNER
+																},
+																function(d) {
+																	if (d > 0) {
+																		window.location.href = "/activity/toActivityHtml";
+																	} else {
+																		layer
+																				.msg("修改失败");
+																	}
+																});
+											} else {
+												layer.msg("活动BANNER不能为空");
+												return false;
+											}
+										} else {
+											layer.msg("活动时间不能为空");
+											return false;
+										}
+									} else {
+										layer.msg("活动链接不能为空");
+										return false;
+									}
+								} else {
+									layer.msg("活动名称不能为空");
+									return false;
+								}
+							},
+							quxiaoSet : function() {
+								window.location.href = "/activity/toActivityHtml";
+							}
+						};
+
+						$('.demoTable .layui-btn').on('click', function() {
+							var type = $(this).data('type');
+							active[type] ? active[type].call(this) : '';
+						});
+					});
+	/* ]]> */
+</script>
+</html>

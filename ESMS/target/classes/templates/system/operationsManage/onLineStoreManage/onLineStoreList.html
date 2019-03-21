@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>线上店铺管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<div class="layui-form" id="exportCondition" style="display: none">
+	<div class="layui-form-item">
+		<label class="layui-form-label">店铺数量：</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" type="text" id="count" style="border: 0" />
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<label class="layui-form-label">时间类型：</label>
+		<div class="layui-input-block">
+			<input type="radio" name="time" value="month" title="按月流水导出"
+				checked="checked" lay-filter="date" /> <input type="radio"
+				name="time" value="day" title="按日流水导出" lay-filter="date" />
+		</div>
+	</div>
+	<div class="layui-form-item" id="month">
+		<label class="layui-form-label">月份：</label>
+		<div class="layui-input-inline">
+			<input type="text" class="layui-input" id="m" />
+		</div>
+	</div>
+	<div class="layui-form-item" style="display: none" id="day">
+		<label class="layui-form-label">日期范围：</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" id="startTime" type="text"
+				placeholder="起始时间" />
+		</div>
+		<div class="layui-form-mid">至</div>
+		<div class="layui-input-inline">
+			<input class="layui-input" id="endTime" type="text"
+				placeholder="结束时间" />
+		</div>
+	</div>
+</div>
+
+<body>
+	<!-- 页面头部 -->
+	<div style="padding-bottom: 10px; border-bottom: 2px solid #5FB878">
+		<div class="layui-fluid">
+			<div class="layui-row">
+				<div class="layui-col-lg4">
+					<h2>
+						<a href="javascript:void(0)" onclick="location.reload()">线上店铺管理</a>
+					</h2>
+				</div>
+				<div class="layui-col-lg4"
+					style="line-height: 38px; text-align: center; font-size: 32px">
+					<span th:if="${storeDJ} != null and ${storeDJ}=='STORE_DJ_GOLD'">金牌店铺</span>
+					<span th:if="${storeDJ} != null and ${storeDJ}=='STORE_DJ_SILVER'">银牌店铺</span>
+					<span th:if="${storeDJ} != null and ${storeDJ}=='STORE_DJ_COPPER'">铜牌店铺</span>
+					<span th:unless="${storeDJ} != null">&nbsp;</span>
+				</div>
+				<div class="layui-col-lg4">
+					<a th:if="${storeDJ} != null" class="layui-btn layui-btn-radius"
+						style="float: right; margin-left: 10px;"
+						href="javascript:history.back(-1)">返回统计系统</a> <input
+						th:if="${storeDJ} != null" type="hidden" id="storeDJ"
+						th:value="${storeDJ}" />
+					<button th:if="${exportXsStoreWater}" id="export"
+						class="layui-btn layui-btn-radius" style="float: right;"
+						data-type="exports">导出流水</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- 查询条件 -->
+	<div id="search" class="layui-form layui-form-pane">
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">店铺名称</label>
+			<div class="layui-input-inline" style="width: 160px">
+				<input class="layui-input" id="storeName" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 120px">店主手机号</label>
+			<div class="layui-input-inline" style="width: 160px">
+				<input class="layui-input" id="phone" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">店铺状态</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="storeState">
+					<option value="">请选择</option>
+					<option value="1">正常</option>
+					<option value="0">冻结</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">是否自营</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="is">
+					<option value="">请选择</option>
+					<option value="1">自营</option>
+					<option value="0">非自营</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label">开店时间</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="start" type="text" placeholder="起始时间" />
+			</div>
+			<div class="layui-form-mid">至</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="end" type="text" placeholder="结束时间" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label">选择地区</label>
+			<div class="layui-input-inline">
+				<select name="province" id="province" lay-filter="changeProvince"
+					lay-verify="required">
+					<option value="0">请选择省</option>
+					<option th:each="province:${province}"
+						th:value="${province.CITY_CODE}" th:text="${province.CITY_NAME}"></option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select name="city" id="city" lay-filter="changeCity"
+					lay-verify="required">
+					<option value="0">请选择市</option>
+				</select>
+			</div>
+			<div class="layui-input-inline">
+				<select name="area" id="area" lay-verify="required">
+					<option value="0">请选择区</option>
+				</select>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 90px">排序</label>
+			<div class="layui-input-inline" style="width: 100px">
+				<select id="sort" lay-filter="changeSort">
+					<option value="2">默认</option>
+					<option value="1">从高到低</option>
+					<option value="0">从低到高</option>
+				</select>
+			</div>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+		<button th:if="${addXsStore}" class="layui-btn" data-type="add">添加</button>
+	</div>
+
+	<table id="onLineStore" lay-filter="operation"></table>
+	<div id="laypage"></div>
+
+	<script th:src="@{/layui/layui.js}"></script>
+	<script type="text/javascript">
+/*<![CDATA[*/
+layui.use(['table','jquery','form','laydate','laypage'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	var laydate = layui.laydate;
+	var laypage = layui.laypage;
+	//查询日期条件
+	laydate.render({
+		elem: '#start'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#end'
+		,type: 'datetime'
+	});
+	//导出日期条件
+	laydate.render({
+		elem: '#m'
+		,type: 'month'
+	});
+	laydate.render({
+		elem: '#startTime'
+		,type: 'date'
+	});
+	laydate.render({
+		elem: '#endTime'
+		,type: 'date'
+	});
+	//监听导出流水时间选择radio
+	form.on('radio(date)', function(data){
+		if(data.value=="month"){
+			$("#month").css("display","block");
+			$("#day").css("display","none");
+		}else if(data.value=="day"){
+			$("#month").css("display","none");
+			$("#day").css("display","block");
+		}
+	});
+	
+	$(function(){
+		page = localStorage.getItem("onPage");
+		limit = localStorage.getItem("onLimit");
+	});
+	
+	var storeName = $("#storeName");
+	var phone = $("#phone");
+	var storeState = $("#storeState");
+	var is = $("#is");
+	var start = $("#start");
+	var end = $("#end");
+	var province = $("#province");
+	var city = $("#city");
+	var area = $("#area");
+	var sort = $("#sort");
+	var storeDJ=$("#storeDJ");
+	
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#onLineStore'
+		,url: '/onLineStore/getOnLineStoreList'
+		,page: false
+		,cols:[[
+			{title:'序号',templet: '#indexTpl'}
+			,{field:'STORE_NAME',title:'店铺名称'}
+			,{field:'STORE_TYPE',title:'类型'}
+			,{field:'UC_NAMES',title:'店主姓名'}
+			,{field:'PHONE',title:'店主手机号'}
+			,{field:'OPEN_SHOP_TIME',title:'开店时间',width:200}
+			,{field:'area',title:'地区',width:200}
+			,{field:'IS',title:'是否自营',templet:'#Is'}
+			,{field:'STATE',title:'店铺状态',templet:'#state'}
+			,{field:'SORT',title:'排序',edit: 'text'}
+			,{fixed: 'right', width:150, align:'center', toolbar: '#toolbar',title:'操作',width:400}
+		]]
+		,where:{
+			storeName: localStorage.getItem("onStoreName")
+			,phone: localStorage.getItem("onPhone")
+			,storeState: localStorage.getItem("onStoreState")
+			,is: localStorage.getItem("onIs")
+			,start: localStorage.getItem("onStart")
+			,end: localStorage.getItem("onEnd")
+			,province: localStorage.getItem("onProvince")
+			,city: localStorage.getItem("onCity")
+			,area: localStorage.getItem("onArea")
+			,sort: localStorage.getItem("onSort")
+			,page: localStorage.getItem("onPage")
+			,limit: localStorage.getItem("onLimit")
+			,storeDJ:storeDJ.val()
+		}
+		,done :function(res,curr,count){
+			laypage.render({  
+	            elem:'laypage'  
+	            ,count:count  
+	            ,curr:page  
+	            ,limit:limit  
+	            ,layout: ['prev', 'page', 'next', 'skip','count','limit']  
+	            ,jump:function (obj,first) {  
+	                if(!first){  
+	                   page = obj.curr;  
+	                   limit = obj.limit;  
+	                   table.reload('onLineStore', {
+	           			where: {
+	           				page: page
+	           				,limit: limit
+	           			}
+	           		   }); 
+	                }  
+	            }  
+	        })
+		}
+	});
+	//判断对象是不是整数
+	var r = /^[-\+]?\d+$/;　　//整数  
+	//监听单元格编辑
+	table.on('edit(operation)', function(obj){
+		console.log(obj.value); //得到修改后的值
+		console.log(obj.field); //当前编辑的字段名
+		console.log(obj.data); //所在行的所有相关数据 
+		if(r.test(obj.value)==true)//整数
+		{
+			$.ajax({   
+				type : "POST",
+				async:false,
+				url : "/onLineStore/changeSort",   
+				data : {   
+					storeId:obj.data.STORE_ID,sort:obj.value
+				},  
+				success : function(da) { 
+					layer.msg("修改成功");
+				}   
+			});  
+			table.reload('onLineStore', {
+			});
+		}
+		else//非整数
+		{
+			layer.msg("请输入一个整数");
+		}
+	});
+	
+	//页面加载时执行
+	$(function(){
+		$('#storeName').val(localStorage.getItem("onStoreName"));
+		$('#start').val(localStorage.getItem("onStart"));
+		$('#end').val(localStorage.getItem("onEnd"));
+		$('#phone').val(localStorage.getItem("onPhone"));
+		$("#is").find("option[value='"+localStorage.getItem("onIs")+"']").attr("selected",true);
+		$("#sort").find("option[value='"+localStorage.getItem("onSort")+"']").attr("selected",true);
+		$("#storeState").find("option[value='"+localStorage.getItem("onStoreState")+"']").attr("selected",true);
+		$("#province").find("option[value='"+localStorage.getItem("onProvince")+"']").attr("selected",true);
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/storeVerify/getSubordinateArea",   
+			data : {   
+				pId:localStorage.getItem("onProvince")
+			},  
+			success : function(da) {//返回数据根据结果进行相应的处理   
+				var city = eval(da);
+				$("#city").empty();
+				$("#area").empty();
+				$("#city").append("<option value='0'>请选择市</option>");
+				$("#area").append("<option value='0'>请选择区</option>");
+				for (var i = 0; i < city.length; i++) {
+					$("#city").append(
+							"<option value='"+city[i].CITY_CODE+"'>"
+									+ city[i].CITY_NAME
+									+ "</option>");
+				}
+				form.render('select');
+			}   
+		});
+		$("#city").find("option[value='"+localStorage.getItem("onCity")+"']").attr("selected",true);
+		$.ajax({   
+			type : "POST",
+			async:false,
+			url : "/storeVerify/getSubordinateArea",   
+			data : {   
+				pId:localStorage.getItem("onCity")
+			},  
+			success : function(da) {//返回数据根据结果进行相应的处理   
+				var area = eval(da);
+				$("#area").empty();
+				$("#area").append("<option value='0'>请选择县/区</option>");
+				for (var i = 0; i < area.length; i++) {
+					$("#area").append(
+							"<option value='"+area[i].CITY_CODE+"'>"
+									+ area[i].CITY_NAME
+									+ "</option>");
+				}
+				form.render('select');
+			}   
+		});
+		$("#area").find("option[value='"+localStorage.getItem("onArea")+"']").attr("selected",true);
+		form.render('select');
+		localStorage.clear();
+	});
+	
+	//监听省份选择
+	form.on('select(changeProvince)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var city = eval(da);
+			$("#city").empty();
+			$("#area").empty();
+			$("#city").append("<option value='0'>请选择市</option>");
+			$("#area").append("<option value='0'>请选择区</option>");
+			for (var i = 0; i < city.length; i++) {
+				$("#city").append(
+						"<option value='"+city[i].CITY_CODE+"'>"
+								+ city[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	//监听城市选择
+	form.on('select(changeCity)',function(data){
+		$.post("/storeVerify/getSubordinateArea",{pId:data.value},function(da){
+			var area = eval(da);
+			$("#area").empty();
+			$("#area").append("<option value='0'>请选择县/区</option>");
+			for (var i = 0; i < area.length; i++) {
+				$("#area").append(
+						"<option value='"+area[i].CITY_CODE+"'>"
+								+ area[i].CITY_NAME
+								+ "</option>");
+			}
+			form.render('select');
+		});
+	});
+	//监听排序选择
+	form.on('select(changeSort)', function(data){
+		table.reload('onLineStore', {
+			where: {
+				sort:data.value
+			}
+		});
+	});  
+	<!-- 监听搜索和添加按钮 -->
+	$('#search .layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 监听导出流水按钮 -->
+	$('#export').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索 -->
+	var $ = layui.$, active = {
+		<!-- 搜索时执行重载-->
+		reload: function(){
+			//执行重载
+			page=1;
+			table.reload('onLineStore', {
+				where: {
+					storeName:storeName.val(),
+					phone:phone.val(),
+					is:is.val(),
+					storeState: storeState.val(),
+					start : start.val(),
+					end : end.val(),
+					province:province.val(),
+					city:city.val(),
+					area:area.val(),
+					sort:sort.val(),
+					page:page,
+					limit:limit
+				}
+				,page:false
+			});
+		}
+		,add: function(){
+			window.location.href="/onLineStore/toAddOnLineStore";
+		}
+		//点击导出流水按钮，根据条件查询有多少个店铺，并弹出弹窗
+		,exports: function(){
+			$.ajax({   
+				type : "POST",
+				async:false,
+				url : "/onLineStore/toExport",   
+				data : {   
+					storeName:storeName.val(),
+					phone:phone.val(),
+					is:is.val(),
+					storeState: storeState.val(),
+					start : start.val(),
+					end : end.val(),
+					province:province.val(),
+					city:city.val(),
+					area:area.val()
+				},  
+				success : function(da) {
+					if(da==0)
+					{
+						layer.msg("没有符合条件的店铺")
+					}
+					else
+					{
+						$("#count").val(da);
+						var index = layer.open({
+							type:1,
+							content:$('#exportCondition'),
+							title:['导出流水',''],
+							area:['550px','300px'],
+							shade: 0,
+					        maxmin: true,
+						    btnAlign: 'c',
+							btn:['确定','取消']
+							,yes: function(index, layero){
+								var timeType = $("[name='time']:checked").val();
+								var month = $("#m").val();
+								var startTime = $("#startTime").val();
+								var endTime = $("#endTime").val();
+								if(timeType=="month"&&month==""){
+									layer.msg("请选择月份");
+								}else if(timeType=="day"&&startTime==""&&endTime==""){
+									layer.msg("请选择日期范围");
+								}else if(timeType=="day"&&(startTime==""||endTime=="")){
+									layer.msg("请选择正确的日期范围");
+								}else if(timeType=="day"&&startTime>endTime){
+									layer.msg("请选择正确的日期范围");
+								}else{
+									window.location.href="/onLineStore/export?storeName="+storeName.val()+"&phone="+phone.val()
+											+"&is="+is.val()+"&storeState="+storeState.val()+"&start="+start.val()+"&end="+end.val()
+											+"&province="+province.val()+"&city"+city.val()+"&area="+area.val()+"&timeType="+timeType
+											+"&month="+month+"&startTime="+startTime+"&endTime="+endTime;
+									layer.close(index);
+								}
+							}
+						});
+					}
+				}   
+			});
+			
+		}
+	};
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'freeze'){ //冻结
+			layer.confirm('是否冻结?', {icon: 3, title:'提示'}, function(index){
+				$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/onLineStore/changeState",   
+					data : {   
+						id:data.STORE_ID,result:0
+					},  
+					success : function(da) { 
+					}   
+				});   
+				layer.close(index);
+				table.reload('onLineStore', {
+				});
+			});
+		}else if(layEvent === 'unfreeze'){//解冻
+			layer.confirm('是否解除冻结?', {icon: 3, title:'提示'}, function(index){
+				$.ajax({   
+					type : "POST",
+					async:false,
+					url : "/onLineStore/changeState",   
+					data : {   
+						id:data.STORE_ID,result:1
+					},  
+					success : function(da) {  
+					}   
+				});
+				layer.close(index);
+				table.reload('onLineStore', {
+				});
+			});
+		}else if(layEvent === 'detail'){//查看、修改
+			localStorage.setItem("onStoreName",storeName.val());
+			localStorage.setItem("onPhone",phone.val());
+			localStorage.setItem("onStoreState",storeState.val());
+			localStorage.setItem("onIs",is.val());
+			localStorage.setItem("onStart",start.val());
+			localStorage.setItem("onEnd",end.val());
+			localStorage.setItem("onProvince",province.val());
+			localStorage.setItem("onCity",city.val());
+			localStorage.setItem("onArea",area.val());
+			localStorage.setItem("onSort",sort.val());
+			localStorage.setItem("onPage",page);
+			localStorage.setItem("onLimit",limit);
+			window.location.href="/onLineStore/toOnLineStoreDetail?storeId="+data.STORE_ID;
+		}else if(layEvent === 'order'){
+			localStorage.setItem("onStoreName",storeName.val());
+			localStorage.setItem("onPhone",phone.val());
+			localStorage.setItem("onStoreState",storeState.val());
+			localStorage.setItem("onIs",is.val());
+			localStorage.setItem("onStart",start.val());
+			localStorage.setItem("onEnd",end.val());
+			localStorage.setItem("onProvince",province.val());
+			localStorage.setItem("onCity",city.val());
+			localStorage.setItem("onArea",area.val());
+			localStorage.setItem("onSort",sort.val());
+			localStorage.setItem("onPage",page);
+			localStorage.setItem("onLimit",limit);
+			window.location.href="/order/toOrderManage?storeId="+data.STORE_ID;
+		}else if(layEvent === 'goods'){
+			localStorage.setItem("onStoreName",storeName.val());
+			localStorage.setItem("onPhone",phone.val());
+			localStorage.setItem("onStoreState",storeState.val());
+			localStorage.setItem("onIs",is.val());
+			localStorage.setItem("onStart",start.val());
+			localStorage.setItem("onEnd",end.val());
+			localStorage.setItem("onProvince",province.val());
+			localStorage.setItem("onCity",city.val());
+			localStorage.setItem("onArea",area.val());
+			localStorage.setItem("onSort",sort.val());
+			localStorage.setItem("onPage",page);
+			localStorage.setItem("onLimit",limit);
+			window.location.href="/goodsManage/toGoodsManageHtml?storeId="+data.STORE_ID;
+		}else if(layEvent === 'checkWater'){
+			localStorage.setItem("onStoreName",storeName.val());
+			localStorage.setItem("onPhone",phone.val());
+			localStorage.setItem("onStoreState",storeState.val());
+			localStorage.setItem("onIs",is.val());
+			localStorage.setItem("onStart",start.val());
+			localStorage.setItem("onEnd",end.val());
+			localStorage.setItem("onProvince",province.val());
+			localStorage.setItem("onCity",city.val());
+			localStorage.setItem("onArea",area.val());
+			localStorage.setItem("onSort",sort.val());
+			localStorage.setItem("onPage",page);
+			localStorage.setItem("onLimit",limit);
+			window.location.href="/onLineStore/toMonthWater?storeId="+data.STORE_ID;
+		}
+	});
+});
+/*]]>*/
+</script>
+	<script type="text/html" id="toolbar">
+	<a th:if="${xsStoreInfoUpdate}" class="layui-btn layui-btn-xs" lay-event="detail">查看/修改</a>
+	<a th:if="${xsGoodsManage}" class="layui-btn layui-btn-xs" lay-event="goods">商品管理</a>
+	<a th:if="${xsOrderManage}" class="layui-btn layui-btn-xs" lay-event="order">订单管理</a>
+	<a th:if="${seeXsStoreMonthWater}" class="layui-btn layui-btn-xs" lay-event="checkWater">查看流水</a>
+	{{# if(d.STATE!='STORE_AUTHENTICATION_FREEZE'){ }}
+		<a th:if="${changeXsStoreState}" class="layui-btn layui-btn-xs" lay-event="freeze">冻结</a>
+	{{# }else if(d.STATE=='STORE_AUTHENTICATION_FREEZE'){ }}
+		<a th:if="${changeXsStoreState}" class="layui-btn layui-btn-xs" lay-event="unfreeze">解冻</a>
+	{{# } }}
+</script>
+	<!-- 是否冻结 -->
+	<script type="text/html" id="state">
+	{{# if(d.STATE!='STORE_AUTHENTICATION_FREEZE'){ }}
+		<span>正常</span>
+	{{# }else if(d.STATE=='STORE_AUTHENTICATION_FREEZE'){ }}
+		<span style="color:blue">冻结</span>
+	{{# } }}
+</script>
+	<!-- 是否自营 -->
+	<script type="text/html" id="Is">
+	{{# if(d.IS=='1'){ }}
+		自营
+	{{# }else if(d.IS=='0'){ }}
+		非自营
+	{{# } }}
+</script>
+	<!-- 序号 -->
+	<script type="text/html" id="indexTpl">
+    {{d.LAY_TABLE_INDEX+1}}
+</script>
+</body>
+</html>

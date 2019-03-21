@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>副站长管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<!-- 站长管理页面顶部 -->
+	<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label>副站长管理</label>
+		</div>
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			<button class="layui-btn layui-btn-primary layui-btn-xs"
+				id="addWebmaster">添加副站长</button>
+		</div>
+	</div>
+	<!-- 收索栏 -->
+	<div class="layui-form layui-form-pane demoTable">
+		<div class="layui-form-item">
+			<label class="layui-form-label">手机号</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="phone" type="text" />
+			</div>
+			<button class="layui-btn" id="relocad">查询</button>
+		</div>
+	</div>
+	<div class="tablebox">
+		<table class="layui-table" id="webmasterlist" lay-filter="operating"></table>
+	</div>
+	<!-- 序号 -->
+	<script type="text/html" id="indexnumber">
+		{{d.LAY_INDEX}}
+	</script>
+	<!-- 操作 -->
+	<script type="text/html" id="toolbar">
+  		<a class="layui-btn layui-btn-xs" lay-event="export">导出个人流水</a>
+  		<a th:if="${repeater}" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="cancel">撤销</a>
+	</script>
+	<!-- 帐号状态 -->
+	<script type="text/html" id="accountStatus">
+  		{{#if(d.STATE=='USER_STATE_NORMAL'){}}
+			正常
+		{{#}else{}}
+			冻结
+		{{#}}}
+	</script>
+	<!-- 是否认证 -->
+	<script type="text/html" id="isCertification">
+  		{{#if(d.isCertification == 'USER_AUTHENTICATION_PASS'){}}
+			是
+		{{#}else{}}
+			否
+		{{#}}}
+	</script>
+	<!-- 会员等级 -->
+	<script type="text/html" id="level">
+  		{{#if(d.MEMBERSHIP_GRADE=='USER_DJ_SENIOR'){}}
+			高级
+		{{#}else if(d.MEMBERSHIP_GRADE=='USER_DJ_INTERMEDIATE'){}}
+			中级
+		{{#}else if(d.MEMBERSHIP_GRADE=='USER_DJ_PRIMARY'){}}
+			初级
+		{{#}}}
+	</script>
+	<div class="layui-form layui-form-pane" id="addwebmasterbox"
+		style="display: none; padding: 15px 15px 0px 15px">
+		<div class="layui-form-item">
+			<label class="layui-form-label">用户手机号</label>
+			<div class="layui-input-block">
+				<input id="masterPhone" class="layui-input" type="text"
+					placeholder="请输入已注册用户手机号" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item">
+			<label class="layui-form-label">推荐手机号</label>
+			<div class="layui-input-block">
+				<input id="upPhone" class="layui-input" type="text"
+					placeholder="请输入推荐者手机号" autocomplete="off" />
+			</div>
+		</div>
+	</div>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script>
+	//JavaScript代码区域
+	/* <![CDATA[ */
+	layui.use([ 'element', 'table' ], function() {
+		var element = layui.element, table = layui.table, $ = layui.jquery;
+		//方法级渲染
+		table.render({
+			elem : '#webmasterlist',
+			url : '/viceWebmaster/queryvicemasterlist/',
+			cols : [ [ {
+				title : '序号',
+				width : 80,
+				toolbar : '#indexnumber',
+				align : 'center'
+			}, {
+				field : 'PHONE',
+				title : '手机号（帐号）',
+				align : 'center'
+			}, {
+				field : 'NICKNAME',
+				title : '昵称',
+				align : 'center'
+			}, {
+				field : 'REGISTERED_TIME',
+				title : '注册时间',
+				align : 'center'
+			}, {
+				toolbar : '#accountStatus',
+				title : '帐号状态',
+				align : 'center'
+			}, {
+				toolbar : '#level',
+				title : '会员等级',
+				align : 'center'
+			}, {
+				toolbar : '#isCertification',
+				title : '是否实名认证',
+				align : 'center'
+			}, {
+				field : 'IS_FZZ_UP',
+				title : '推荐者',
+				align : 'center'
+			}, {
+				toolbar : '#toolbar',
+				title : '操作',
+				align : 'center'
+			} ] ],
+			id : 'webmasterlist',
+			page : true
+		});
+
+		table.on('tool(operating)', function(obj) {
+			var data = obj.data;
+			if (obj.event === 'cancel') {
+				layer.confirm('确定撤销' + data.PHONE + '的副站长吗？', function(index) {
+					$.post("/viceWebmaster/cancelViceMaster", {
+						userId : data.USERS_ID
+					}, function(d) {
+						if (d > 0) {
+							obj.del();
+							layer.msg("操作成功");
+						} else {
+							layer.msg("操作失败");
+						}
+						layer.close(index);
+					});
+				});
+			} else if (obj.event === 'export') {
+				layer.confirm('确定导出' + data.PHONE + '的个人流水数据吗?', {
+					icon : 3,
+					title : '提示'
+				}, function(index) {
+					window.location.href = "/appUser/export?userId="
+							+ data.USERS_ID;
+					layer.close(index);
+				});
+			}
+		});
+		$("#relocad").click(function() {
+			var phone = $("#phone");
+			table.reload('webmasterlist', {
+				page : {
+					curr : 1
+				},
+				where : {
+					phone : phone.val()
+				}
+			});
+		});
+		$("#addWebmaster").click(function() {
+			layer.open({
+				type : 1,
+				content : $('#addwebmasterbox'),
+				btn : [ '确定', '取消' ],
+				btnAlign : 'c' //按钮居中
+				,
+				shade : 0 //不显示遮罩
+				,
+				yes : function() {
+					var masterPhone = $("#masterPhone").val();
+					var upPhone = $("#upPhone").val();
+					var myreg = /^[1][2,3,4,5,6,7,8,9][0-9]{9}$/;
+					if (!myreg.test(masterPhone)) {
+						layer.msg("请输入正确的用户手机号");
+					} else if (masterPhone == upPhone) {
+						layer.msg("推荐者手机号和用户手机号不能相同");
+					} else if ("" != upPhone && !myreg.test(upPhone)) {
+						layer.msg("请输入正确的推荐者手机号");
+					} else {
+						$.post("/viceWebmaster/addvicemaster", {
+							masterPhone : masterPhone,
+							upPhone : upPhone
+						}, function(d) {
+							if (d == 0) {
+								layer.msg("操作失败");
+							} else if (d == 1) {
+								layer.closeAll();
+								layer.msg("添加成功");
+								table.reload('webmasterlist', {
+									page : {
+										curr : 1
+									}
+								});
+								$("#masterPhone").val("");
+								$("#upPhone").val("");
+							} else if (d == 2) {
+								layer.msg("用户已经是站长，不能成为副站长");
+							} else if (d == 3) {
+								layer.msg("推荐者手机号无效");
+							} else if (d == 4) {
+								layer.msg("用户已经是副站长");
+							} else if (d == 5) {
+								layer.msg("用户手机号未注册");
+							}
+						});
+					}
+				},
+				btn2 : function() {
+					layer.closeAll();
+					$("#masterPhone").val("");
+					$("#upPhone").val("");
+				}
+			});
+		});
+	});
+	/* ]]> */
+</script>
+</html>

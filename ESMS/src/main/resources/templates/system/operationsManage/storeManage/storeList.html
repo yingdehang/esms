@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>店铺管理</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div id="search" class="layui-form layui-form-pane">
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:90px">店铺名称</label>
+			<div class="layui-input-inline" style="width:160px">
+				<input class="layui-input" id="storeName" autocomplete="off"/>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:90px">用户账号</label>
+			<div class="layui-input-inline" style="width:110px">
+				<input class="layui-input" id="phoneNumber" autocomplete="off"/>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:90px">店铺状态</label>
+			<div class="layui-input-inline" style="width:100px">
+				<select id="storeStates">
+					<option value="">请选择</option>
+					<option th:each="storeStates:${storeStates}" th:value="${storeStates.DICTIONARY_VALUE}" th:text="${storeStates.DESCRIBES}"></option>
+				</select>
+			</div>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+		<button class="layui-btn" data-type="add">添加</button>
+	</div>
+
+	<table id="storeList" lay-filter="operation"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+layui.use(['table','jquery','form'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var form = layui.form;
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#storeList'
+		,url: '/store/getStoreList'
+		,page: true
+		,cols:[[
+			{field:'STORE_NAME',title:'店铺名'}
+			,{field:'STORE_ID',title:'店铺ID'}
+			,{field:'CLASSIFICATION_NAME',title:'店铺分类'}
+			,{field:'PHONE',title:'用户账号'}
+			,{field:'SERVICE_PHONE',title:'客服电话'}
+			,{field:'TIME',title:'开店时间'}
+			,{field:'SUM_BROWSE_NUMBER',title:'总浏览量'}
+			,{field:'SUM_BUY_NUMBER',title:'总购买数量'}
+			,{field:'MONTH_SALES',title:'月销量'}
+			,{field:'STATE',title:'店铺状态'}
+			,{field:'AUDIT_STATE',title:'认证状态'}
+			,{fixed: 'right', width:150, align:'center', toolbar: '#toolbar',title:'操作'}
+		]]
+	});
+	<!-- 监听搜索按钮 -->
+	$('#search .layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	
+	var $ = layui.$, active = {
+		<!-- 搜索时执行重载-->
+		reload: function(){
+			var phoneNumber = $('#phoneNumber').val();
+			var storeName = $('#storeName').val();
+			var storeStates = $('#storeStates').val();
+			//执行重载
+			table.reload('storeList', {
+				where: {
+					phoneNumber:phoneNumber
+					,storeName:storeName
+					,storeStates:storeStates
+				}
+			});
+		}
+		<!-- 添加店铺-->
+		,add:function(){
+			window.location.href='/store/toAdd';
+		}
+	};
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'edit'){ //编辑
+			window.location.href="/store/toEdit?storeId="+data.STORE_ID;
+		}
+	});
+});
+</script>
+<script type="text/html" id="toolbar">
+	<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+</script>
+</body>
+</html>

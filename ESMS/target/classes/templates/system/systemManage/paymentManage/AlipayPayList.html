@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>支付宝支付列表</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div id="search" class="layui-form layui-form-pane">
+		<div style="padding-bottom: 10px; border-bottom: 2px solid #5FB878">
+			<h1>
+				<a href="javascript:void(0)" onclick="location.reload()">支付宝支付列表</a>
+			</h1>
+		</div>
+		<div class="layui-form-item layui-inline"
+			style="margin-top: 15px; margin-left: 9px">
+			<label class="layui-form-label">手机号</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="phoneNumber" autocomplete="off" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 120px;">交易创建时间</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="start1" type="text"
+					placeholder="起始时间" />
+			</div>
+			<div class="layui-form-mid">-</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="end1" type="text" placeholder="结束时间" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 120px;">交易付款时间</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="start2" type="text"
+					placeholder="起始时间" />
+			</div>
+			<div class="layui-form-mid">-</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="end2" type="text" placeholder="结束时间" />
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top: 17px">
+			<label class="layui-form-label" style="width: 120px;">交易完成时间</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="start3" type="text"
+					placeholder="起始时间" />
+			</div>
+			<div class="layui-form-mid">-</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="end3" type="text" placeholder="结束时间" />
+			</div>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+	</div>
+
+	<table id="alipaypayList" lay-filter="operation"></table>
+
+	<script th:src="@{/layui/layui.js}"></script>
+	<script type="text/javascript">
+layui.use(['table','jquery','laydate'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var laydate = layui.laydate
+	laydate.render({
+		elem: '#start1'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#end1'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#start2'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#end2'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#start3'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#end3'
+		,type: 'datetime'
+	});
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#alipaypayList'
+		,url: '/alipay/getalipaypayList'
+		,page: true
+		,cols:[[
+			{title:'序号',templet: '#indexTpl'}
+			,{title:'通知时间',field:'notify_time'}
+			,{title:'通知类型',field:'notify_type'}
+			,{title:'通知校验ID',field:'notify_id'}
+			,{title:'支付宝分配给开发者的应用Id',field:'app_id'}
+			,{title:'接口版本',field:'version'}
+			,{title:'签名类型',field:'sign_type'}
+			,{title:'签名',field:'sign'}
+			,{title:'支付宝交易号',field:'trade_no'}
+			,{title:'商户订单号',field:'out_trade_no'}
+			,{title:'商户业务号',field:'out_biz_no'}
+			,{title:'买家支付宝用户号',field:'buyer_id'}
+			,{title:'买家支付宝账号',field:'buyer_logon_id'}
+			,{title:'卖家支付宝用户号',field:'seller_id'}
+			,{title:'卖家支付宝账号',field:'seller_email'}
+			,{title:'交易状态',field:'trade_status'}
+			,{title:'订单金额',field:'total_amount'}
+			,{title:'实收金额',field:'receipt_amount'}
+			,{title:'开票金额',field:'invoice_amount'}
+			,{title:'付款金额',field:'buyer_pay_amount'}
+			,{title:'订单标题',field:'subject'}
+			,{title:'商品描述',field:'body'}
+			,{title:'交易创建时间',field:'gmt_create'}
+			,{title:'交易付款时间',field:'gmt_payment'}
+			,{title:'交易结束时间',field:'gmt_close'}
+			,{title:'支付金额信息',field:'fund_bill_list'}
+			,{title:'用户手机号',field:'PHONE'}
+		]]
+	});
+	
+	<!-- 监听搜索按钮 -->
+	$('#search .layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索时执行重载-->
+	var $ = layui.$, active = {
+		reload: function(){
+			var phoneNumber = $('#phoneNumber');
+			var start1 = $('#start1');
+			var end1 = $('#end1');
+			var start2 = $('#start2');
+			var end2 = $('#end2');
+			var start3 = $('#start3');
+			var end3 = $('#end3');
+			//执行重载
+			table.reload('alipaypayList', {
+				where: {
+					phoneNumber: phoneNumber.val()
+					,onestart: start1.val()
+					,oneend: end1.val()
+					,twostart:start2.val()
+					,twoend:end2.val()
+					,threestart:start3.val()
+					,threeend:end3.val()
+				}
+			});
+		}
+	};
+});
+</script>
+	<!-- 序号 -->
+	<script type="text/html" id="indexTpl">
+		{{d.LAY_TABLE_INDEX+1}}
+	</script>
+</body>
+</html>

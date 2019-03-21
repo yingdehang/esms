@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>会员专属福利</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<style type="text/css">
+body {
+	margin: 0px;
+	padding: 0px;
+	background-color: #EB001E;
+	position: relative;
+}
+
+img {
+	width: 100%;
+	max-width: 540px;
+	height: auto;
+	position: absolute;
+	z-index: 1;
+}
+
+#xydzp {
+	width: 150px;
+	height: 40px;
+	position: absolute;
+	z-index: 2;
+	margin-top: 326%;
+	margin-left: 6%;
+}
+</style>
+</head>
+<body>
+	<input type="hidden" id="userId" th:value="${userId}" />
+	<div style="width: 100%; max-width: 540px; margin: 0 auto;">
+		<img th:src="@{/img/huiyuanzhuanshufuli.jpg}" />
+		<div id="xydzp"></div>
+	</div>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+	/* <![CDATA[ */
+	layui.use('layer',function() {
+						var layer = layui.layer, $ = layui.jquery;
+						var userId = $("#userId").val();
+						$("#xydzp").click(function() {
+											if (null == userId || userId == "") {
+												layer.msg("请先登录在进入抽奖活动");
+											} else {
+												$.post("/activityclick/queryRaffle",
+																{
+																	userId : userId
+																},
+																function(d) {
+																	if (d == 1) {
+																		window.location.href = "/activityclick/activityPage?name=xingyundazhuanpan&userId="
+																				+ userId;
+																	} else {
+																		layer
+																				.msg("您还没有获得抽奖资格哟！");
+																	}
+															
+																});
+											}
+										});
+					});
+	/* ]]> */
+</script>
+</html>

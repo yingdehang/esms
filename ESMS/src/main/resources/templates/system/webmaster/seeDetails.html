@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>查看明细</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<!-- 账户数据顶部 -->
+	<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label><a href="/webmaster/toWebmasterHtml">站长主页</a>><a
+				href="/webmaster/toRunningWaterHtml">查看流水</a>>查看明细</label>
+		</div>
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			<button class="layui-btn layui-btn-primary layui-btn-xs"
+				data-type="batchExport">导出列表</button>
+		</div>
+	</div>
+	<!-- 收益合计 -->
+	<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			共计<span id="tianshu"></span>天&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>收益合计:¥<span
+				id="heji"></span>
+			</strong>
+		</div>
+	</div>
+	<div class="tablebox">
+		<table class="layui-table" id="runningwaterlist"></table>
+	</div>
+	<input type="hidden" id="month" th:value="${month}" />
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+	layui
+			.use(
+					'table',
+					function() {
+						var table = layui.table, $ = layui.jquery;
+						var month = $("#month").val();
+						// 初始表格加载已上架商品
+						table.render({
+							elem : '#runningwaterlist',
+							url : '/webmaster/getdayWaterlist',
+							id : 'runningwaterlist',
+							where : {
+								month : month
+							},
+							done : function(res, msg, count) {
+								//如果是异步请求数据方式，res即为你接口返回的信息。
+								$("#tianshu").text(count);
+								$("#heji").text(res.msg);
+							},
+							cols : [ [ {
+								type : 'checkbox',
+								fixed : 'left',
+								width : '5%'
+							}, {
+								title : '年、月、日',
+								field : 'date',
+								align : 'center',
+								sort : true
+							}, {
+								field : 'endTime',
+								title : '结算时间',
+								align : 'center',
+								sort : true
+							}, {
+								field : 'offlineWater',
+								title : '线下流水',
+								align : 'center'
+							}, {
+								field : 'onlineWater',
+								title : '线上流水',
+								align : 'center'
+							}, {
+								field : 'countWater',
+								title : '当日总流水',
+								align : 'center'
+							}, {
+								field : 'monthlyIncome',
+								title : '当日收益',
+								align : 'center'
+							} ] ]
+						});
+
+						// 监听表格复选框选择
+						table.on('checkbox(runningwaterlist)', function(obj) {
+							console.log(obj)
+						});
+						active = {
+							// 批量导出
+							batchExport : function() {
+								var checkStatus = table
+										.checkStatus('runningwaterlist'), data = checkStatus.data;
+								var len = data.length;
+								if (len > 0) {
+									var indexs = "";
+									/* <![CDATA[ */
+									for (var i = 0; i < data.length; i++) {
+										indexs += data[i].date + ";";
+									}
+									/* ]]> */
+									window.location.href = "/webmaster/getDetailswaterDaochu?days="
+											+ indexs
+								} else {
+									layer.msg("您未选择需要导出的记录");
+								}
+							},
+						};
+
+						$('.demoTable .layui-btn').on('click', function() {
+							var type = $(this).data('type');
+							active[type] ? active[type].call(this) : '';
+						});
+					});
+</script>
+</html>

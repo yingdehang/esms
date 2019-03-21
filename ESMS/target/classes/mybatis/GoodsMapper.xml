@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.goodsManage.GoodsDao">
+	<!-- 商品数据 -->
+	<select id="getGoodsList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		eg.`GOODSID`,
+		euc.`UC_NAMES`,eu.`PHONE`,
+		store.`STORE_NAME`,
+		eg.`GOODS_NAME`,
+		ec.`CLASS_NAME`,
+		eg.`STORE_SORT`,
+		eg.`GOODS_STATE`
+		FROM
+		`es_goods` eg
+		LEFT JOIN `es_store` store
+		ON eg.STORE_ID =
+		store.`STORE_ID`
+		LEFT JOIN `es_user_certification` euc
+		ON
+		store.`USERS_ID` = euc.`USERS_ID`
+		LEFT JOIN `es_users` eu
+		ON
+		eu.`USERS_ID` = store.`USERS_ID`
+		LEFT JOIN `es_classification` ec
+		ON
+		eg.`CLASSIFICATION_ID` = ec.`CLASSIFICATION_ID`
+		<where>
+			<if test="listType=='DSH'">
+				eg.`GOODS_STATE`= 'GOODS_STATE_DSH'
+			</if>
+			<if test="listType=='YDSH'">
+				eg.`GOODS_STATE`!= 'GOODS_STATE_DSH'
+			</if>
+			<if test="goodsName!=null and goodsName!=''">
+				AND eg.`GOODS_NAME` like concat('%',#{goodsName},'%')
+			</if>
+			<if test="storeName!=null and storeName!=''">
+				AND store.`STORE_NAME` like concat('%',#{storeName},'%')
+			</if>
+		</where>
+		<if test="null!=orderByType and orderByType!=''">
+			ORDER BY eg.`ADD_TIME` DESC
+		</if>
+		<if test="null==orderByType or orderByType==''">
+			ORDER BY eg.`ADD_TIME` ASC
+		</if>
+		limit #{page},#{limit}
+	</select>
+
+	<!-- 商品数据总数 -->
+	<select id="getGoodsListCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT
+		count(*)
+		FROM
+		`es_goods` eg
+		LEFT JOIN `es_store` store
+		ON
+		eg.STORE_ID =
+		store.`STORE_ID`
+		LEFT JOIN `es_user_certification` euc
+		ON
+		store.`USERS_ID` = euc.`USERS_ID`
+		LEFT JOIN `es_users` eu
+		ON
+		eu.`USERS_ID` = store.`USERS_ID`
+		LEFT JOIN `es_classification` ec
+		ON
+		eg.`CLASSIFICATION_ID` = ec.`CLASSIFICATION_ID`
+		<where>
+			<if test="listType=='DSH'">
+				eg.`GOODS_STATE`= 'GOODS_STATE_DSH'
+			</if>
+			<if test="listType=='YDSH'">
+				eg.`GOODS_STATE`!= 'GOODS_STATE_DSH'
+			</if>
+			<if test="goodsName!=null and goodsName!=''">
+				AND eg.`GOODS_NAME` like concat('%',#{goodsName},'%')
+			</if>
+			<if test="storeName!=null and storeName!=''">
+				AND store.`STORE_NAME` like concat('%',#{storeName},'%')
+			</if>
+		</where>
+	</select>
+
+	<!-- 修改商品状态 -->
+	<update id="updategoodsState" parameterType="java.util.Map">
+		update es_goods set
+		GOODS_STATE=#{goodsStatus}
+		<if test="CONTENT!=null and CONTENT!=''">
+			,CONTENT=#{CONTENT}
+		</if>
+		where GOODSID=#{GOODSID}
+	</update>
+</mapper>

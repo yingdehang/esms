@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>象本商城后台管理系统</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div class="addbox">
+		<form class="layui-form layui-form-pane"
+			action="/systemUser/addSystemUser">
+			<div class="layui-form-item">
+				<label class="layui-form-label">用户帐号</label>
+				<div class="layui-input-block">
+					<input type="hidden" name="userId" th:value="${info.userId}" /> <input
+						type="hidden" name="menuId" th:value="${info.menuId}" /> <input
+						name="PHONE" class="layui-input" type="text"
+						onblur="ishavephone(this);" placeholder="请输入手机号"
+						autocomplete="off" lay-verify="PHONE" />
+				</div>
+			</div>
+			<!-- <div class="layui-form-item">
+				<label class="layui-form-label">用户密码</label>
+				<div class="layui-input-block">
+					<input name="PASSWORD" class="layui-input" type="text"
+						placeholder="请输入密码" autocomplete="off" lay-verify="PASSWORD" />
+				</div>
+			</div> -->
+			<!-- <div class="layui-form-item">
+				<label class="layui-form-label">用户昵称</label>
+				<div class="layui-input-block">
+					<input name="NICKNAME" class="layui-input" type="text"
+						placeholder="请输入昵称" autocomplete="off" lay-verify="NICKNAME" />
+				</div>
+			</div> -->
+			<div class="layui-form-item">
+				<label class="layui-form-label">分配角色</label>
+				<div class="layui-input-block">
+					<input th:each="list:${roleList}" name="roles"
+						th:unless="*{list.ROLE_ID} eq '5ec6d5868b32463abbfa680a21eeaef5' or *{list.ROLE_ID} eq '58a6b4f9e8a04873a184bba1320e3d3a'"
+						th:value="*{list.ROLE_ID}" th:title="*{list.ROLE_NAME}"
+						type="checkbox" />
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-input-block">
+					<button id="ishanfe" class="layui-btn" lay-filter="demo1"
+						lay-submit="">立即提交</button>
+					<button class="layui-btn layui-btn-primary" type="reset">重置</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript" th:src="@{/js/jquery-1.4.4.min.js}"></script>
+<script>
+	layui
+			.use(
+					[ 'form', 'layedit' ],
+					function() {
+						var form = layui.form, layer = layui.layer, layedit = layui.layedit, $ = layui.jquery;
+
+						//创建一个编辑器
+						var editIndex = layedit.build('LAY_demo_editor');
+
+						//自定义验证规则
+						form.verify({
+							NICKNAME : [ /(.+){1,12}$/, '昵称不能为空' ],
+							PHONE : function(value) {
+								if (value.length != 11) {
+									return '请输入正确的电话号码';
+								}
+							},
+							PASSWORD : [ /(.+){1,12}$/, '密码不能为空' ],
+							content : function(value) {
+								layedit.sync(editIndex);
+							}
+						});
+
+						//监听提交
+						form.on('submit(demo1)', function(data) {
+							return true;
+						});
+					});
+	function ishavephone(t) {
+		var phone = t.value;
+		if (phone.length == 11) {
+			$.post("/systemUser/ishavephone", {
+				PHONE : phone
+			}, function(da) {
+				if (da == 0) {
+					layer.msg("请先注册手机号");
+					$("#ishanfe").attr("disabled", true);
+				} else if (da == 1) {
+					layer.msg("手机号已成为系统用户，无需添加");
+				} else {
+					layer.msg("手机号验证成功");
+					$("#ishanfe").attr("disabled", false);
+				}
+			});
+		} else {
+			layer.msg("请输入正确的手机号");
+			$("#ishanfe").attr("disabled", false);
+		}
+	}
+</script>
+</html>

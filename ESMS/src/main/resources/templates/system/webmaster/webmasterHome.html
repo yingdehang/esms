@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>站长主页</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+<script th:src="@{/js/echarts.common.min.js}"></script>
+<style type="text/css">
+.headbox {
+	heigth: 40px;
+	text-align: 20px;
+	line-height: 40px;
+	padding: 0 5% 0 10px;
+}
+
+.medilbox {
+	width: 100%;
+	height: 140px;
+}
+
+.tablebox {
+	font-size: 14px;
+	text-align: left;
+	padding: 10px;
+}
+
+.tablebox td {
+	line-height: 30px;
+	padding-right: 60px;
+}
+
+.huisezi {
+	color: #999999;
+}
+
+.zanzhangyue {
+	font-size: 20px;
+	line-height: 100%;
+}
+
+.tubiao {
+	float: left;
+	width: 48%;
+	height: 450px;
+	margin: 5px 5px;
+	border: 1px double #C5DAF3;
+}
+</style>
+</head>
+<body>
+	<div class="headbox">
+		<label>代理区域：<span th:text="${masterInfo.agencyArea}"></span></label>
+		<div style="float: right;">
+			<label style="color: #EB4849; font-size: 14px; margin-top: 20px;">注意：除余额外统计的数据是前一天的数据</label>
+		</div>
+	</div>
+	<div class="medilbox">
+		<div>
+			<div style="float: left; width: 40%; padding: 0px 20px;">
+				<table>
+					<tr>
+						<th colspan="2">区域总用户数：<span
+							th:text="${masterInfo.userCount}"></span></th>
+					</tr>
+				</table>
+			</div>
+			<div style="float: left; width: 50%; padding: 0px 20px;">
+				<table>
+					<tr>
+						<th colspan="2">总收益：¥ <span
+							th:text="${masterInfo.totalRevenue}"></span></th>
+					</tr>
+				</table>
+			</div>
+		</div>
+		<div style="float: left; width: 40%; padding: 15px;">
+			<table class="tablebox">
+				<tr>
+					<td>普通用户：<span th:text="${masterInfo.userCount}"></span></td>
+					<td class="huisezi">7天新增：<span
+						th:text="${masterInfo.newUserCount}"></span></td>
+				</tr>
+				<tr>
+					<td>线上店铺：<span th:text="${masterInfo.xsStoreCount}"></span></td>
+					<td class="huisezi">7天新增：<span
+						th:text="${masterInfo.newXsStoreCount}"></span></td>
+				</tr>
+				<tr>
+					<td>线下店铺：<span th:text="${masterInfo.xxStoreCount}"></span></td>
+					<td class="huisezi">7天新增：<span
+						th:text="${masterInfo.newXxStoreCount}"></span></td>
+				</tr>
+			</table>
+		</div>
+		<div
+			style="float: left; width: 50%; padding: 15px; border-left: 1px solid #443F3F;">
+			<div style="float: left;">
+				<table class="tablebox" style="padding: 10px; text-align: left;">
+					<tr>
+						<td>上月：¥ <span th:text="${masterInfo.lastMonthEarnings}"></span></td>
+						<td><a href="/webmaster/toRunningWaterHtml"><button
+									class="layui-btn layui-btn-primary layui-btn-xs">更多</button></a></td>
+					</tr>
+					<tr>
+						<td colspan="2">本月：¥ <span
+							th:text="${masterInfo.thisMonthEarnings}"></span></td>
+					</tr>
+				</table>
+			</div>
+			<a href="/webmaster/toAccountDataHtml">
+				<div style="float: left; padding: 15px; height: 100%; border: 1px solid #494848; border-radius: 2px;">
+					<strong>账户余额：¥<span class="zanzhangyue"
+						th:text="${masterInfo.webmaster.WEBMASTER_MONEY}"></span></strong>
+				</div>
+			</a>
+		</div>
+	</div>
+	<div class="tupbiaobox">
+		<div class="tubiao">
+			<div style="height: 70px; width: 90%;">
+				<select style="float: right; position: relative; top: 20px;"
+					onchange="getData(this)">
+					<option value="qitian">最近七天</option>
+					<option value="onemonth">最近一月</option>
+					<option value="tweyear">最近一年</option>
+				</select>
+			</div>
+			<div style="height: 380px; width: 100%;">
+				<div id="earningsTrend" style="height: 380px; width: 95%;"></div>
+			</div>
+		</div>
+		<div class="tubiao">
+			<span
+				style="float: left; font-size: 20px; position: relative; top: 86%; left: 22%;">线上</span><span
+				style="float: left; font-size: 20px; position: relative; top: 86%; left: 67%;">线下</span>
+			<div id="shopGradeDistribution" style="height: 450px; width: 95%;"></div>
+		</div>
+		<div class="tubiao">
+			<div id="membershipRechargeAmount" style="height: 450px; width: 95%;"></div>
+		</div>
+		<div class="tubiao">
+			<div id="membershipistribution" style="height: 360px; width: 95%;"></div>
+			<div style="height: 90px; width: 100%;">
+				<table
+					style="text-align: center; margin: 10px auto; width: 60%; height: 70px;"
+					border="1">
+					<tr>
+						<th>初级</th>
+						<th>中级</th>
+						<th>高级</th>
+					</tr>
+					<tr>
+						<td><span id="onechuji">0</span></td>
+						<td><span id="twozhongji">0</span></td>
+						<td><span id="threegaoji">0</span></td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript" th:src="@{/js/jquery-1.4.4.min.js}"></script>
+<!-- 收益趋势 -->
+<script type="text/javascript"
+	th:src="@{/js/webmasterJsFile/webmasterHome.js}"></script>
+</html>

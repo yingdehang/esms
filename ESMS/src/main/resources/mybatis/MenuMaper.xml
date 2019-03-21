@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.systemManage.MenuDao">
+	<!-- 获取菜单list -->
+	<select id="getMenuList" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT * FROM `es_system_menu`
+		<where>
+			<if test="pid==null or pid==''">
+				PID = '0'
+			</if>
+			<if test="pid!=null and pid!=''">
+				PID = #{pid}
+			</if>
+			<if test="MENU_NAME!=null and MENU_NAME!=''">
+				AND MENU_NAME LIKE CONCAT('%',#{MENU_NAME},'%')
+			</if>
+		</where>
+		order by MENU_SORT asc
+		limit
+		#{page},#{limit}
+	</select>
+
+	<!-- 获取菜单总数 -->
+	<select id="getMenuListCount" parameterType="java.util.Map"
+		resultType="int">
+		SELECT count(*) FROM `es_system_menu`
+		<where>
+			<if test="pid==null or pid==''">
+				PID = '0'
+			</if>
+			<if test="pid!=null and pid!=''">
+				PID = #{pid}
+			</if>
+			<if test="menuName!=null and menuName!=''">
+				MENU_NAME like concat('%',menuName,'%')
+			</if>
+		</where>
+	</select>
+
+	<!-- 查询是否存在子菜单 -->
+	<select id="isHaveSon" parameterType="java.lang.String"
+		resultType="int">
+		SELECT count(*) FROM `es_system_menu` where PID = #{pid}
+	</select>
+
+	<!-- 添加菜单 -->
+	<insert id="addMenu" parameterType="java.util.Map">
+		INSERT INTO
+		`es_system_menu`
+		(`MENU_ID`, `MENU_NAME`, `MENU_URL`, `PID`)
+		VALUES (#{uuid},
+		#{MENU_NAME}, #{MENU_Url}, #{PID})
+	</insert>
+
+	<!-- 向权限表添加菜单显示,用于用户登录查询菜单列表 -->
+	<insert id="addToPermissions" parameterType="java.util.Map">
+		INSERT INTO
+		`es_system_permissions` (`PERMISSIONS_ID`,
+		`PERMISSIONS_NAME`,
+		`PERMISSIONS_URL`, `MENU_ID`, `PERMISSIONS_CODE`)
+		VALUES
+		(#{uuid},
+		#{MENU_NAME}, #{MENU_Url}, #{uuid},
+		"MENU_SHOW");
+	</insert>
+
+	<!-- 删除菜单 -->
+	<delete id="deleteMenuById" parameterType="java.lang.String">
+		delete from
+		`es_system_menu` where MENU_ID=#{menuId} or PID=#{menuId}
+	</delete>
+
+	<!-- 删除菜单后，继续删除菜单权限 -->
+	<delete id="deletePermissons" parameterType="java.lang.String">
+		delete from
+		es_system_permissions where MENU_ID=#{menuId}
+	</delete>
+
+	<!-- 修改菜单 -->
+	<update id="updateMenuInfo" parameterType="java.util.Map">
+		UPDATE
+		`es_system_menu` SET `MENU_NAME` = #{MENU_NAME} , `MENU_URL`
+		=#{MENU_URL} WHERE `MENU_ID` =#{MENU_ID}
+	</update>
+
+	<!-- 获取全部菜单列表 -->
+	<select id="getAllMenuList" resultType="java.util.Map">
+		SELECT * FROM
+		`es_system_menu`
+	</select>
+
+	<!-- 修改菜单排序 -->
+	<update id="updateSort" parameterType="java.util.Map">
+		UPDATE
+		`es_system_menu` SET
+		`MENU_SORT` = #{MENU_SORT} WHERE `MENU_ID`
+		=#{MENU_ID}
+	</update>
+</mapper>

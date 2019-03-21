@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="renderer" content="webkit" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>跳转登录页面</title>
+</head>
+<body>
+	您未登录帐号或帐号登录过期，系统将
+	<span id="minuce">3</span>秒后跳转
+	<a href="javascript:top.location.href='/login/login';">登录页面</a>.....
+</body>
+<script type="text/javascript">
+	var tt = 3;
+	function timego() {
+		tt--;
+		document.getElementById("minuce").innerHTML = tt;
+		if (tt == 0) {
+			clearInterval(timer);
+			top.location.href = '/login/login';
+			return false;
+		}
+	}
+	var timer = window.setInterval("timego()", 1000);
+</script>
+</html>

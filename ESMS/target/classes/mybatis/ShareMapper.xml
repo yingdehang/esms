@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.ShareDao">
+	<!-- 查询商品评论 -->
+	<select id="queryCommentsOnGoods" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		comments.`CONTENT` AS content,
+		IFNULL(comments.`GOODS_ATTRIBUTE`,'此商品无属性') AS goodsAttribute,
+		users.`HEAD` AS head,
+		users.NICKNAME
+		FROM
+		es_comments comments
+		LEFT JOIN
+		es_goods goods
+		ON comments.`GOODSID` = goods.`GOODSID`
+		LEFT JOIN
+		es_users users
+		ON
+		comments.`USERS_ID` = users.`USERS_ID`
+		WHERE
+		goods.GOODSID=#{goodsId}
+		ORDER BY
+		comments.`COMMENTS_TIME` DESC
+		LIMIT 1,1
+	</select>
+	<!-- 查询店铺信息 -->
+	<select id="queryStoreInfo" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		SELECT
+		store.`STORE_ID` as storeId,
+		store.`STORE_NAME` as
+		storeName,
+		store.`STORE_ICON` as storeIcon,
+		store.`STATE` as state,
+		sc.`TYPES` as types,
+		sc.`STORE_TYPE` as storeType,
+		sc.`LEVELS` as
+		levels,
+		sc.`IS` as isSelf
+		FROM
+		es_store store
+		LEFT
+		JOIN
+		es_store_certification sc
+		ON store.`STORE_ID` = sc.`STORE_ID`
+		WHERE
+		store.`STORE_ID` = #{storeId}
+	</select>
+</mapper>

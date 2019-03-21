@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.userManage.MessageDao">
+	<!-- 获取未分页的消息数据 -->
+	<select id="getMessageList" resultType="java.util.Map">
+		SELECT 
+		m.MESSAGE_ID,
+		d1.DESCRIBES AS MESSAGE_TYPE,
+		m.CONTENT,
+		m.MESSAGE_TIME,
+		d2.DESCRIBES AS USER_DJ,
+		d3.DESCRIBES AS STORE_DJ,
+		u.PHONE 
+		FROM 
+		es_message m
+		LEFT OUTER JOIN es_dictionary d1 ON m.MESSAGE_TYPE=d1.DICTIONARY_VALUE
+		LEFT OUTER JOIN es_dictionary d2 ON m.USER_DJ=d2.DICTIONARY_VALUE
+		LEFT OUTER JOIN es_dictionary d3 ON m.STORE_DJ=d3.DICTIONARY_VALUE
+		LEFT OUTER JOIN es_users u ON m.USERS_ID=u.USERS_ID
+	</select>
+	<!-- 获取分页的消息数据 -->
+	<select id="getMessageListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		m.MESSAGE_ID,
+		d1.DESCRIBES AS MESSAGE_TYPE,
+		m.CONTENT,
+		m.MESSAGE_TIME,
+		d2.DESCRIBES AS USER_DJ,
+		d3.DESCRIBES AS STORE_DJ,
+		u.PHONE 
+		FROM 
+		es_message m
+		LEFT OUTER JOIN es_dictionary d1 ON m.MESSAGE_TYPE=d1.DICTIONARY_VALUE
+		LEFT OUTER JOIN es_dictionary d2 ON m.USER_DJ=d2.DICTIONARY_VALUE
+		LEFT OUTER JOIN es_dictionary d3 ON m.STORE_DJ=d3.DICTIONARY_VALUE
+		LEFT OUTER JOIN es_users u ON m.USERS_ID=u.USERS_ID
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 将推送的内容存入数据库 -->
+	<insert id="sendSystemMessage" parameterType="java.util.Map">
+		insert into es_message(MESSAGE_ID,MESSAGE_TYPE,CONTENT,MESSAGE_TIME,TITLE) VALUES(#{mId},'MSG_TYPE_SYSTEM',#{content},NOW(),#{title})
+	</insert>
+	<!-- 给个人推送消息存入数据库 -->
+	<insert id="sendAppMessage" parameterType="java.util.Map">
+		INSERT INTO es_message(MESSAGE_ID,MESSAGE_TYPE,CONTENT,MESSAGE_TIME,USERS_ID,TITLE) VALUES(#{mId},'MSG_TYPE_APP',#{content},NOW(),#{userId},#{title})
+	</insert>
+</mapper>

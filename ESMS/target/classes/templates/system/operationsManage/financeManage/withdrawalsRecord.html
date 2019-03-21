@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html  lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+	<title>提现明细</title>
+	<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div style="padding-bottom:10px;border-bottom:2px solid #5FB878">
+		<h2><a href="javascript:history.back(-1)">提现审核</a>><a href="javascript:void(0)" onclick="location.reload()">提现明细</a></h2>
+	</div>
+	<div id="search" class="layui-form layui-form-pane">
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:120px">用户手机号</label>
+			<div class="layui-input-inline" style="width:160px">
+				<input class="layui-input" id="phone" autocomplete="off"/>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label" style="width:120px">用户姓名</label>
+			<div class="layui-input-inline" style="width:160px">
+				<input class="layui-input" id="userName" autocomplete="off"/>
+			</div>
+		</div>
+		<div class="layui-form-item layui-inline" style="margin-top:17px">
+			<label class="layui-form-label">申请时间</label>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="start" type="text" placeholder="起始时间"/>
+			</div>
+			<div class="layui-form-mid">至</div>
+			<div class="layui-input-inline">
+				<input class="layui-input" id="end" type="text" placeholder="结束时间"/>
+			</div>
+	    </div>
+		
+		<button class="layui-btn" data-type="search">搜索</button>
+	</div>
+	<table id="withdrawalsRecord" lay-filter="operation"></table>
+
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+layui.use(['table','jquery','layer','form','laydate'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var layer = layui.layer;
+	var form = layui.form;
+	var laydate = layui.laydate;
+	laydate.render({
+		elem: '#start'
+		,type: 'datetime'
+	});
+	laydate.render({
+		elem: '#end'
+		,type: 'datetime'
+	});
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#withdrawalsRecord'
+		,url: '/withdrawals/getWithdrawalsRecord'
+		,page: true
+		,cols:[[
+			{title:'提现信息',templet:'#withdrawalsInfo'}
+			,{title:'用户信息',templet:'#userInfo'}
+			,{field:'MONEY',title:'金额'}
+			,{title:'金额类型',templet:'#moneyType'}
+			,{field:'TO_APPLY_FOR_TIME',title:'申请时间'}
+			,{field:'WITHDRAWAL_STATE',title:'提现状态'}
+		]]
+	});
+	<!-- 监听搜索按钮 -->
+	$('.layui-btn').on('click', function(){
+		var type = $(this).data('type');
+		active[type] ? active[type].call(this) : '';
+	});
+	<!-- 搜索 -->
+	var phone = $("#phone");
+	var start = $("#start");
+	var end = $("#end");
+	var userName = $("#userName");
+	var $ = layui.$, active = {
+		<!-- 搜索时执行重载-->
+		search: function(){
+			//执行重载
+			table.reload('withdrawalsRecord', {
+				where: {
+					phone:phone.val(),
+					start : start.val(),
+					end : end.val(),
+					userName : userName.val()
+				}
+				,page:{
+					curr:1
+				}
+			});
+		}
+	};
+});
+/*]]>*/
+</script>
+<script type="text/javascript" id="withdrawalsInfo">
+	{{# if(d.WITHDRAWAL_TYPE=="1"){ }}
+		支付宝：{{d.ALIPAY}}
+	{{# }else if(d.WITHDRAWAL_TYPE=="2"){ }}
+		{{d.BANKNAME}}:{{d.BANK}}
+	{{# } }}
+</script>
+<script type="text/javascript" id="userInfo">
+	{{d.WITHDRAWAL_NAME}}({{d.PHONE}})
+</script>
+<script type="text/javascript" id="moneyType">
+	{{# if(d.MONEY_TYPE=="1"){ }}
+		余额
+	{{# }else if(d.MONEY_TYPE=="0"){ }}
+		零花钱
+	{{# } }}
+</script>
+</body>
+</html>

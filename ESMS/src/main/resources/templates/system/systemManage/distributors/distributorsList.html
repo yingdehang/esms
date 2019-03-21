@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>系统用户管理</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<div class="layui-form layui-form-pane demoTable"
+		style="width: 100%; height: 32px;">
+		<div class="layui-inline">
+			<label class="layui-form-label">用户电话</label>
+			<div class="layui-input-inline">
+				<input id="PHONE" class="layui-input" type="text"
+					placeholder="请输入电话号码或帐号" />
+			</div>
+		</div>
+		<button class="layui-btn" data-type="reload">搜索</button>
+	</div>
+	<table class="layui-table" lay-filter="demoEvent"
+		lay-data="{url:'/distributors/getDistributorslist/',page:true,id:'distributorslist'}">
+		<thead>
+			<tr>
+				<th
+					lay-data="{fixed: 'left', align:'center', toolbar: '#numberINDEX'}">编号</th>
+				<th lay-data="{field:'PHONE', align:'center'}">手机号（账号）</th>
+				<th lay-data="{field:'INVITATION', align:'center'}">邀请人</th>
+				<th
+					lay-data="{fixed: 'right', align:'center',width:'300', toolbar: '#barDemo'}">操作</th>
+			</tr>
+		</thead>
+	</table>
+	<script id="numberINDEX" type="text/html">
+			{{d.LAY_INDEX}}
+	</script>
+	<script id="barDemo" type="text/html">
+			<a class="layui-btn layui-btn-xs" lay-event="UPDATEiNVITATION">修改邀请人</a>
+			{{# if(null!=d.INVITATION){ }}
+				<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="cleariNVITATION">清除邀请人</a>
+			{{# }else{ }}
+				<a class="layui-btn layui-btn-disabled layui-btn-xs">清除邀请人</a>
+			{{# } }}
+	</script>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script type="text/javascript">
+	layui.use([ 'table', 'layer' ], function() {
+		var $ = layui.jquery, table = layui.table, layer = layui.layer;
+		table.on('tool(demoEvent)', function(obj) {
+			var data = obj.data;
+			if (obj.event === 'UPDATEiNVITATION') {
+				layer.prompt({
+					formType : 3,
+					title : '修改用户' + data.PHONE + '的邀请人',
+					value : data.INVITATION
+				}, function(value, index) {
+					var myreg = /^[1][3,4,5,7,8,9][0-9]{9}$/;
+					if (!myreg.test(value)) {
+						layer.msg("请输入正确的手机号码");
+						return false;
+					} else if (value == data.PHONE) {
+						layer.msg("邀请人手机号不能输入本人手机号");
+					} else {
+						// 同步更新表格和缓存对应的值
+						$.post("/distributors/updatedistributors", {
+							phone : data.PHONE,
+							INVITATION : value
+						}, function(d) {
+							if (d > 0) {
+								layer.msg("修改成功");
+								var INVITATION = data.INVITATION;
+								if (null == INVITATION) {
+									// 执行重载
+									table.reload('distributorslist', {
+										page : {
+											curr : 1
+										}
+									});
+								} else {
+									obj.update({
+										INVITATION : value
+									});
+								}
+								layer.close(index);
+							} else {
+								layer.msg("邀请人手机号未注册或输入错误");
+							}
+						});
+					}
+				});
+			} else if (obj.event === 'cleariNVITATION') {
+				$.post("/distributors/cleariNVITATION", {
+					phone : data.PHONE
+				}, function(da) {
+					if (da > 0) {
+						layer.msg("操作成功");
+						// 执行重载
+						table.reload('distributorslist', {
+							page : {
+								curr : 1
+							}
+						});
+					} else {
+						layer.msg("操作失败！");
+					}
+				});
+			}
+		});
+
+		var active = {
+			reload : function() {
+				var PHONE = $('#PHONE').val();
+				// 执行重载
+				table.reload('distributorslist', {
+					page : {
+						curr : 1
+					// 重新从第 1 页开始
+					},
+					where : {
+						phone : PHONE,
+					}
+				});
+			}
+		};
+		$('.demoTable .layui-btn').on('click', function() {
+			var type = $(this).data('type');
+			active[type] ? active[type].call(this) : '';
+		});
+	});
+</script>
+</html>

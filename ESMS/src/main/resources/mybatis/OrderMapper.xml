@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.operationsManage.OrderDao">
+	<!-- 获取/查询未分页订单列表 -->
+	<select id="getOrderList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  eo.*,
+		  es.STORE_ID,
+		  es.STORE_NAME,
+		  eu.`NICKNAME`,
+		  eu.`PHONE`,
+		  ed.`DESCRIBES`,
+		  ea1.CITY_NAME AS province,
+		  ea2.CITY_NAME AS city,
+		  ea3.CITY_NAME AS a,
+		  ea4.CITY_NAME AS userArea,
+		  ea5.CITY_NAME AS userCity,
+		  ea6.CITY_NAME AS userProvince,
+		  el.COMPANY_NAME AS company
+		FROM
+		  es_order eo
+		  LEFT OUTER JOIN es_goods eg ON eo.`GOODSID` = eg.`GOODSID`
+		  LEFT OUTER JOIN es_store es ON eg.`STORE_ID` = es.`STORE_ID`
+		  LEFT OUTER JOIN es_user_certification euc ON es.`USERS_ID`=euc.USERS_ID
+		  LEFT OUTER JOIN es_users eu ON eo.`USERS_ID` = eu.`USERS_ID`
+		  LEFT OUTER JOIN es_dictionary ed ON eo.`ORDER_STATE` = ed.`DICTIONARY_VALUE`
+		  LEFT OUTER JOIN es_area ea1 ON euc.PROVINCE=ea1.CITY_CODE
+		  LEFT OUTER JOIN es_area ea2 ON euc.CITY=ea2.CITY_CODE
+		  LEFT OUTER JOIN es_area ea3 ON euc.AREA=ea3.CITY_CODE
+		  LEFT OUTER JOIN es_area ea4 ON eo.`AREA`=ea4.CITY_CODE
+		  LEFT OUTER JOIN es_area ea5 ON ea4.PID=ea5.CITY_CODE
+		  LEFT OUTER JOIN es_area ea6 ON ea5.PID=ea6.CITY_CODE
+		  LEFT OUTER JOIN es_logistics el ON eo.COURIER_COMPANY=el.COMPANY_CODE
+		WHERE
+		es.`STORE_ID`=#{storeId}
+		AND eo.ORDER_STATE!='ORDER_STATE_NO_PAY'
+		<if test="contact != null and contact !=''">
+			AND eo.CONTACT = #{contact}
+		</if>
+		<if test="orderNumber != null and orderNumber !=''">
+			AND eo.ORDER_NUMBER = #{orderNumber}
+		</if>
+		<if test="the_awb != null and the_awb !=''">
+			AND eo.THE_AWB = #{the_awb}
+		</if>
+		<if test="phone != null and phone !=''">
+			AND eu.PHONE = #{phone}
+		</if>
+		<if test="time != null and time !=''">
+			AND eo.PAY_TIME BETWEEN #{payTimeStart} AND #{payTimeEnd}
+		</if>
+		<if test="orderState != null and orderState !=''">
+			AND eo.ORDER_STATE = #{orderState}
+		</if>
+		<if test="orderId != null and orderId !=''">
+			AND eo.ORDER_ID = #{orderId}
+		</if>
+		<if test="payType != null and payType !=''">
+			AND eo.PAY_TYPE = #{payType}
+		</if>
+		<if test="province!=null and province!=0">
+			AND euc.`PROVINCE`=#{province}
+		</if>
+		<if test="city!=null and city!=0">
+			AND euc.`CITY`=#{city}
+		</if>
+		<if test="area!=null and area!=0">
+			AND euc.`AREA`=#{area}
+		</if>
+		<if test="goodsId!=null and goodsId!=''">
+			AND eo.`GOODSID`=#{goodsId}
+		</if>
+		GROUP BY eo.ORDER_NUMBER
+		ORDER BY eo.PAY_TIME DESC
+	</select>
+	<!-- 获取/查询已分页订单列表 -->
+	<select id="getOrderListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  eo.*,
+		  es.STORE_ID,
+		  es.STORE_NAME,
+		  eu.`NICKNAME`,
+		  eu.`PHONE`,
+		  ed.`DESCRIBES`,
+		  ea1.CITY_NAME AS province,
+		  ea2.CITY_NAME AS city,
+		  ea3.CITY_NAME AS a,
+		  ea4.CITY_NAME AS userArea,
+		  ea5.CITY_NAME AS userCity,
+		  ea6.CITY_NAME AS userProvince,
+		  el.COMPANY_NAME AS company
+		FROM
+		  es_order eo
+		  LEFT OUTER JOIN es_goods eg ON eo.`GOODSID` = eg.`GOODSID`
+		  LEFT OUTER JOIN es_store es ON eg.`STORE_ID` = es.`STORE_ID`
+		  LEFT OUTER JOIN es_user_certification euc ON es.`USERS_ID`=euc.USERS_ID
+		  LEFT OUTER JOIN es_users eu ON eo.`USERS_ID` = eu.`USERS_ID`
+		  LEFT OUTER JOIN es_dictionary ed ON eo.`ORDER_STATE` = ed.`DICTIONARY_VALUE`
+		  LEFT OUTER JOIN es_area ea1 ON euc.PROVINCE=ea1.CITY_CODE
+		  LEFT OUTER JOIN es_area ea2 ON euc.CITY=ea2.CITY_CODE
+		  LEFT OUTER JOIN es_area ea3 ON euc.AREA=ea3.CITY_CODE
+		  LEFT OUTER JOIN es_area ea4 ON eo.`AREA`=ea4.CITY_CODE
+		  LEFT OUTER JOIN es_area ea5 ON ea4.PID=ea5.CITY_CODE
+		  LEFT OUTER JOIN es_area ea6 ON ea5.PID=ea6.CITY_CODE
+		  LEFT OUTER JOIN es_logistics el ON eo.COURIER_COMPANY=el.COMPANY_CODE
+		WHERE
+		es.`STORE_ID`=#{storeId}
+		AND eo.ORDER_STATE!='ORDER_STATE_NO_PAY'
+		<if test="contact != null and contact !=''">
+			AND eo.CONTACT = #{contact}
+		</if>
+		<if test="orderNumber != null and orderNumber !=''">
+			AND eo.ORDER_NUMBER = #{orderNumber}
+		</if>
+		<if test="the_awb != null and the_awb !=''">
+			AND eo.THE_AWB = #{the_awb}
+		</if>
+		<if test="phone != null and phone !=''">
+			AND eu.PHONE = #{phone}
+		</if>
+		<if test="time != null and time !=''">
+			AND eo.PAY_TIME BETWEEN #{payTimeStart} AND #{payTimeEnd}
+		</if>
+		<if test="orderState != null and orderState !=''">
+			AND eo.ORDER_STATE = #{orderState}
+		</if>
+		<if test="orderId != null and orderId !=''">
+			AND eo.ORDER_ID = #{orderId}
+		</if>
+		<if test="payType != null and payType !=''">
+			AND eo.PAY_TYPE = #{payType}
+		</if>
+		<if test="province!=null and province!=0">
+			AND euc.`PROVINCE`=#{province}
+		</if>
+		<if test="city!=null and city!=0">
+			AND euc.`CITY`=#{city}
+		</if>
+		<if test="area!=null and area!=0">
+			AND euc.`AREA`=#{area}
+		</if>
+		<if test="goodsId!=null and goodsId!=''">
+			AND eo.`GOODSID`=#{goodsId}
+		</if>
+		GROUP BY eo.ORDER_NUMBER
+		ORDER BY eo.PAY_TIME DESC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 根据订单编号取出每个订单包含的商品List -->
+	<select id="getOrderGoods" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_order WHERE ORDER_NUMBER=#{orderNumber}
+	</select>
+	<!-- 根据订单编号取出每个订单包含的商品List,用于订单导出 -->
+	<select id="getOrderGoods2" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  eo.*,
+		  es.STORE_ID,
+		  es.STORE_NAME,
+		  eu.`NICKNAME`,
+		  eu.`PHONE`,
+		  ed.`DESCRIBES`,
+		  ea1.CITY_NAME AS province,
+		  ea2.CITY_NAME AS city,
+		  ea3.CITY_NAME AS a,
+		  ea4.CITY_NAME AS userArea,
+		  ea5.CITY_NAME AS userCity,
+		  ea6.CITY_NAME AS userProvince,
+		  el.COMPANY_NAME AS company
+		FROM
+		  es_order eo
+		  LEFT OUTER JOIN es_goods eg ON eo.`GOODSID` = eg.`GOODSID`
+		  LEFT OUTER JOIN es_store es ON eg.`STORE_ID` = es.`STORE_ID`
+		  LEFT OUTER JOIN es_user_certification euc ON es.`USERS_ID`=euc.USERS_ID
+		  LEFT OUTER JOIN es_users eu ON eo.`USERS_ID` = eu.`USERS_ID`
+		  LEFT OUTER JOIN es_dictionary ed ON eo.`ORDER_STATE` = ed.`DICTIONARY_VALUE`
+		  LEFT OUTER JOIN es_area ea1 ON euc.PROVINCE=ea1.CITY_CODE
+		  LEFT OUTER JOIN es_area ea2 ON euc.CITY=ea2.CITY_CODE
+		  LEFT OUTER JOIN es_area ea3 ON euc.AREA=ea3.CITY_CODE
+		  LEFT OUTER JOIN es_area ea4 ON eo.`AREA`=ea4.CITY_CODE
+		  LEFT OUTER JOIN es_area ea5 ON ea4.PID=ea5.CITY_CODE
+		  LEFT OUTER JOIN es_area ea6 ON ea5.PID=ea6.CITY_CODE
+		  LEFT OUTER JOIN es_logistics el ON eo.COURIER_COMPANY=el.COMPANY_CODE
+		<where>
+		eo.ORDER_STATE!='ORDER_STATE_NO_PAY'
+		AND eo.ORDER_NUMBER = #{orderNumber}
+		<if test="contact != null and contact !=''">
+			AND eo.CONTACT = #{contact}
+		</if>
+		<if test="the_awb != null and the_awb !=''">
+			AND eo.THE_AWB = #{the_awb}
+		</if>
+		<if test="phone != null and phone !=''">
+			AND eu.PHONE = #{phone}
+		</if>
+		<if test="time != null and time !=''">
+			AND eo.PAY_TIME BETWEEN #{payTimeStart} AND #{payTimeEnd}
+		</if>
+		<if test="fhTime != null and fhTime !=''">
+			AND eo.DELIVERY_TIME BETWEEN #{fhTimeStart} AND #{fhTimeEnd}
+		</if>
+		<if test="shTime != null and shTime !=''">
+			AND eo.SHTIME BETWEEN #{shTimeStart} AND #{shTimeEnd}
+		</if>
+		<if test="orderState != null and orderState !=''">
+			AND eo.ORDER_STATE = #{orderState}
+		</if>
+		<if test="orderId != null and orderId !=''">
+			AND eo.ORDER_ID = #{orderId}
+		</if>
+		<if test="payType != null and payType !=''">
+			AND eo.PAY_TYPE = #{payType}
+		</if>
+		<if test="province!=null and province!=0">
+			AND euc.`PROVINCE`=#{province}
+		</if>
+		<if test="city!=null and city!=0">
+			AND euc.`CITY`=#{city}
+		</if>
+		<if test="area!=null and area!=0">
+			AND euc.`AREA`=#{area}
+		</if>
+		<if test="goodsId!=null and goodsId!=''">
+			AND eo.`GOODSID`=#{goodsId}
+		</if>
+		</where>
+		ORDER BY eo.PAY_TIME DESC
+	</select>
+	<!-- 获取物流公司 -->
+	<select id="getLogistics" resultType="java.util.Map">
+		SELECT * FROM es_logistics
+	</select>
+	<!-- 查询订单的物流信息 -->
+	<select id="getOrderLogisticsList" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT eo.*,el.COMPANY_NAME,el.COMPANY_CODE FROM es_order eo,es_logistics el WHERE ORDER_NUMBER=#{orderNumber} and eo.COURIER_COMPANY=el.COMPANY_CODE GROUP BY THE_AWB
+	</select>
+	<!-- 根据运单号取出订单包含的商品List -->
+	<select id="getOrderByAWB" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_order WHERE THE_AWB=#{awb}
+	</select>
+	<!-- 通过Id获取订单信息 -->
+	<select id="getOrderById" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT o.*,u.`NICKNAME`,u.`PHONE`,d.`DESCRIBES`,ea1.CITY_NAME AS a,
+		ea2.CITY_NAME AS c,
+		ea3.CITY_NAME AS p
+		FROM es_order o,es_users u,es_dictionary d,es_area ea1,
+		es_area ea2,
+		es_area ea3
+		WHERE 
+		o.`USERS_ID`=u.`USERS_ID` AND o.ORDER_STATE=d.DICTIONARY_VALUE AND o.ORDER_ID=#{orderId} and o.`AREA` = ea1.CITY_CODE
+		and ea1.PID=ea2.CITY_CODE
+		and ea2.PID=ea3.CITY_CODE
+	</select>
+	<!-- 通过订单编号获取订单列表 -->
+	<select id="getOrderByOrderNumber" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT 
+		o.*,
+		u.`NICKNAME`,
+		u.`PHONE`,
+		d.`DESCRIBES`,
+		ea1.CITY_NAME AS a,
+		ea2.CITY_NAME AS c,
+		ea3.CITY_NAME AS p
+		FROM
+		es_order o,
+		es_users u,
+		es_dictionary d,
+		es_area ea1,
+		es_area ea2,
+		es_area ea3
+		WHERE 
+		o.`USERS_ID`=u.`USERS_ID` 
+		AND o.ORDER_STATE=d.DICTIONARY_VALUE
+		AND o.ORDER_NUMBER=#{orderNumber}
+		and o.`AREA` = ea1.CITY_CODE
+		and ea1.PID=ea2.CITY_CODE
+		and ea2.PID=ea3.CITY_CODE
+		GROUP BY ORDER_NUMBER
+	</select>
+	<!-- 通过Id获取订单信息 -->
+	<select id="getOrders" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT o.*,u.`NICKNAME`,u.`PHONE`,d.`DESCRIBES`
+		FROM es_order o,es_users u,es_dictionary d
+		WHERE 
+		o.`USERS_ID`=u.`USERS_ID` AND o.ORDER_STATE=d.DICTIONARY_VALUE AND o.ORDER_ID=#{orderId}
+	</select>
+	<!-- 根据店铺id获取店铺信息 -->
+	<select id="getStoreInfoById" parameterType="java.lang.String" resultType="java.util.Map">
+		select * from es_store where STORE_ID=#{storeId}
+	</select>
+	<!-- 获取卖家信息 -->
+	<select id="getStoreUser" parameterType="java.lang.String" resultType="java.util.Map">
+		select
+		eu.`USERS_ID`,
+		euc.`UC_NAMES`,
+		eu.`PHONE`,
+		es.`STORE_NAME`,
+		ed1.`DESCRIBES` as STORE_TYPE,
+		ed2.`DESCRIBES` AS LEVELS
+		from 
+		es_store es,
+		es_users eu,
+		es_user_certification euc, 
+		es_store_certification esc,
+		es_dictionary ed1,
+		es_dictionary ed2
+		where 
+		es.STORE_ID=#{storeId} 
+		and esc.`STORE_ID`=es.`STORE_ID`
+		and es.`USERS_ID`=eu.`USERS_ID` 
+		and eu.`USERS_ID`=euc.`USERS_ID`
+		and esc.`STORE_TYPE`=ed1.`DICTIONARY_VALUE`
+		AND esc.`LEVELS`=ed2.`DICTIONARY_VALUE`
+	</select>
+	<!-- 未分页的所有订单 -->
+	<select id="getAllOrderList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  eo.*,
+		  es.STORE_ID,
+		  es.STORE_NAME,
+		  eu.`NICKNAME`,
+		  eu.`PHONE`,
+		  ed.`DESCRIBES`,
+		  ea1.CITY_NAME AS province,
+		  ea2.CITY_NAME AS city,
+		  ea3.CITY_NAME AS a,
+		  ea4.CITY_NAME AS userArea,
+		  ea5.CITY_NAME AS userCity,
+		  ea6.CITY_NAME AS userProvince,
+		  el.COMPANY_NAME AS company
+		FROM
+		  es_order eo
+		  LEFT OUTER JOIN es_goods eg ON eo.`GOODSID` = eg.`GOODSID`
+		  LEFT OUTER JOIN es_store es ON eg.`STORE_ID` = es.`STORE_ID`
+		  LEFT OUTER JOIN es_user_certification euc ON es.`USERS_ID`=euc.USERS_ID
+		  LEFT OUTER JOIN es_users eu ON eo.`USERS_ID` = eu.`USERS_ID`
+		  LEFT OUTER JOIN es_dictionary ed ON eo.`ORDER_STATE` = ed.`DICTIONARY_VALUE`
+		  LEFT OUTER JOIN es_area ea1 ON euc.PROVINCE=ea1.CITY_CODE
+		  LEFT OUTER JOIN es_area ea2 ON euc.CITY=ea2.CITY_CODE
+		  LEFT OUTER JOIN es_area ea3 ON euc.AREA=ea3.CITY_CODE
+		  LEFT OUTER JOIN es_area ea4 ON eo.`AREA`=ea4.CITY_CODE
+		  LEFT OUTER JOIN es_area ea5 ON ea4.PID=ea5.CITY_CODE
+		  LEFT OUTER JOIN es_area ea6 ON ea5.PID=ea6.CITY_CODE
+		  LEFT OUTER JOIN es_logistics el ON eo.COURIER_COMPANY=el.COMPANY_CODE
+		<where>
+		eo.ORDER_STATE!='ORDER_STATE_NO_PAY'
+		<if test="contact != null and contact !=''">
+			AND eo.CONTACT = #{contact}
+		</if>
+		<if test="orderNumber != null and orderNumber !=''">
+			AND eo.ORDER_NUMBER = #{orderNumber}
+		</if>
+		<if test="the_awb != null and the_awb !=''">
+			AND eo.THE_AWB = #{the_awb}
+		</if>
+		<if test="phone != null and phone !=''">
+			AND eu.PHONE = #{phone}
+		</if>
+		<if test="time != null and time !=''">
+			AND eo.PAY_TIME BETWEEN #{payTimeStart} AND #{payTimeEnd}
+		</if>
+		<if test="fhTime != null and fhTime !=''">
+			AND eo.DELIVERY_TIME BETWEEN #{fhTimeStart} AND #{fhTimeEnd}
+		</if>
+		<if test="shTime != null and shTime !=''">
+			AND eo.SHTIME BETWEEN #{shTimeStart} AND #{shTimeEnd}
+		</if>
+		<if test="orderState != null and orderState !=''">
+			AND eo.ORDER_STATE = #{orderState}
+		</if>
+		<if test="orderId != null and orderId !=''">
+			AND eo.ORDER_ID = #{orderId}
+		</if>
+		<if test="payType != null and payType !=''">
+			AND eo.PAY_TYPE = #{payType}
+		</if>
+		<if test="province!=null and province!=0">
+			AND euc.`PROVINCE`=#{province}
+		</if>
+		<if test="city!=null and city!=0">
+			AND euc.`CITY`=#{city}
+		</if>
+		<if test="area!=null and area!=0">
+			AND euc.`AREA`=#{area}
+		</if>
+		<if test="goodsId!=null and goodsId!=''">
+			AND eo.`GOODSID`=#{goodsId}
+		</if>
+		</where>
+		GROUP BY eo.`ORDER_NUMBER`
+		ORDER BY eo.PAY_TIME DESC
+	</select>
+	<!-- 分页的所有订单 -->
+	<select id="getAllOrderListPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		  eo.*,
+		  es.STORE_ID,
+		  es.STORE_NAME,
+		  eu.`NICKNAME`,
+		  eu.`PHONE`,
+		  ed.`DESCRIBES`,
+		  ea1.CITY_NAME AS province,
+		  ea2.CITY_NAME AS city,
+		  ea3.CITY_NAME AS a,
+		  ea4.CITY_NAME AS userArea,
+		  ea5.CITY_NAME AS userCity,
+		  ea6.CITY_NAME AS userProvince,
+		  el.COMPANY_NAME AS company
+		FROM
+		  es_order eo
+		  LEFT OUTER JOIN es_goods eg ON eo.`GOODSID` = eg.`GOODSID`
+		  LEFT OUTER JOIN es_store es ON eg.`STORE_ID` = es.`STORE_ID`
+		  LEFT OUTER JOIN es_user_certification euc ON es.`USERS_ID`=euc.USERS_ID
+		  LEFT OUTER JOIN es_users eu ON eo.`USERS_ID` = eu.`USERS_ID`
+		  LEFT OUTER JOIN es_dictionary ed ON eo.`ORDER_STATE` = ed.`DICTIONARY_VALUE`
+		  LEFT OUTER JOIN es_area ea1 ON euc.PROVINCE=ea1.CITY_CODE
+		  LEFT OUTER JOIN es_area ea2 ON euc.CITY=ea2.CITY_CODE
+		  LEFT OUTER JOIN es_area ea3 ON euc.AREA=ea3.CITY_CODE
+		  LEFT OUTER JOIN es_area ea4 ON eo.`AREA`=ea4.CITY_CODE
+		  LEFT OUTER JOIN es_area ea5 ON ea4.PID=ea5.CITY_CODE
+		  LEFT OUTER JOIN es_area ea6 ON ea5.PID=ea6.CITY_CODE
+		  LEFT OUTER JOIN es_logistics el ON eo.COURIER_COMPANY=el.COMPANY_CODE
+		<where>
+		eo.ORDER_STATE!='ORDER_STATE_NO_PAY'
+		<if test="contact != null and contact !=''">
+			AND eo.CONTACT = #{contact}
+		</if>
+		<if test="orderNumber != null and orderNumber !=''">
+			AND eo.ORDER_NUMBER = #{orderNumber}
+		</if>
+		<if test="the_awb != null and the_awb !=''">
+			AND eo.THE_AWB = #{the_awb}
+		</if>
+		<if test="phone != null and phone !=''">
+			AND eu.PHONE = #{phone}
+		</if>
+		<if test="time != null and time !=''">
+			AND eo.PAY_TIME BETWEEN #{payTimeStart} AND #{payTimeEnd}
+		</if>
+		<if test="fhTime != null and fhTime !=''">
+			AND eo.DELIVERY_TIME BETWEEN #{fhTimeStart} AND #{fhTimeEnd}
+		</if>
+		<if test="shTime != null and shTime !=''">
+			AND eo.SHTIME BETWEEN #{shTimeStart} AND #{shTimeEnd}
+		</if>
+		<if test="orderState != null and orderState !=''">
+			AND eo.ORDER_STATE = #{orderState}
+		</if>
+		<if test="orderId != null and orderId !=''">
+			AND eo.ORDER_ID = #{orderId}
+		</if>
+		<if test="payType != null and payType !=''">
+			AND eo.PAY_TYPE = #{payType}
+		</if>
+		<if test="province!=null and province!=0">
+			AND euc.`PROVINCE`=#{province}
+		</if>
+		<if test="city!=null and city!=0">
+			AND euc.`CITY`=#{city}
+		</if>
+		<if test="area!=null and area!=0">
+			AND euc.`AREA`=#{area}
+		</if>
+		<if test="goodsId!=null and goodsId!=''">
+			AND eo.`GOODSID`=#{goodsId}
+		</if>
+		</where>
+		GROUP BY eo.`ORDER_NUMBER`
+		ORDER BY eo.PAY_TIME DESC
+		LIMIT #{which},#{limit}
+	</select>
+	<!-- 仲裁 -->
+	<update id="arbitration" parameterType="java.util.Map">
+		UPDATE es_order SET ZRPD=#{duty},CXYY=#{reason},CXTIME=NOW(),ORDER_STATE='ORDER_STATE_YCX' WHERE ORDER_NUMBER=#{orderNumber}
+	</update>
+	<!-- 通过id拿到用户账号的状态（正常/冻结） -->
+	<select id="getUserState" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT STATE FROM es_users WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 用户余额 -->
+	<select id="getUserMoneys" parameterType="java.lang.String" resultType="java.lang.Double">
+		SELECT MONEYS FROM es_users WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 用户零花钱 -->
+	<select id="getUserPocketMoney" parameterType="java.lang.String" resultType="java.lang.Double">
+		SELECT POCKETMONEY FROM es_users WHERE USERS_ID=#{userId}
+	</select>
+	<!-- 改变用户的余额 -->
+	<update id="changeUserMoneys" parameterType="java.util.Map">
+		UPDATE 
+		es_users 
+		SET 
+		<if test="type==1">
+			MONEYS=MONEYS+#{money}
+		</if>
+		<if test="type==2">
+			MONEYS=MONEYS-#{money}
+		</if> 
+		WHERE 
+		USERS_ID=#{userId}
+	</update>
+	<!-- 改变用户的零花钱 -->
+	<update id="changeUserPocketMoney" parameterType="java.util.Map">
+		UPDATE 
+		es_users 
+		SET 
+		<if test="type==1">
+			POCKETMONEY=POCKETMONEY+#{money}
+		</if>
+		<if test="type==2">
+			POCKETMONEY=POCKETMONEY-#{money}
+		</if> 
+		WHERE 
+		USERS_ID=#{userId}
+	</update>
+	<!-- 改变用户的消费券 -->
+	<update id="changeUserConsumption" parameterType="java.util.Map">
+		UPDATE 
+		es_users 
+		SET 
+		<if test="type==1">
+			CONSUMPTION_VOLUME=CONSUMPTION_VOLUME+#{money}
+		</if>
+		<if test="type==2">
+			CONSUMPTION_VOLUME=CONSUMPTION_VOLUME-#{money}
+		</if> 
+		WHERE 
+		USERS_ID=#{userId}
+	</update>
+	<!-- 改变用户的积分 -->
+	<update id="changeUserIntegral" parameterType="java.util.Map">
+		UPDATE 
+		es_users 
+		SET 
+		<if test="type==1">
+			INTEGRAL=INTEGRAL+#{money}
+		</if>
+		<if test="type==2">
+			INTEGRAL=INTEGRAL-#{money}
+		</if> 
+		WHERE 
+		USERS_ID=#{userId}
+	</update>
+	<!-- 改变站长金额 -->
+	<update id="changeWebMasterMoney" parameterType="java.util.Map">
+		UPDATE 
+		es_users 
+		SET 
+		<if test="type==1">
+			WEBMASTER_MONEY=WEBMASTER_MONEY+#{money}
+		</if>
+		<if test="type==2">
+			WEBMASTER_MONEY=WEBMASTER_MONEY-#{money}
+		</if> 
+		WHERE 
+		USERS_ID=#{userId}
+	</update>
+	
+	<!-- 添加余额流水 -->
+	<insert id="addMoneyWater" parameterType="java.util.Map">
+		INSERT INTO es_money_water VALUES(#{moneyWaterId},#{userId},#{money},NOW(),#{type},#{name})
+	</insert>
+	<!-- 添加零花钱流水 -->
+	<insert id="addPocketMoneyWater" parameterType="java.util.Map">
+		INSERT INTO es_pocket_money VALUES(#{pocketMoneyWaterId},#{userId},#{money},NOW(),#{type},#{name})
+	</insert>
+	<!-- 添加消费券流水 -->
+	<insert id="addConsumpationWater" parameterType="java.util.Map">
+		INSERT INTO es_consumption_volume VALUES(#{consumptionWaterId},#{userId},#{money},NOW(),#{type},#{name})
+	</insert>
+	<!-- 添加积分流水 -->
+	<insert id="addIntegralWater" parameterType="java.util.Map">
+		INSERT INTO es_integral VALUES(#{consumptionWaterId},#{userId},#{money},NOW(),#{type},#{name})
+	</insert>
+	<!-- 添加站长收支流水 -->
+	<insert id="addWebMasterWater" parameterType="java.util.Map">
+		INSERT INTO es_zz_payments VALUES(#{webMasterWaterId},#{userId},#{money},NOW(),#{type},#{name})
+	</insert>
+	<!-- 添加收益流水 -->
+	<insert id="addRunningWater" parameterType="java.util.Map">
+		INSERT INTO es_running_water VALUES(#{runningWaterId},#{userId},#{waterType},#{money},NOW(),#{name},#{moneyType})
+	</insert>
+	<!-- 添加分享奖励流水 -->
+	<insert id="addShareAwardWater" parameterType="java.util.Map">
+		INSERT INTO es_share_reward VALUES(#{shareAwardId},#{donUserId},#{userId},#{moneys},#{type},NOW())
+	</insert>
+	<!-- 改变用户的分享奖励金额/积分 -->
+	<update id="changeShareReward" parameterType="java.util.Map">
+		UPDATE es_users 
+		SET 
+		<if test="type==1">
+			SHARE_SUM_REWARD=SHARE_SUM_REWARD+#{count} 
+		</if>
+		<if test="type==2">
+			SUMJF=SUMJF+#{count} 
+		</if>
+		WHERE 
+		USERS_ID=#{userId}
+	</update>
+	<!-- 查询订单的所有状态 -->
+	<select id="getOrderState" resultType="java.util.Map">
+		SELECT * FROM es_dictionary WHERE PID='32' AND DICTIONARY_VALUE != 'ORDER_STATE_NO_PAY'
+	</select>
+	<!-- 得到所有的商品列表 -->
+	<select id="getGoods" resultType="java.util.Map">
+		SELECT * FROM es_goods
+	</select>
+	<!-- 得到本店所有的商品列表 -->
+	<select id="getStoreGoods" parameterType="java.lang.String" resultType="java.util.Map">
+		SELECT * FROM es_goods WHERE STORE_ID=#{storeId}
+	</select>
+</mapper>

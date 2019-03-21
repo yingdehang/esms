@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.userManage.NameVerifyDao">
+	<!-- 查询实名认证 -->
+	<select id="searchNameVerify" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		euc.USERS_ID,
+		eu.`NICKNAME`,
+		eu.`PHONE`,
+		eu.`REGISTERED_TIME`,
+		euc.`TO_APPLY_FOR_TIME`,
+		ea1.`CITY_NAME` AS PROVINCE,
+		ea2.`CITY_NAME` AS CITY,
+		ea3.`CITY_NAME` AS `AREA`,
+		euc.UC_NAMES,
+		euc.ID_CARD,
+		euc.IS_PHOTO,
+		euc.THE_PHOTO,
+		euc.HEAD_PHOTO
+		FROM 
+		es_user_certification euc 
+		LEFT OUTER JOIN es_users eu ON euc.`USERS_ID`=eu.`USERS_ID`
+		LEFT OUTER JOIN es_area ea1 ON euc.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea2 ON euc.CITY=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON euc.AREA=ea3.`CITY_CODE`
+		WHERE 
+		euc.`STATE`='USER_AUTHENTICATION_DSH' OR euc.`STATE`='USER_AUTHENTICATION_RZZ'
+		ORDER BY euc.`TO_APPLY_FOR_TIME` ASC  
+	</select>
+	<!-- 查询实名认证并分页 -->
+	<select id="searchNameVerifyPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT
+		euc.USERS_ID,
+		eu.`NICKNAME`,
+		eu.`PHONE`,
+		eu.`REGISTERED_TIME`,
+		euc.`TO_APPLY_FOR_TIME`,
+		ea1.`CITY_NAME` AS PROVINCE,
+		ea2.`CITY_NAME` AS CITY,
+		ea3.`CITY_NAME` AS `AREA`,
+		euc.UC_NAMES,
+		euc.ID_CARD,
+		euc.IS_PHOTO,
+		euc.THE_PHOTO,
+		euc.HEAD_PHOTO
+		FROM 
+		es_user_certification euc 
+		LEFT OUTER JOIN es_users eu ON euc.`USERS_ID`=eu.`USERS_ID`
+		LEFT OUTER JOIN es_area ea1 ON euc.`PROVINCE`=ea1.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea2 ON euc.CITY=ea2.`CITY_CODE`
+		LEFT OUTER JOIN es_area ea3 ON euc.AREA=ea3.`CITY_CODE`
+		WHERE 
+		euc.`STATE`='USER_AUTHENTICATION_DSH' OR euc.`STATE`='USER_AUTHENTICATION_RZZ'
+		ORDER BY euc.`TO_APPLY_FOR_TIME` ASC
+		limit #{which},#{limit}
+	</select>
+	<!-- 获取实名认证状态 -->
+	<select id="getVerifyStates" resultType="java.util.Map">
+		SELECT * FROM es_dictionary WHERE PID='18' AND DICTIONARY_VALUE!='USER_AUTHENTICATION_UNAUTHORIZED' AND DICTIONARY_VALUE!='USER_AUTHENTICATION_DSH' AND DICTIONARY_VALUE!='USER_AUTHENTICATION_RZZ' 
+	</select>
+	<!-- 判断此用户的身份证是否已被注册 -->
+	<select id="getUserByIdCard" parameterType="java.lang.String" resultType="int">
+		select COUNT(USERS_ID) from es_user_certification where ID_CARD=(SELECT ID_CARD FROM es_user_certification where USERS_ID=#{userId}) and USERS_ID!=#{userId}
+	</select>
+	<!-- 通过认证 -->
+	<update id="pass" parameterType="java.util.Map">
+		UPDATE es_user_certification 
+		SET 
+		STATE=#{verifyState},
+		TO_APPLY_FOR_TIME=NOW()
+		WHERE USERS_ID=#{userId}
+	</update>
+	<!-- 认证失败 -->
+	<update id="refuse" parameterType="java.util.Map">
+		UPDATE es_user_certification 
+		SET 
+		STATE=#{verifyState}, 
+		CONTENT=#{content},
+		ID_CARD=null,
+		UC_NAMES=null,
+		IS_PHOTO=null,
+		THE_PHOTO=null,
+		PROVINCE=null,
+		CITY=null,
+		AREA=null,
+		HEAD_PHOTO=null,
+		TO_APPLY_FOR_TIME=null
+		WHERE USERS_ID=#{userId}
+	</update>
+	<!-- 查询用户的实名认证状态 -->
+	<select id="getVerifyStateById" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT STATE FROM es_user_certification WHERE USERS_ID=#{userId}
+	</select>
+</mapper>

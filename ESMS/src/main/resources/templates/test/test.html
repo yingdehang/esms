@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>循环</title>
+<style>
+.box {
+	width: 608px;
+	height: 300px;
+}
+
+.content {
+	float: left;
+	width: 200px;
+	height: 300px;
+	border: 1px solid blue;
+}
+
+.imgbox {
+	width: 200px;
+	height: 150px;
+}
+
+.title {
+	width: 200px;
+	height: 50px;
+}
+
+.delit {
+	width: 200px;
+	height: 100px;
+}
+</style>
+</head>
+<body class="layui-layout-body">
+	<div class="box">
+		<div th:each="plist:${plist}" class="content">
+			<div class="imgbox">
+				<img th:src="${plist.filename1}" width="100%" height="100%" />
+			</div>
+			<div class="title" th:text="${plist.theme}"></div>
+			<div class="delit" th:text="${plist.pcontent}"></div>
+		</div>
+	</div>
+</body>
+</html>

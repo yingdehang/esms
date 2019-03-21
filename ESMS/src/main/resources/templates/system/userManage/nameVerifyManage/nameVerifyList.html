@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>实名认证</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<div class="layui-form layui-form-pane" id="verify"
+	style="display: none; margin-left: 50px; margin-top: 20px">
+	<div class="layui-form-item">
+		<label class="layui-form-label">认证</label>
+		<div class="layui-input-inline">
+			<select name="quiz1" id="verifyState" lay-filter="changeState">
+				<option th:each="verifyStates:${verifyStates}"
+					th:value="${verifyStates.DICTIONARY_VALUE}"
+					th:text="${verifyStates.DESCRIBES}"></option>
+			</select>
+		</div>
+	</div>
+	<div class="layui-form-item" style="display: none" id="reason">
+		<label class="layui-form-label">失败原因</label>
+		<div class="layui-input-inline">
+			<input class="layui-input" id="content" />
+		</div>
+	</div>
+</div>
+<body>
+	<div style="padding-bottom: 10px; border-bottom: 2px solid #5FB878">
+		<h2>
+			<a href="javascript:void(0)" onclick="location.reload()">用户实名认证审核</a>
+		</h2>
+	</div>
+
+	<table id="nameVerifyList" lay-filter="operation"></table>
+
+	<script th:src="@{/layui/layui.js}"></script>
+	<script type="text/javascript">
+/*<![CDATA[*/
+layui.use(['table','jquery','layer','form'], function(){
+	var table = layui.table;
+	var $ = layui.jquery;
+	var layer = layui.layer;
+	var form = layui.form;
+	<!-- 表格加载 -->
+	table.render({
+		elem: '#nameVerifyList'
+		,url: '/nameVerify/getNameVerifyList'
+		,page: true
+		,cols:[[
+			{field:'PHONE',title:'用户手机号'}
+			,{field:'ID_CARD',title:'身份证号'}
+			,{field:'NICKNAME',title:'用户昵称'}
+			,{field:'UC_NAMES',title:'真实姓名'}
+			,{field:'IS_PHOTO',title:'手持证件照',toolbar: '#is_photo'}
+			,{field:'THE_PHOTO',title:'身份证正面',toolbar: '#the_photo'}
+			,{field:'HEAD_PHOTO',title:'身份证反面',toolbar: '#head_photo'}
+			,{field:'area',title:'地区'}
+			,{field:'REGISTERED_TIME',title:'注册时间'}
+			,{field:'TO_APPLY_FOR_TIME',title:'申请时间'}
+			,{fixed: 'right', width:150, align:'center', toolbar: '#toolbar',title:'操作'}
+		]]
+	});
+	<!-- 监听工具条操作 -->
+	table.on('tool(operation)', function(obj){ 
+		var data = obj.data; //获得当前行数据
+		var layEvent = obj.event;
+		if(layEvent === 'verify'){ //审核
+			layer.open({
+				type:1,
+				content:$('#verify'),
+				title:['实名认证',''],
+				area:['400px','250px'],
+				shade: 0,
+		        maxmin: true,
+			    btnAlign: 'c',
+				btn:['确定','取消']
+				,yes: function(index, layero){
+					var userId = data.USERS_ID;
+					var verifyState = $("#verifyState").val();
+					var content = $("#content").val();
+					if(verifyState=='USER_AUTHENTICATION_NO'&&content=='')
+					{
+						layer.msg("请填写认证失败理由");
+					}
+					else
+					{
+						$.ajax({   
+							type : "POST",
+							async:false,
+							url : "/nameVerify/toVerify",   
+							data : {   
+								userId:userId,verifyState:verifyState,content:content
+							},  
+							success : function(da) {
+								if(da!="ok")
+								{
+									layer.msg(da);
+								}
+							}   
+						});   
+						$("#content").val("");
+						layer.close(index);
+						table.reload('nameVerifyList', {
+						});
+					}
+				}
+				,btn2:function(index, layero){
+					$("#content").val("");
+					layer.close(index);
+				}
+			});
+		}
+	});
+	form.on('select(changeState)', function(data){
+		if(data.value=='USER_AUTHENTICATION_NO')
+		{
+			$("#reason").css("display","block");
+		}
+		if(data.value=='USER_AUTHENTICATION_PASS')
+		{
+			$("#content").val("");
+			$("#reason").css("display","none");
+		}
+	}); 
+});
+function showPhoto(t) {
+	layer.open({
+		type : 1,
+		title : false,
+		area : 'auto',
+		maxWidth : '750px',
+		anim : 0,
+		skin : 'layui-layer-nobg', //没有背景色
+		shadeClose : true,
+		content : '<img src="'+t.src+'" width="750px"/>'
+	});
+}
+/*]]>*/
+</script>
+	<script type="text/html" id="toolbar">
+	<a class="layui-btn layui-btn-xs" lay-event="verify" th:if="${nameVerify}">实名认证</a>
+</script>
+	<script type="text/html" id="is_photo">
+	<img src="{{d.IS_PHOTO}}" onclick="showPhoto(this)"/>
+</script>
+	<script type="text/html" id="the_photo">
+	<img src="{{d.THE_PHOTO}}" onclick="showPhoto(this)"/>
+</script>
+	<script type="text/html" id="head_photo">
+	<img src="{{d.HEAD_PHOTO}}" onclick="showPhoto(this)"/>
+</script>
+</body>
+</html>

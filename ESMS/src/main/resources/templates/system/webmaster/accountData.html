@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>账户数据</title>
+<link rel="stylesheet" th:href="@{/layui/css/layui.css}" />
+</head>
+<body>
+	<!-- 账户数据顶部 -->
+	<div class="layui-tab layui-tab-card demoTable" style="height: 32px;">
+		<div
+			style="float: left; padding-left: 10px; line-height: 32px; font-size: 14px;">
+			<label><a href="/webmaster/toWebmasterHtml">站长主页</a>>账户数据</label>
+		</div>
+		<div style="float: right; line-height: 32px; padding-right: 10px;">
+			<button class="layui-btn layui-btn-primary layui-btn-xs"
+				data-type="batchExport">导出列表</button>
+		</div>
+	</div>
+	<div class="layui-form-item">
+		<div class="layui-inline"
+			style="padding: 15px; height: 100%; border: 1px solid #494848; border-radius: 2px;">
+			<strong>账户余额：¥<span class="zanzhangyue"
+				style="font-size: 20px; line-height: 100%;"
+				th:text="${webmaster.WEBMASTER_MONEY}"></span></strong>
+		</div>
+	</div>
+	<!-- 选项卡 -->
+	<div class="statebox">
+		<div class="layui-tab layui-tab-brief" lay-filter="ETYPE">
+			<ul class="layui-tab-title">
+				<li class="layui-this">收入明细</li>
+				<li>支出明细</li>
+			</ul>
+		</div>
+	</div>
+	<!-- 收索栏 -->
+	<div class="layui-form layui-form-pane demoTable">
+		<div class="layui-form-item">
+			<div class="layui-inline">
+				<label class="layui-form-label">注册时间</label>
+				<div class="layui-input-inline">
+					<input class="layui-input" id="startTime" type="text"
+						placeholder="yyyy-MM-dd HH:mm:ss" />
+				</div>
+				<div class="layui-form-mid">-</div>
+				<div class="layui-input-inline">
+					<input class="layui-input" id="endTime" type="text"
+						placeholder="yyyy-MM-dd HH:mm:ss" />
+				</div>
+				<button class="layui-btn" data-type="relocad">查询</button>
+			</div>
+		</div>
+	</div>
+	<!-- 账户信息 -->
+	<div class="tablebox">
+		<table class="layui-table" id="paymentlist" lay-filter="operating"></table>
+	</div>
+</body>
+<script th:src="@{/layui/layui.js}"></script>
+<script th:src="@{/js/webmasterJsFile/accountData.js}"></script>
+</html>

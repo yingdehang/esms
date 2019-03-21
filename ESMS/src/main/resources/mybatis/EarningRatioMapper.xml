@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.elephantshopping.dao.operationsManage.EarningRatioDao">
+	<!-- 未分页的收益比例数据 -->
+	<select id="getEarningRatio" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM es_earnings_ratio ORDER BY ADD_TIME DESC
+	</select>
+	<!-- 已分页的收益比例数据 -->
+	<select id="getEarningRatioPage" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT * FROM es_earnings_ratio ORDER BY ADD_TIME DESC LIMIT #{which},#{limit}
+	</select>
+	<!-- 删除 -->
+	<delete id="delete" parameterType="java.lang.String">
+		delete from es_earnings_ratio where EARNINGS_RATIO_ID=#{id}
+	</delete>
+	<!-- 修改 -->
+	<update id="edit" parameterType="java.util.Map">
+		update es_earnings_ratio 
+		<if test="field=='ER_VALUES'">
+			set ER_VALUES=#{value}
+		</if>
+		<if test="field=='NAMES'">
+			set NAMES=#{value}
+		</if>
+		where EARNINGS_RATIO_ID=#{id}
+	</update>
+	<!-- 添加 -->
+	<insert id="add" parameterType="java.util.Map">
+		insert into es_earnings_ratio values(#{id},#{name},#{value},now())
+	</insert>
+</mapper>
